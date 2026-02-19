@@ -1,8 +1,9 @@
 import { useRouter, useRouteContext } from "@tanstack/react-router";
-import { LogOut, Mail, PanelLeft, PanelLeftClose } from "lucide-react";
+import { LogOut, Mail, Moon, PanelLeft, PanelLeftClose, Sun } from "lucide-react";
 import { signOutFn } from "~/features/auth/api/auth-fns";
 import { useMutation } from "~/hooks/use-mutation";
 import { cn } from "~/lib/utils";
+import { useTheme } from "~/providers/theme-provider";
 import { SidebarNav } from "./SidebarNav";
 
 interface SidebarProps {
@@ -10,9 +11,22 @@ interface SidebarProps {
 	onToggle: () => void;
 }
 
+const THEME_CYCLE: Array<"light" | "dark" | "system"> = [
+	"light",
+	"dark",
+	"system",
+];
+
 export function Sidebar({ isCollapsed, onToggle }: SidebarProps) {
 	const router = useRouter();
 	const { user } = useRouteContext({ from: "/_authenticated" });
+	const { theme, setTheme } = useTheme();
+
+	const cycleTheme = () => {
+		const currentIndex = THEME_CYCLE.indexOf(theme);
+		const nextIndex = (currentIndex + 1) % THEME_CYCLE.length;
+		setTheme(THEME_CYCLE[nextIndex]);
+	};
 
 	const signOutMutation = useMutation({
 		fn: signOutFn,
@@ -64,6 +78,18 @@ export function Sidebar({ isCollapsed, onToggle }: SidebarProps) {
 					>
 						<LogOut className="h-4 w-4 shrink-0" />
 						{!isCollapsed && <span>Sign out</span>}
+					</button>
+					<button
+						type="button"
+						onClick={cycleTheme}
+						className="flex items-center justify-center rounded-md p-1.5 text-muted-foreground transition-colors hover:bg-muted hover:text-foreground"
+						title={`Theme: ${theme}`}
+					>
+						{theme === "dark" ? (
+							<Moon className="h-4 w-4" />
+						) : (
+							<Sun className="h-4 w-4" />
+						)}
 					</button>
 				</div>
 			</div>

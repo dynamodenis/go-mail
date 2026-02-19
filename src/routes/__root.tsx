@@ -1,6 +1,8 @@
 /// <reference types="vite/client" />
 import type { QueryClient } from "@tanstack/react-query";
+import { ReactQueryDevtools } from "@tanstack/react-query-devtools";
 import {
+	ClientOnly,
 	HeadContent,
 	Link,
 	Outlet,
@@ -11,6 +13,7 @@ import type { ReactNode } from "react";
 import { Toaster } from "sonner";
 import { fetchUser } from "~/features/auth/api/auth-fns";
 import type { User } from "~/features/auth/schemas/auth";
+import { ThemeProvider } from "~/providers/theme-provider";
 import appCss from "~/styles/app.css?url";
 
 interface RouterContext {
@@ -56,14 +59,23 @@ export const Route = createRootRouteWithContext<RouterContext>()({
 });
 
 function RootComponent() {
-	return <Outlet />;
+	return (
+		<>
+			<Outlet />
+			{/* <ClientOnly fallback={null}>
+				<ReactQueryDevtools buttonPosition="bottom-right" />
+			</ClientOnly> */}
+		</>
+	);
 }
 
 function NotFound() {
 	return (
 		<div className="flex min-h-screen flex-col items-center justify-center gap-4">
 			<h1 className="text-4xl font-bold">404</h1>
-			<p className="text-muted-foreground">The page you're looking for doesn't exist.</p>
+			<p className="text-muted-foreground">
+				The page you're looking for doesn't exist.
+			</p>
 			<div className="flex gap-2">
 				<button
 					type="button"
@@ -85,12 +97,14 @@ function NotFound() {
 
 function RootDocument({ children }: Readonly<{ children: ReactNode }>) {
 	return (
-		<html lang="en">
+		<html lang="en" suppressHydrationWarning>
 			<head>
 				<HeadContent />
 			</head>
 			<body>
-				{children}
+				<ThemeProvider>
+					{children}
+				</ThemeProvider>
 				<Toaster position="top-right" richColors />
 				<Scripts />
 			</body>

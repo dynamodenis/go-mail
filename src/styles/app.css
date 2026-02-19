@@ -1,47 +1,95 @@
 @import "tailwindcss" source("../");
 
+@custom-variant dark (&:is(.dark *));
+
 @theme {
-	/* Blue: rgb(8, 24, 84) */
-	--color-primary: rgba(8, 24, 84, 1);
-	--color-primary-foreground: rgba(255, 255, 255, 1);
-
-	/* Pink: rgb(218, 53, 155) */
-	--color-secondary: rgba(218, 53, 155, 1);
-	--color-secondary-foreground: rgba(255, 255, 255, 1);
-
-	/* White background */
-	--color-background: rgba(255, 255, 255, 1);
-	--color-foreground: rgba(38, 38, 38, 1);
-
-	/* Cards */
-	--color-card: rgba(255, 255, 255, 1);
-	--color-card-foreground: rgba(38, 38, 38, 1);
-
-	/* Popovers */
-	--color-popover: rgba(255, 255, 255, 1);
-	--color-popover-foreground: rgba(38, 38, 38, 1);
-
-	/* Muted */
-	--color-muted: rgba(245, 245, 245, 1);
-	--color-muted-foreground: rgba(115, 115, 115, 1);
-
-	/* Accent (light pink tint) */
-	--color-accent: rgba(253, 237, 247, 1);
-	--color-accent-foreground: rgba(218, 53, 155, 1);
-
-	/* Destructive */
-	--color-destructive: rgba(220, 38, 38, 1);
-	--color-destructive-foreground: rgba(220, 38, 38, 1);
-
-	/* Borders & inputs */
-	--color-border: rgba(229, 229, 229, 1);
-	--color-input: rgba(229, 229, 229, 1);
-	--color-ring: rgba(8, 24, 84, 0.5);
+	/* Register color names with Tailwind — actual values come from :root / .dark */
+	--color-primary: initial;
+	--color-primary-foreground: initial;
+	--color-secondary: initial;
+	--color-secondary-foreground: initial;
+	--color-background: initial;
+	--color-foreground: initial;
+	--color-card: initial;
+	--color-card-foreground: initial;
+	--color-popover: initial;
+	--color-popover-foreground: initial;
+	--color-muted: initial;
+	--color-muted-foreground: initial;
+	--color-accent: initial;
+	--color-accent-foreground: initial;
+	--color-destructive: initial;
+	--color-destructive-foreground: initial;
+	--color-border: initial;
+	--color-input: initial;
+	--color-ring: initial;
 
 	--radius-sm: 0.25rem;
 	--radius-md: 0.375rem;
 	--radius-lg: 0.5rem;
 	--radius-xl: 0.75rem;
+}
+
+/* Light mode (default) */
+:root {
+	--color-primary: rgba(8, 24, 84, 1);
+	--color-primary-foreground: rgba(255, 255, 255, 1);
+
+	--color-secondary: rgba(218, 53, 155, 1);
+	--color-secondary-foreground: rgba(255, 255, 255, 1);
+
+	--color-background: rgba(255, 255, 255, 1);
+	--color-foreground: rgba(38, 38, 38, 1);
+
+	--color-card: rgba(255, 255, 255, 1);
+	--color-card-foreground: rgba(38, 38, 38, 1);
+
+	--color-popover: rgba(255, 255, 255, 1);
+	--color-popover-foreground: rgba(38, 38, 38, 1);
+
+	--color-muted: rgba(245, 245, 245, 1);
+	--color-muted-foreground: rgba(115, 115, 115, 1);
+
+	--color-accent: rgba(253, 237, 247, 1);
+	--color-accent-foreground: rgba(218, 53, 155, 1);
+
+	--color-destructive: rgba(220, 38, 38, 1);
+	--color-destructive-foreground: rgba(220, 38, 38, 1);
+
+	--color-border: rgba(229, 229, 229, 1);
+	--color-input: rgba(229, 229, 229, 1);
+	--color-ring: rgba(8, 24, 84, 0.5);
+}
+
+/* Dark mode */
+.dark {
+	--color-primary: rgba(96, 120, 220, 1);
+	--color-primary-foreground: rgba(255, 255, 255, 1);
+
+	--color-secondary: rgba(236, 100, 180, 1);
+	--color-secondary-foreground: rgba(255, 255, 255, 1);
+
+	--color-background: rgba(10, 10, 10, 1);
+	--color-foreground: rgba(237, 237, 237, 1);
+
+	--color-card: rgba(24, 24, 27, 1);
+	--color-card-foreground: rgba(237, 237, 237, 1);
+
+	--color-popover: rgba(24, 24, 27, 1);
+	--color-popover-foreground: rgba(237, 237, 237, 1);
+
+	--color-muted: rgba(39, 39, 42, 1);
+	--color-muted-foreground: rgba(161, 161, 170, 1);
+
+	--color-accent: rgba(39, 24, 34, 1);
+	--color-accent-foreground: rgba(236, 100, 180, 1);
+
+	--color-destructive: rgba(239, 68, 68, 1);
+	--color-destructive-foreground: rgba(239, 68, 68, 1);
+
+	--color-border: rgba(39, 39, 42, 1);
+	--color-input: rgba(39, 39, 42, 1);
+	--color-ring: rgba(96, 120, 220, 0.5);
 }
 
 @layer base {
@@ -55,6 +103,10 @@
 
 	html {
 		color-scheme: light;
+	}
+
+	html.dark {
+		color-scheme: dark;
 	}
 
 	body {
