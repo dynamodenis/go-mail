@@ -9,15 +9,37 @@
 // Additionally, you should also exclude this file from your linter and/or formatter to prevent it from being checked or modified.
 
 import { Route as rootRouteImport } from './routes/__root'
-import { Route as AuthedRouteImport } from './routes/_authed'
+import { Route as AuthenticatedRouteImport } from './routes/_authenticated'
 import { Route as AuthRouteRouteImport } from './routes/_auth/route'
 import { Route as IndexRouteImport } from './routes/index'
-import { Route as AuthedDashboardRouteImport } from './routes/_authed/dashboard'
+import { Route as AuthenticatedDashboardRouteImport } from './routes/_authenticated/dashboard'
+import { Route as AuthenticatedCalendarRouteImport } from './routes/_authenticated/calendar'
 import { Route as AuthSignUpRouteImport } from './routes/_auth/sign-up'
 import { Route as AuthSignInRouteImport } from './routes/_auth/sign-in'
+import { Route as AuthenticatedTemplatesIndexRouteImport } from './routes/_authenticated/templates/index'
+import { Route as AuthenticatedReportsIndexRouteImport } from './routes/_authenticated/reports/index'
+import { Route as AuthenticatedContactsIndexRouteImport } from './routes/_authenticated/contacts/index'
+import { Route as AuthenticatedCampaignsIndexRouteImport } from './routes/_authenticated/campaigns/index'
+import { Route as AuthenticatedTemplatesNewRouteImport } from './routes/_authenticated/templates/new'
+import { Route as AuthenticatedSettingsTeamRouteImport } from './routes/_authenticated/settings/team'
+import { Route as AuthenticatedSettingsLogsRouteImport } from './routes/_authenticated/settings/logs'
+import { Route as AuthenticatedSettingsIntegrationsRouteImport } from './routes/_authenticated/settings/integrations'
+import { Route as AuthenticatedSettingsComplianceRouteImport } from './routes/_authenticated/settings/compliance'
+import { Route as AuthenticatedSettingsAccountRouteImport } from './routes/_authenticated/settings/account'
+import { Route as AuthenticatedReportsGrowthRouteImport } from './routes/_authenticated/reports/growth'
+import { Route as AuthenticatedReportsEngagementRouteImport } from './routes/_authenticated/reports/engagement'
+import { Route as AuthenticatedReportsDeliverabilityRouteImport } from './routes/_authenticated/reports/deliverability'
+import { Route as AuthenticatedEmailSentRouteImport } from './routes/_authenticated/email/sent'
+import { Route as AuthenticatedEmailInboxRouteImport } from './routes/_authenticated/email/inbox'
+import { Route as AuthenticatedEmailDraftsRouteImport } from './routes/_authenticated/email/drafts'
+import { Route as AuthenticatedContactsCollectionsRouteImport } from './routes/_authenticated/contacts/collections'
+import { Route as AuthenticatedContactsContactIdRouteImport } from './routes/_authenticated/contacts/$contactId'
+import { Route as AuthenticatedCampaignsNewRouteImport } from './routes/_authenticated/campaigns/new'
+import { Route as AuthenticatedCampaignsCampaignIdRouteImport } from './routes/_authenticated/campaigns/$campaignId'
+import { Route as AuthenticatedTemplatesTemplateIdEditRouteImport } from './routes/_authenticated/templates/$templateId.edit'
 
-const AuthedRoute = AuthedRouteImport.update({
-  id: '/_authed',
+const AuthenticatedRoute = AuthenticatedRouteImport.update({
+  id: '/_authenticated',
   getParentRoute: () => rootRouteImport,
 } as any)
 const AuthRouteRoute = AuthRouteRouteImport.update({
@@ -29,10 +51,15 @@ const IndexRoute = IndexRouteImport.update({
   path: '/',
   getParentRoute: () => rootRouteImport,
 } as any)
-const AuthedDashboardRoute = AuthedDashboardRouteImport.update({
+const AuthenticatedDashboardRoute = AuthenticatedDashboardRouteImport.update({
   id: '/dashboard',
   path: '/dashboard',
-  getParentRoute: () => AuthedRoute,
+  getParentRoute: () => AuthenticatedRoute,
+} as any)
+const AuthenticatedCalendarRoute = AuthenticatedCalendarRouteImport.update({
+  id: '/calendar',
+  path: '/calendar',
+  getParentRoute: () => AuthenticatedRoute,
 } as any)
 const AuthSignUpRoute = AuthSignUpRouteImport.update({
   id: '/sign-up',
@@ -44,56 +71,320 @@ const AuthSignInRoute = AuthSignInRouteImport.update({
   path: '/sign-in',
   getParentRoute: () => AuthRouteRoute,
 } as any)
+const AuthenticatedTemplatesIndexRoute =
+  AuthenticatedTemplatesIndexRouteImport.update({
+    id: '/templates/',
+    path: '/templates/',
+    getParentRoute: () => AuthenticatedRoute,
+  } as any)
+const AuthenticatedReportsIndexRoute =
+  AuthenticatedReportsIndexRouteImport.update({
+    id: '/reports/',
+    path: '/reports/',
+    getParentRoute: () => AuthenticatedRoute,
+  } as any)
+const AuthenticatedContactsIndexRoute =
+  AuthenticatedContactsIndexRouteImport.update({
+    id: '/contacts/',
+    path: '/contacts/',
+    getParentRoute: () => AuthenticatedRoute,
+  } as any)
+const AuthenticatedCampaignsIndexRoute =
+  AuthenticatedCampaignsIndexRouteImport.update({
+    id: '/campaigns/',
+    path: '/campaigns/',
+    getParentRoute: () => AuthenticatedRoute,
+  } as any)
+const AuthenticatedTemplatesNewRoute =
+  AuthenticatedTemplatesNewRouteImport.update({
+    id: '/templates/new',
+    path: '/templates/new',
+    getParentRoute: () => AuthenticatedRoute,
+  } as any)
+const AuthenticatedSettingsTeamRoute =
+  AuthenticatedSettingsTeamRouteImport.update({
+    id: '/settings/team',
+    path: '/settings/team',
+    getParentRoute: () => AuthenticatedRoute,
+  } as any)
+const AuthenticatedSettingsLogsRoute =
+  AuthenticatedSettingsLogsRouteImport.update({
+    id: '/settings/logs',
+    path: '/settings/logs',
+    getParentRoute: () => AuthenticatedRoute,
+  } as any)
+const AuthenticatedSettingsIntegrationsRoute =
+  AuthenticatedSettingsIntegrationsRouteImport.update({
+    id: '/settings/integrations',
+    path: '/settings/integrations',
+    getParentRoute: () => AuthenticatedRoute,
+  } as any)
+const AuthenticatedSettingsComplianceRoute =
+  AuthenticatedSettingsComplianceRouteImport.update({
+    id: '/settings/compliance',
+    path: '/settings/compliance',
+    getParentRoute: () => AuthenticatedRoute,
+  } as any)
+const AuthenticatedSettingsAccountRoute =
+  AuthenticatedSettingsAccountRouteImport.update({
+    id: '/settings/account',
+    path: '/settings/account',
+    getParentRoute: () => AuthenticatedRoute,
+  } as any)
+const AuthenticatedReportsGrowthRoute =
+  AuthenticatedReportsGrowthRouteImport.update({
+    id: '/reports/growth',
+    path: '/reports/growth',
+    getParentRoute: () => AuthenticatedRoute,
+  } as any)
+const AuthenticatedReportsEngagementRoute =
+  AuthenticatedReportsEngagementRouteImport.update({
+    id: '/reports/engagement',
+    path: '/reports/engagement',
+    getParentRoute: () => AuthenticatedRoute,
+  } as any)
+const AuthenticatedReportsDeliverabilityRoute =
+  AuthenticatedReportsDeliverabilityRouteImport.update({
+    id: '/reports/deliverability',
+    path: '/reports/deliverability',
+    getParentRoute: () => AuthenticatedRoute,
+  } as any)
+const AuthenticatedEmailSentRoute = AuthenticatedEmailSentRouteImport.update({
+  id: '/email/sent',
+  path: '/email/sent',
+  getParentRoute: () => AuthenticatedRoute,
+} as any)
+const AuthenticatedEmailInboxRoute = AuthenticatedEmailInboxRouteImport.update({
+  id: '/email/inbox',
+  path: '/email/inbox',
+  getParentRoute: () => AuthenticatedRoute,
+} as any)
+const AuthenticatedEmailDraftsRoute =
+  AuthenticatedEmailDraftsRouteImport.update({
+    id: '/email/drafts',
+    path: '/email/drafts',
+    getParentRoute: () => AuthenticatedRoute,
+  } as any)
+const AuthenticatedContactsCollectionsRoute =
+  AuthenticatedContactsCollectionsRouteImport.update({
+    id: '/contacts/collections',
+    path: '/contacts/collections',
+    getParentRoute: () => AuthenticatedRoute,
+  } as any)
+const AuthenticatedContactsContactIdRoute =
+  AuthenticatedContactsContactIdRouteImport.update({
+    id: '/contacts/$contactId',
+    path: '/contacts/$contactId',
+    getParentRoute: () => AuthenticatedRoute,
+  } as any)
+const AuthenticatedCampaignsNewRoute =
+  AuthenticatedCampaignsNewRouteImport.update({
+    id: '/campaigns/new',
+    path: '/campaigns/new',
+    getParentRoute: () => AuthenticatedRoute,
+  } as any)
+const AuthenticatedCampaignsCampaignIdRoute =
+  AuthenticatedCampaignsCampaignIdRouteImport.update({
+    id: '/campaigns/$campaignId',
+    path: '/campaigns/$campaignId',
+    getParentRoute: () => AuthenticatedRoute,
+  } as any)
+const AuthenticatedTemplatesTemplateIdEditRoute =
+  AuthenticatedTemplatesTemplateIdEditRouteImport.update({
+    id: '/templates/$templateId/edit',
+    path: '/templates/$templateId/edit',
+    getParentRoute: () => AuthenticatedRoute,
+  } as any)
 
 export interface FileRoutesByFullPath {
   '/': typeof IndexRoute
   '/sign-in': typeof AuthSignInRoute
   '/sign-up': typeof AuthSignUpRoute
-  '/dashboard': typeof AuthedDashboardRoute
+  '/calendar': typeof AuthenticatedCalendarRoute
+  '/dashboard': typeof AuthenticatedDashboardRoute
+  '/campaigns/$campaignId': typeof AuthenticatedCampaignsCampaignIdRoute
+  '/campaigns/new': typeof AuthenticatedCampaignsNewRoute
+  '/contacts/$contactId': typeof AuthenticatedContactsContactIdRoute
+  '/contacts/collections': typeof AuthenticatedContactsCollectionsRoute
+  '/email/drafts': typeof AuthenticatedEmailDraftsRoute
+  '/email/inbox': typeof AuthenticatedEmailInboxRoute
+  '/email/sent': typeof AuthenticatedEmailSentRoute
+  '/reports/deliverability': typeof AuthenticatedReportsDeliverabilityRoute
+  '/reports/engagement': typeof AuthenticatedReportsEngagementRoute
+  '/reports/growth': typeof AuthenticatedReportsGrowthRoute
+  '/settings/account': typeof AuthenticatedSettingsAccountRoute
+  '/settings/compliance': typeof AuthenticatedSettingsComplianceRoute
+  '/settings/integrations': typeof AuthenticatedSettingsIntegrationsRoute
+  '/settings/logs': typeof AuthenticatedSettingsLogsRoute
+  '/settings/team': typeof AuthenticatedSettingsTeamRoute
+  '/templates/new': typeof AuthenticatedTemplatesNewRoute
+  '/campaigns/': typeof AuthenticatedCampaignsIndexRoute
+  '/contacts/': typeof AuthenticatedContactsIndexRoute
+  '/reports/': typeof AuthenticatedReportsIndexRoute
+  '/templates/': typeof AuthenticatedTemplatesIndexRoute
+  '/templates/$templateId/edit': typeof AuthenticatedTemplatesTemplateIdEditRoute
 }
 export interface FileRoutesByTo {
   '/': typeof IndexRoute
   '/sign-in': typeof AuthSignInRoute
   '/sign-up': typeof AuthSignUpRoute
-  '/dashboard': typeof AuthedDashboardRoute
+  '/calendar': typeof AuthenticatedCalendarRoute
+  '/dashboard': typeof AuthenticatedDashboardRoute
+  '/campaigns/$campaignId': typeof AuthenticatedCampaignsCampaignIdRoute
+  '/campaigns/new': typeof AuthenticatedCampaignsNewRoute
+  '/contacts/$contactId': typeof AuthenticatedContactsContactIdRoute
+  '/contacts/collections': typeof AuthenticatedContactsCollectionsRoute
+  '/email/drafts': typeof AuthenticatedEmailDraftsRoute
+  '/email/inbox': typeof AuthenticatedEmailInboxRoute
+  '/email/sent': typeof AuthenticatedEmailSentRoute
+  '/reports/deliverability': typeof AuthenticatedReportsDeliverabilityRoute
+  '/reports/engagement': typeof AuthenticatedReportsEngagementRoute
+  '/reports/growth': typeof AuthenticatedReportsGrowthRoute
+  '/settings/account': typeof AuthenticatedSettingsAccountRoute
+  '/settings/compliance': typeof AuthenticatedSettingsComplianceRoute
+  '/settings/integrations': typeof AuthenticatedSettingsIntegrationsRoute
+  '/settings/logs': typeof AuthenticatedSettingsLogsRoute
+  '/settings/team': typeof AuthenticatedSettingsTeamRoute
+  '/templates/new': typeof AuthenticatedTemplatesNewRoute
+  '/campaigns': typeof AuthenticatedCampaignsIndexRoute
+  '/contacts': typeof AuthenticatedContactsIndexRoute
+  '/reports': typeof AuthenticatedReportsIndexRoute
+  '/templates': typeof AuthenticatedTemplatesIndexRoute
+  '/templates/$templateId/edit': typeof AuthenticatedTemplatesTemplateIdEditRoute
 }
 export interface FileRoutesById {
   __root__: typeof rootRouteImport
   '/': typeof IndexRoute
   '/_auth': typeof AuthRouteRouteWithChildren
-  '/_authed': typeof AuthedRouteWithChildren
+  '/_authenticated': typeof AuthenticatedRouteWithChildren
   '/_auth/sign-in': typeof AuthSignInRoute
   '/_auth/sign-up': typeof AuthSignUpRoute
-  '/_authed/dashboard': typeof AuthedDashboardRoute
+  '/_authenticated/calendar': typeof AuthenticatedCalendarRoute
+  '/_authenticated/dashboard': typeof AuthenticatedDashboardRoute
+  '/_authenticated/campaigns/$campaignId': typeof AuthenticatedCampaignsCampaignIdRoute
+  '/_authenticated/campaigns/new': typeof AuthenticatedCampaignsNewRoute
+  '/_authenticated/contacts/$contactId': typeof AuthenticatedContactsContactIdRoute
+  '/_authenticated/contacts/collections': typeof AuthenticatedContactsCollectionsRoute
+  '/_authenticated/email/drafts': typeof AuthenticatedEmailDraftsRoute
+  '/_authenticated/email/inbox': typeof AuthenticatedEmailInboxRoute
+  '/_authenticated/email/sent': typeof AuthenticatedEmailSentRoute
+  '/_authenticated/reports/deliverability': typeof AuthenticatedReportsDeliverabilityRoute
+  '/_authenticated/reports/engagement': typeof AuthenticatedReportsEngagementRoute
+  '/_authenticated/reports/growth': typeof AuthenticatedReportsGrowthRoute
+  '/_authenticated/settings/account': typeof AuthenticatedSettingsAccountRoute
+  '/_authenticated/settings/compliance': typeof AuthenticatedSettingsComplianceRoute
+  '/_authenticated/settings/integrations': typeof AuthenticatedSettingsIntegrationsRoute
+  '/_authenticated/settings/logs': typeof AuthenticatedSettingsLogsRoute
+  '/_authenticated/settings/team': typeof AuthenticatedSettingsTeamRoute
+  '/_authenticated/templates/new': typeof AuthenticatedTemplatesNewRoute
+  '/_authenticated/campaigns/': typeof AuthenticatedCampaignsIndexRoute
+  '/_authenticated/contacts/': typeof AuthenticatedContactsIndexRoute
+  '/_authenticated/reports/': typeof AuthenticatedReportsIndexRoute
+  '/_authenticated/templates/': typeof AuthenticatedTemplatesIndexRoute
+  '/_authenticated/templates/$templateId/edit': typeof AuthenticatedTemplatesTemplateIdEditRoute
 }
 export interface FileRouteTypes {
   fileRoutesByFullPath: FileRoutesByFullPath
-  fullPaths: '/' | '/sign-in' | '/sign-up' | '/dashboard'
+  fullPaths:
+    | '/'
+    | '/sign-in'
+    | '/sign-up'
+    | '/calendar'
+    | '/dashboard'
+    | '/campaigns/$campaignId'
+    | '/campaigns/new'
+    | '/contacts/$contactId'
+    | '/contacts/collections'
+    | '/email/drafts'
+    | '/email/inbox'
+    | '/email/sent'
+    | '/reports/deliverability'
+    | '/reports/engagement'
+    | '/reports/growth'
+    | '/settings/account'
+    | '/settings/compliance'
+    | '/settings/integrations'
+    | '/settings/logs'
+    | '/settings/team'
+    | '/templates/new'
+    | '/campaigns/'
+    | '/contacts/'
+    | '/reports/'
+    | '/templates/'
+    | '/templates/$templateId/edit'
   fileRoutesByTo: FileRoutesByTo
-  to: '/' | '/sign-in' | '/sign-up' | '/dashboard'
+  to:
+    | '/'
+    | '/sign-in'
+    | '/sign-up'
+    | '/calendar'
+    | '/dashboard'
+    | '/campaigns/$campaignId'
+    | '/campaigns/new'
+    | '/contacts/$contactId'
+    | '/contacts/collections'
+    | '/email/drafts'
+    | '/email/inbox'
+    | '/email/sent'
+    | '/reports/deliverability'
+    | '/reports/engagement'
+    | '/reports/growth'
+    | '/settings/account'
+    | '/settings/compliance'
+    | '/settings/integrations'
+    | '/settings/logs'
+    | '/settings/team'
+    | '/templates/new'
+    | '/campaigns'
+    | '/contacts'
+    | '/reports'
+    | '/templates'
+    | '/templates/$templateId/edit'
   id:
     | '__root__'
     | '/'
     | '/_auth'
-    | '/_authed'
+    | '/_authenticated'
     | '/_auth/sign-in'
     | '/_auth/sign-up'
-    | '/_authed/dashboard'
+    | '/_authenticated/calendar'
+    | '/_authenticated/dashboard'
+    | '/_authenticated/campaigns/$campaignId'
+    | '/_authenticated/campaigns/new'
+    | '/_authenticated/contacts/$contactId'
+    | '/_authenticated/contacts/collections'
+    | '/_authenticated/email/drafts'
+    | '/_authenticated/email/inbox'
+    | '/_authenticated/email/sent'
+    | '/_authenticated/reports/deliverability'
+    | '/_authenticated/reports/engagement'
+    | '/_authenticated/reports/growth'
+    | '/_authenticated/settings/account'
+    | '/_authenticated/settings/compliance'
+    | '/_authenticated/settings/integrations'
+    | '/_authenticated/settings/logs'
+    | '/_authenticated/settings/team'
+    | '/_authenticated/templates/new'
+    | '/_authenticated/campaigns/'
+    | '/_authenticated/contacts/'
+    | '/_authenticated/reports/'
+    | '/_authenticated/templates/'
+    | '/_authenticated/templates/$templateId/edit'
   fileRoutesById: FileRoutesById
 }
 export interface RootRouteChildren {
   IndexRoute: typeof IndexRoute
   AuthRouteRoute: typeof AuthRouteRouteWithChildren
-  AuthedRoute: typeof AuthedRouteWithChildren
+  AuthenticatedRoute: typeof AuthenticatedRouteWithChildren
 }
 
 declare module '@tanstack/react-router' {
   interface FileRoutesByPath {
-    '/_authed': {
-      id: '/_authed'
+    '/_authenticated': {
+      id: '/_authenticated'
       path: ''
       fullPath: '/'
-      preLoaderRoute: typeof AuthedRouteImport
+      preLoaderRoute: typeof AuthenticatedRouteImport
       parentRoute: typeof rootRouteImport
     }
     '/_auth': {
@@ -110,12 +401,19 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof IndexRouteImport
       parentRoute: typeof rootRouteImport
     }
-    '/_authed/dashboard': {
-      id: '/_authed/dashboard'
+    '/_authenticated/dashboard': {
+      id: '/_authenticated/dashboard'
       path: '/dashboard'
       fullPath: '/dashboard'
-      preLoaderRoute: typeof AuthedDashboardRouteImport
-      parentRoute: typeof AuthedRoute
+      preLoaderRoute: typeof AuthenticatedDashboardRouteImport
+      parentRoute: typeof AuthenticatedRoute
+    }
+    '/_authenticated/calendar': {
+      id: '/_authenticated/calendar'
+      path: '/calendar'
+      fullPath: '/calendar'
+      preLoaderRoute: typeof AuthenticatedCalendarRouteImport
+      parentRoute: typeof AuthenticatedRoute
     }
     '/_auth/sign-up': {
       id: '/_auth/sign-up'
@@ -130,6 +428,153 @@ declare module '@tanstack/react-router' {
       fullPath: '/sign-in'
       preLoaderRoute: typeof AuthSignInRouteImport
       parentRoute: typeof AuthRouteRoute
+    }
+    '/_authenticated/templates/': {
+      id: '/_authenticated/templates/'
+      path: '/templates'
+      fullPath: '/templates/'
+      preLoaderRoute: typeof AuthenticatedTemplatesIndexRouteImport
+      parentRoute: typeof AuthenticatedRoute
+    }
+    '/_authenticated/reports/': {
+      id: '/_authenticated/reports/'
+      path: '/reports'
+      fullPath: '/reports/'
+      preLoaderRoute: typeof AuthenticatedReportsIndexRouteImport
+      parentRoute: typeof AuthenticatedRoute
+    }
+    '/_authenticated/contacts/': {
+      id: '/_authenticated/contacts/'
+      path: '/contacts'
+      fullPath: '/contacts/'
+      preLoaderRoute: typeof AuthenticatedContactsIndexRouteImport
+      parentRoute: typeof AuthenticatedRoute
+    }
+    '/_authenticated/campaigns/': {
+      id: '/_authenticated/campaigns/'
+      path: '/campaigns'
+      fullPath: '/campaigns/'
+      preLoaderRoute: typeof AuthenticatedCampaignsIndexRouteImport
+      parentRoute: typeof AuthenticatedRoute
+    }
+    '/_authenticated/templates/new': {
+      id: '/_authenticated/templates/new'
+      path: '/templates/new'
+      fullPath: '/templates/new'
+      preLoaderRoute: typeof AuthenticatedTemplatesNewRouteImport
+      parentRoute: typeof AuthenticatedRoute
+    }
+    '/_authenticated/settings/team': {
+      id: '/_authenticated/settings/team'
+      path: '/settings/team'
+      fullPath: '/settings/team'
+      preLoaderRoute: typeof AuthenticatedSettingsTeamRouteImport
+      parentRoute: typeof AuthenticatedRoute
+    }
+    '/_authenticated/settings/logs': {
+      id: '/_authenticated/settings/logs'
+      path: '/settings/logs'
+      fullPath: '/settings/logs'
+      preLoaderRoute: typeof AuthenticatedSettingsLogsRouteImport
+      parentRoute: typeof AuthenticatedRoute
+    }
+    '/_authenticated/settings/integrations': {
+      id: '/_authenticated/settings/integrations'
+      path: '/settings/integrations'
+      fullPath: '/settings/integrations'
+      preLoaderRoute: typeof AuthenticatedSettingsIntegrationsRouteImport
+      parentRoute: typeof AuthenticatedRoute
+    }
+    '/_authenticated/settings/compliance': {
+      id: '/_authenticated/settings/compliance'
+      path: '/settings/compliance'
+      fullPath: '/settings/compliance'
+      preLoaderRoute: typeof AuthenticatedSettingsComplianceRouteImport
+      parentRoute: typeof AuthenticatedRoute
+    }
+    '/_authenticated/settings/account': {
+      id: '/_authenticated/settings/account'
+      path: '/settings/account'
+      fullPath: '/settings/account'
+      preLoaderRoute: typeof AuthenticatedSettingsAccountRouteImport
+      parentRoute: typeof AuthenticatedRoute
+    }
+    '/_authenticated/reports/growth': {
+      id: '/_authenticated/reports/growth'
+      path: '/reports/growth'
+      fullPath: '/reports/growth'
+      preLoaderRoute: typeof AuthenticatedReportsGrowthRouteImport
+      parentRoute: typeof AuthenticatedRoute
+    }
+    '/_authenticated/reports/engagement': {
+      id: '/_authenticated/reports/engagement'
+      path: '/reports/engagement'
+      fullPath: '/reports/engagement'
+      preLoaderRoute: typeof AuthenticatedReportsEngagementRouteImport
+      parentRoute: typeof AuthenticatedRoute
+    }
+    '/_authenticated/reports/deliverability': {
+      id: '/_authenticated/reports/deliverability'
+      path: '/reports/deliverability'
+      fullPath: '/reports/deliverability'
+      preLoaderRoute: typeof AuthenticatedReportsDeliverabilityRouteImport
+      parentRoute: typeof AuthenticatedRoute
+    }
+    '/_authenticated/email/sent': {
+      id: '/_authenticated/email/sent'
+      path: '/email/sent'
+      fullPath: '/email/sent'
+      preLoaderRoute: typeof AuthenticatedEmailSentRouteImport
+      parentRoute: typeof AuthenticatedRoute
+    }
+    '/_authenticated/email/inbox': {
+      id: '/_authenticated/email/inbox'
+      path: '/email/inbox'
+      fullPath: '/email/inbox'
+      preLoaderRoute: typeof AuthenticatedEmailInboxRouteImport
+      parentRoute: typeof AuthenticatedRoute
+    }
+    '/_authenticated/email/drafts': {
+      id: '/_authenticated/email/drafts'
+      path: '/email/drafts'
+      fullPath: '/email/drafts'
+      preLoaderRoute: typeof AuthenticatedEmailDraftsRouteImport
+      parentRoute: typeof AuthenticatedRoute
+    }
+    '/_authenticated/contacts/collections': {
+      id: '/_authenticated/contacts/collections'
+      path: '/contacts/collections'
+      fullPath: '/contacts/collections'
+      preLoaderRoute: typeof AuthenticatedContactsCollectionsRouteImport
+      parentRoute: typeof AuthenticatedRoute
+    }
+    '/_authenticated/contacts/$contactId': {
+      id: '/_authenticated/contacts/$contactId'
+      path: '/contacts/$contactId'
+      fullPath: '/contacts/$contactId'
+      preLoaderRoute: typeof AuthenticatedContactsContactIdRouteImport
+      parentRoute: typeof AuthenticatedRoute
+    }
+    '/_authenticated/campaigns/new': {
+      id: '/_authenticated/campaigns/new'
+      path: '/campaigns/new'
+      fullPath: '/campaigns/new'
+      preLoaderRoute: typeof AuthenticatedCampaignsNewRouteImport
+      parentRoute: typeof AuthenticatedRoute
+    }
+    '/_authenticated/campaigns/$campaignId': {
+      id: '/_authenticated/campaigns/$campaignId'
+      path: '/campaigns/$campaignId'
+      fullPath: '/campaigns/$campaignId'
+      preLoaderRoute: typeof AuthenticatedCampaignsCampaignIdRouteImport
+      parentRoute: typeof AuthenticatedRoute
+    }
+    '/_authenticated/templates/$templateId/edit': {
+      id: '/_authenticated/templates/$templateId/edit'
+      path: '/templates/$templateId/edit'
+      fullPath: '/templates/$templateId/edit'
+      preLoaderRoute: typeof AuthenticatedTemplatesTemplateIdEditRouteImport
+      parentRoute: typeof AuthenticatedRoute
     }
   }
 }
@@ -148,21 +593,69 @@ const AuthRouteRouteWithChildren = AuthRouteRoute._addFileChildren(
   AuthRouteRouteChildren,
 )
 
-interface AuthedRouteChildren {
-  AuthedDashboardRoute: typeof AuthedDashboardRoute
+interface AuthenticatedRouteChildren {
+  AuthenticatedCalendarRoute: typeof AuthenticatedCalendarRoute
+  AuthenticatedDashboardRoute: typeof AuthenticatedDashboardRoute
+  AuthenticatedCampaignsCampaignIdRoute: typeof AuthenticatedCampaignsCampaignIdRoute
+  AuthenticatedCampaignsNewRoute: typeof AuthenticatedCampaignsNewRoute
+  AuthenticatedContactsContactIdRoute: typeof AuthenticatedContactsContactIdRoute
+  AuthenticatedContactsCollectionsRoute: typeof AuthenticatedContactsCollectionsRoute
+  AuthenticatedEmailDraftsRoute: typeof AuthenticatedEmailDraftsRoute
+  AuthenticatedEmailInboxRoute: typeof AuthenticatedEmailInboxRoute
+  AuthenticatedEmailSentRoute: typeof AuthenticatedEmailSentRoute
+  AuthenticatedReportsDeliverabilityRoute: typeof AuthenticatedReportsDeliverabilityRoute
+  AuthenticatedReportsEngagementRoute: typeof AuthenticatedReportsEngagementRoute
+  AuthenticatedReportsGrowthRoute: typeof AuthenticatedReportsGrowthRoute
+  AuthenticatedSettingsAccountRoute: typeof AuthenticatedSettingsAccountRoute
+  AuthenticatedSettingsComplianceRoute: typeof AuthenticatedSettingsComplianceRoute
+  AuthenticatedSettingsIntegrationsRoute: typeof AuthenticatedSettingsIntegrationsRoute
+  AuthenticatedSettingsLogsRoute: typeof AuthenticatedSettingsLogsRoute
+  AuthenticatedSettingsTeamRoute: typeof AuthenticatedSettingsTeamRoute
+  AuthenticatedTemplatesNewRoute: typeof AuthenticatedTemplatesNewRoute
+  AuthenticatedCampaignsIndexRoute: typeof AuthenticatedCampaignsIndexRoute
+  AuthenticatedContactsIndexRoute: typeof AuthenticatedContactsIndexRoute
+  AuthenticatedReportsIndexRoute: typeof AuthenticatedReportsIndexRoute
+  AuthenticatedTemplatesIndexRoute: typeof AuthenticatedTemplatesIndexRoute
+  AuthenticatedTemplatesTemplateIdEditRoute: typeof AuthenticatedTemplatesTemplateIdEditRoute
 }
 
-const AuthedRouteChildren: AuthedRouteChildren = {
-  AuthedDashboardRoute: AuthedDashboardRoute,
+const AuthenticatedRouteChildren: AuthenticatedRouteChildren = {
+  AuthenticatedCalendarRoute: AuthenticatedCalendarRoute,
+  AuthenticatedDashboardRoute: AuthenticatedDashboardRoute,
+  AuthenticatedCampaignsCampaignIdRoute: AuthenticatedCampaignsCampaignIdRoute,
+  AuthenticatedCampaignsNewRoute: AuthenticatedCampaignsNewRoute,
+  AuthenticatedContactsContactIdRoute: AuthenticatedContactsContactIdRoute,
+  AuthenticatedContactsCollectionsRoute: AuthenticatedContactsCollectionsRoute,
+  AuthenticatedEmailDraftsRoute: AuthenticatedEmailDraftsRoute,
+  AuthenticatedEmailInboxRoute: AuthenticatedEmailInboxRoute,
+  AuthenticatedEmailSentRoute: AuthenticatedEmailSentRoute,
+  AuthenticatedReportsDeliverabilityRoute:
+    AuthenticatedReportsDeliverabilityRoute,
+  AuthenticatedReportsEngagementRoute: AuthenticatedReportsEngagementRoute,
+  AuthenticatedReportsGrowthRoute: AuthenticatedReportsGrowthRoute,
+  AuthenticatedSettingsAccountRoute: AuthenticatedSettingsAccountRoute,
+  AuthenticatedSettingsComplianceRoute: AuthenticatedSettingsComplianceRoute,
+  AuthenticatedSettingsIntegrationsRoute:
+    AuthenticatedSettingsIntegrationsRoute,
+  AuthenticatedSettingsLogsRoute: AuthenticatedSettingsLogsRoute,
+  AuthenticatedSettingsTeamRoute: AuthenticatedSettingsTeamRoute,
+  AuthenticatedTemplatesNewRoute: AuthenticatedTemplatesNewRoute,
+  AuthenticatedCampaignsIndexRoute: AuthenticatedCampaignsIndexRoute,
+  AuthenticatedContactsIndexRoute: AuthenticatedContactsIndexRoute,
+  AuthenticatedReportsIndexRoute: AuthenticatedReportsIndexRoute,
+  AuthenticatedTemplatesIndexRoute: AuthenticatedTemplatesIndexRoute,
+  AuthenticatedTemplatesTemplateIdEditRoute:
+    AuthenticatedTemplatesTemplateIdEditRoute,
 }
 
-const AuthedRouteWithChildren =
-  AuthedRoute._addFileChildren(AuthedRouteChildren)
+const AuthenticatedRouteWithChildren = AuthenticatedRoute._addFileChildren(
+  AuthenticatedRouteChildren,
+)
 
 const rootRouteChildren: RootRouteChildren = {
   IndexRoute: IndexRoute,
   AuthRouteRoute: AuthRouteRouteWithChildren,
-  AuthedRoute: AuthedRouteWithChildren,
+  AuthenticatedRoute: AuthenticatedRouteWithChildren,
 }
 export const routeTree = rootRouteImport
   ._addFileChildren(rootRouteChildren)

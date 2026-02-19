@@ -11,3 +11,5 @@ node_modules
 /server/build
 /public/build
 .tanstack
+
+/generated/prisma
