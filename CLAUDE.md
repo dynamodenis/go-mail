@@ -255,6 +255,36 @@ describe('StatsCards', () => {
 - Use a shared error format: `{ code: string, message: string }`
 - Handle errors gracefully on the client with React Query's error state.
 
+## Backend Architecture (Layered Pattern)
+
+All backend code follows a strict 4-layer architecture. Never skip layers.
+```
+Server Function → Service → Repository → Prisma
+```
+
+- **Server Functions** (`api/server.ts`): Thin wrappers only. Auth check, Zod validation, delegate to service, return response. No business logic. No Prisma imports.
+- **Service Layer** (`api/service.ts`): All business rules and orchestration live here. Can call multiple repositories. Throws typed errors (e.g., `CAMPAIGN_NOT_FOUND`). No HTTP concerns, no Prisma syntax.
+- **Repository Layer** (`api/repository.ts`): Pure data access via Prisma. No business logic, no auth checks. Returns raw data. Handles pagination, filtering, includes, and selects.
+- **Queries / Hooks** (`api/queries.ts`): React Query hooks that call server functions. Define query keys using a factory pattern (`campaignKeys.all`, `campaignKeys.list(filters)`). Accept optional `queryClient` for test injection.
+
+Error handling: Services throw error codes → Server functions catch with `handleServerError()` → Client receives `{ data } | { error: { code, message } }`. All server function responses follow this consistent shape.
+
+Feature file structure:
+```
+features/{name}/api/
+├── server.ts       ← Auth + validation + delegate
+├── service.ts      ← Business rules + orchestration
+├── repository.ts   ← Prisma queries only
+├── queries.ts      ← React Query hooks
+└── store.ts        ← Zustand UI state
+```
+
+Rules:
+- Server functions NEVER import Prisma directly.
+- Repositories NEVER check auth or enforce business rules.
+- Services NEVER import from `@tanstack/start` or handle HTTP.
+- Every feature follows this exact structure — no exceptions.
+
 ---
 
 ## Prisma Rules

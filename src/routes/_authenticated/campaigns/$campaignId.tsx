@@ -1,14 +1,10 @@
 import { createFileRoute } from "@tanstack/react-router";
-
+import { lazy } from "react";
+const CampaignDetails = lazy(() => import("@/features/campaigns/components/CampaignDetails"));
 export const Route = createFileRoute("/_authenticated/campaigns/$campaignId")({
 	component: CampaignDetailsPage,
 });
 
 function CampaignDetailsPage() {
-	return (
-		<div>
-			<h1 className="text-2xl font-bold">Campaign Details</h1>
-			<p className="mt-2 text-muted-foreground">This page is under construction.</p>
-		</div>
-	);
+	return <CampaignDetails />;
 }

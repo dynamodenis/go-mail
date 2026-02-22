@@ -1,14 +1,10 @@
 import { createFileRoute } from "@tanstack/react-router";
-
+import { lazy } from "react";
+const Team = lazy(() => import("@/features/settings/components/Team"));
 export const Route = createFileRoute("/_authenticated/settings/team")({
 	component: TeamPage,
 });
 
 function TeamPage() {
-	return (
-		<div>
-			<h1 className="text-2xl font-bold">Team</h1>
-			<p className="mt-2 text-muted-foreground">This page is under construction.</p>
-		</div>
-	);
+	return <Team />;
 }

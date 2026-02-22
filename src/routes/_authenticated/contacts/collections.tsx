@@ -1,14 +1,10 @@
 import { createFileRoute } from "@tanstack/react-router";
-
+import { lazy } from "react";
+const Collections = lazy(() => import("@/features/collections/components/Collections"));
 export const Route = createFileRoute("/_authenticated/contacts/collections")({
 	component: CollectionsPage,
 });
 
 function CollectionsPage() {
-	return (
-		<div>
-			<h1 className="text-2xl font-bold">Collections</h1>
-			<p className="mt-2 text-muted-foreground">This page is under construction.</p>
-		</div>
-	);
+	return <Collections />;
 }

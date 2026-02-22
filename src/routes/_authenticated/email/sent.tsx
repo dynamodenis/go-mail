@@ -1,14 +1,10 @@
 import { createFileRoute } from "@tanstack/react-router";
-
+import { lazy } from "react";
+const Sent = lazy(() => import("@/features/email/components/Sent"));
 export const Route = createFileRoute("/_authenticated/email/sent")({
 	component: SentPage,
 });
 
 function SentPage() {
-	return (
-		<div>
-			<h1 className="text-2xl font-bold">Sent</h1>
-			<p className="mt-2 text-muted-foreground">This page is under construction.</p>
-		</div>
-	);
+	return <Sent />;
 }

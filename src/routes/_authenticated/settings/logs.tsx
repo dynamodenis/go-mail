@@ -1,14 +1,10 @@
 import { createFileRoute } from "@tanstack/react-router";
-
+import { lazy } from "react";
+const Logs = lazy(() => import("@/features/settings/components/Logs"));
 export const Route = createFileRoute("/_authenticated/settings/logs")({
 	component: LogsPage,
 });
 
 function LogsPage() {
-	return (
-		<div>
-			<h1 className="text-2xl font-bold">Logs</h1>
-			<p className="mt-2 text-muted-foreground">This page is under construction.</p>
-		</div>
-	);
+	return <Logs />;
 }

@@ -1,14 +1,10 @@
 import { createFileRoute } from "@tanstack/react-router";
-
+import { lazy } from "react";
+const Drafts = lazy(() => import("@/features/email/components/Drafts"));
 export const Route = createFileRoute("/_authenticated/email/drafts")({
 	component: DraftsPage,
 });
 
 function DraftsPage() {
-	return (
-		<div>
-			<h1 className="text-2xl font-bold">Drafts</h1>
-			<p className="mt-2 text-muted-foreground">This page is under construction.</p>
-		</div>
-	);
+	return <Drafts />;
 }

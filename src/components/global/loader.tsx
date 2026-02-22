@@ -5,16 +5,33 @@ import { cn } from "@/lib/utils";
 type LoaderProps = {
   size?: number;
   nodeCount?: number;
-  nodeColor?: string | number;
   orbitRadius?: number;
   className?: string;
 };
+
+function getCSSColor(varName: string): number {
+  const raw = getComputedStyle(document.documentElement)
+    .getPropertyValue(varName)
+    .trim();
+  const match = raw.match(/rgba?\(\s*(\d+),\s*(\d+),\s*(\d+)/);
+  if (match) {
+    return (
+      (Number.parseInt(match[1]) << 16) |
+      (Number.parseInt(match[2]) << 8) |
+      Number.parseInt(match[3])
+    );
+  }
+  return 0x081854;
+}
 
 class OrbitalLoader {
   private container: HTMLElement;
   private size: number;
   private nodeCount: number;
-  private nodeColor: number;
+  private loaderColor: number;
+  private loaderR: number;
+  private loaderG: number;
+  private loaderB: number;
 
   private scene!: THREE.Scene;
   private camera!: THREE.PerspectiveCamera;
@@ -33,19 +50,15 @@ class OrbitalLoader {
     this.container = container;
     this.size = options.size || 400;
     this.nodeCount = options.nodeCount || 4;
-    this.nodeColor = this.parseColor(options.nodeColor || 0xe879f9);
+    this.loaderColor = getCSSColor("--color-loader");
+    this.loaderR = ((this.loaderColor >> 16) & 0xff) / 255;
+    this.loaderG = ((this.loaderColor >> 8) & 0xff) / 255;
+    this.loaderB = (this.loaderColor & 0xff) / 255;
 
     this.init();
     this.createOrbitPaths();
     this.createNodes();
     this.animate();
-  }
-
-  private parseColor(color: string | number): number {
-    if (typeof color === "string" && color.startsWith("#")) {
-      return Number.parseInt(color.slice(1), 16);
-    }
-    return typeof color === "number" ? color : 0xe879f9;
   }
 
   private init() {
@@ -64,7 +77,7 @@ class OrbitalLoader {
 
     const sphereGeometry = new THREE.SphereGeometry(1.5, 16, 16);
     const wireframeMaterial = new THREE.MeshBasicMaterial({
-      color: 0xe879f9,
+      color: this.loaderColor,
       wireframe: true,
       transparent: true,
       opacity: 0.2,
@@ -108,7 +121,7 @@ class OrbitalLoader {
       }
 
       const material = new THREE.LineBasicMaterial({
-        color: 0xe879f9,
+        color: this.loaderColor,
         transparent: true,
         opacity: 0.35,
         vertexColors: true,
@@ -140,7 +153,7 @@ class OrbitalLoader {
 
     for (let i = 0; i < this.nodeCount; i++) {
       const material = new THREE.MeshBasicMaterial({
-        color: this.nodeColor,
+        color: this.loaderColor,
         transparent: true,
         opacity: 1.0,
       });
@@ -248,9 +261,9 @@ class OrbitalLoader {
         }
 
         const colorIndex = (i / 3) * 3;
-        colors[colorIndex] = 0.91 * brightness;
-        colors[colorIndex + 1] = 0.47 * brightness;
-        colors[colorIndex + 2] = 0.98 * brightness;
+        colors[colorIndex] = this.loaderR * brightness;
+        colors[colorIndex + 1] = this.loaderG * brightness;
+        colors[colorIndex + 2] = this.loaderB * brightness;
       }
 
       geometry.attributes.color.needsUpdate = true;
@@ -293,7 +306,6 @@ class OrbitalLoader {
 export default function Loader({
   size = 400,
   nodeCount = 4,
-  nodeColor = "#e879f9",
   orbitRadius = 2.5,
   className,
 }: LoaderProps) {
@@ -306,7 +318,6 @@ export default function Loader({
     loaderRef.current = new OrbitalLoader(containerRef.current, {
       size,
       nodeCount,
-      nodeColor,
       orbitRadius,
     });
 
@@ -314,7 +325,7 @@ export default function Loader({
       loaderRef.current?.dispose();
       loaderRef.current = null;
     };
-  }, [size, nodeCount, nodeColor, orbitRadius]);
+  }, [size, nodeCount, orbitRadius]);
 
   return (
     <div

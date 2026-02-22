@@ -26,7 +26,7 @@ function LandingPage() {
 							</Button>
 						) : (
 							<>
-								<Button variant="ghost" asChild>
+								<Button variant="secondary" asChild>
 									<Link to="/sign-in">Sign In</Link>
 								</Button>
 								<Button asChild>
