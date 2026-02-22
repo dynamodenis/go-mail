@@ -1,9 +1,9 @@
 import { useRouter, useRouteContext } from "@tanstack/react-router";
 import { LogOut, Mail, Moon, PanelLeft, PanelLeftClose, Sun } from "lucide-react";
-import { signOutFn } from "~/features/auth/api/auth-fns";
-import { useMutation } from "~/hooks/use-mutation";
-import { cn } from "~/lib/utils";
-import { useTheme } from "~/providers/theme-provider";
+import { signOutFn } from "@/features/auth/api/auth-fns";
+import { useMutation } from "@/hooks/use-mutation";
+import { cn } from "@/lib/utils";
+import { useTheme } from "@/providers/theme-provider";
 import { SidebarNav } from "./SidebarNav";
 
 interface SidebarProps {

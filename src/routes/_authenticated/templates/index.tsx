@@ -1,14 +1,10 @@
 import { createFileRoute } from "@tanstack/react-router";
-
+import { lazy } from "react";
+const Templates = lazy(() => import("@/features/templates/components/templates"));
 export const Route = createFileRoute("/_authenticated/templates/")({
 	component: TemplatesPage,
 });
 
 function TemplatesPage() {
-	return (
-		<div>
-			<h1 className="text-2xl font-bold">Templates</h1>
-			<p className="mt-2 text-muted-foreground">This page is under construction.</p>
-		</div>
-	);
+	return <Templates />;
 }

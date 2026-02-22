@@ -1,8 +1,7 @@
 /// <reference types="vite/client" />
 import type { QueryClient } from "@tanstack/react-query";
-import { ReactQueryDevtools } from "@tanstack/react-query-devtools";
+import { TanStackRouterDevtools } from '@tanstack/react-router-devtools'
 import {
-	ClientOnly,
 	HeadContent,
 	Link,
 	Outlet,
@@ -11,10 +10,10 @@ import {
 } from "@tanstack/react-router";
 import type { ReactNode } from "react";
 import { Toaster } from "sonner";
-import { fetchUser } from "~/features/auth/api/auth-fns";
-import type { User } from "~/features/auth/schemas/auth";
-import { ThemeProvider } from "~/providers/theme-provider";
-import appCss from "~/styles/app.css?url";
+import { fetchUser } from "@/features/auth/api/auth-fns";
+import type { User } from "@/features/auth/schemas/auth";
+import { ThemeProvider } from "@/providers/theme-provider";
+import appCss from "@/styles/app.css?url";
 
 interface RouterContext {
 	queryClient: QueryClient;

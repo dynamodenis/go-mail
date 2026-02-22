@@ -2,8 +2,7 @@
 
 @custom-variant dark (&:is(.dark *));
 
-@theme {
-	/* Register color names with Tailwind — actual values come from :root / .dark */
+@theme inline {
 	--color-primary: initial;
 	--color-primary-foreground: initial;
 	--color-secondary: initial;
@@ -23,7 +22,9 @@
 	--color-border: initial;
 	--color-input: initial;
 	--color-ring: initial;
+}
 
+@theme {
 	--radius-sm: 0.25rem;
 	--radius-md: 0.375rem;
 	--radius-lg: 0.5rem;
@@ -69,7 +70,7 @@
 	--color-secondary: rgba(236, 100, 180, 1);
 	--color-secondary-foreground: rgba(255, 255, 255, 1);
 
-	--color-background: rgba(10, 10, 10, 1);
+	--color-background: rgb(25, 25, 30);
 	--color-foreground: rgba(237, 237, 237, 1);
 
 	--color-card: rgba(24, 24, 27, 1);
@@ -110,7 +111,8 @@
 	}
 
 	body {
-		@apply bg-background text-foreground;
+		background-color: var(--color-background);
+		color: var(--color-foreground);
 		font-family:
 			"Inter",
 			ui-sans-serif,

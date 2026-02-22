@@ -1,7 +1,7 @@
 import { Link, useRouter } from "@tanstack/react-router";
 import { LogOut, Mail } from "lucide-react";
-import { signOutFn } from "~/features/auth/api/auth-fns";
-import { useMutation } from "~/hooks/use-mutation";
+import { signOutFn } from "@/features/auth/api/auth-fns";
+import { useMutation } from "@/hooks/use-mutation";
 import { Button } from "../ui/button";
 
 export function Header() {

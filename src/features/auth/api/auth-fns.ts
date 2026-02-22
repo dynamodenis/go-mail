@@ -1,5 +1,5 @@
 import { createServerFn } from "@tanstack/react-start";
-import { getSupabaseServerClient } from "~/integrations/supabase/server";
+import { getSupabaseServerClient } from "@/integrations/supabase/server";
 import type { User } from "../schemas/auth";
 
 export const fetchUser = createServerFn({ method: "GET" }).handler(

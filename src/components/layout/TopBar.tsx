@@ -1,5 +1,5 @@
 import { useRouteContext, useRouterState } from "@tanstack/react-router";
-import { cn } from "~/lib/utils";
+import { cn } from "@/lib/utils";
 
 const ROUTE_TITLES: Record<string, string> = {
 	"/dashboard": "Dashboard",

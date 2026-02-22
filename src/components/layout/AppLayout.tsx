@@ -1,7 +1,8 @@
 import { Outlet } from "@tanstack/react-router";
-import { useState } from "react";
+import { Suspense, useState } from "react";
 import { Sidebar } from "./Sidebar";
 import { TopBar } from "./TopBar";
+import Loader from "../global/loader";
 
 export function AppLayout() {
 	const [isCollapsed, setIsCollapsed] = useState(false);
@@ -15,7 +16,9 @@ export function AppLayout() {
 			<div className="flex flex-1 flex-col overflow-hidden">
 				<TopBar />
 				<main className="flex-1 overflow-y-auto p-6">
-					<Outlet />
+					<Suspense fallback={<Loader size={300} />}>
+						<Outlet />
+					</Suspense>
 				</main>
 			</div>
 		</div>
