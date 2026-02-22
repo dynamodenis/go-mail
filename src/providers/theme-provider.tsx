@@ -14,7 +14,9 @@ interface ThemeContextValue {
 	setTheme: (theme: Theme) => void;
 }
 
-const STORAGE_KEY = "gomail-theme";
+import { STORAGE_KEYS } from "@/lib/constants";
+
+const STORAGE_KEY = STORAGE_KEYS.THEME;
 
 const ThemeContext = createContext<ThemeContextValue | undefined>(undefined);
 

@@ -2,6 +2,7 @@ import { useRouter, useRouteContext } from "@tanstack/react-router";
 import { LogOut, Mail, Moon, PanelLeft, PanelLeftClose, Sun } from "lucide-react";
 import { signOutFn } from "@/features/auth/api/auth-fns";
 import { useMutation } from "@/hooks/use-mutation";
+import { APP_NAME } from "@/lib/constants";
 import { cn } from "@/lib/utils";
 import { useTheme } from "@/providers/theme-provider";
 import { SidebarNav } from "./SidebarNav";
@@ -47,7 +48,7 @@ export function Sidebar({ isCollapsed, onToggle }: SidebarProps) {
 			<div className="flex h-14 items-center border-b px-4">
 				<Mail className="h-6 w-6 shrink-0 text-primary" />
 				{!isCollapsed && (
-					<span className="ml-2 text-lg font-bold">GoMail</span>
+					<span className="ml-2 text-lg font-bold">{APP_NAME}</span>
 				)}
 			</div>
 

@@ -12,6 +12,7 @@ import {
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { useMutation } from "@/hooks/use-mutation";
+import { APP_NAME } from "@/lib/constants";
 import { signUpFn } from "../api/auth-fns";
 import { type SignUpInput, signUpSchema } from "../schemas/auth";
 
@@ -67,7 +68,7 @@ export function SignUpForm() {
 		<Card className="w-full max-w-md">
 			<CardHeader className="text-center">
 				<CardTitle className="text-2xl font-bold">Create an account</CardTitle>
-				<CardDescription>Get started with GoMail</CardDescription>
+				<CardDescription>Get started with {APP_NAME}</CardDescription>
 			</CardHeader>
 			<form onSubmit={handleSubmit}>
 				<CardContent className="space-y-4">

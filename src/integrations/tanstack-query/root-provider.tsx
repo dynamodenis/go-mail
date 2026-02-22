@@ -7,7 +7,9 @@ import { persistQueryClient } from "@tanstack/react-query-persist-client";
 import { del, get, set } from "idb-keyval";
 import { useEffect, useRef } from "react";
 
-const idbValidKey = "gomail-query-cache";
+import { STORAGE_KEYS } from "@/lib/constants";
+
+const idbValidKey = STORAGE_KEYS.QUERY_CACHE;
 
 function createIDBPersister(): Persister {
   return {

@@ -2,6 +2,7 @@ import { Link, useRouter } from "@tanstack/react-router";
 import { LogOut, Mail } from "lucide-react";
 import { signOutFn } from "@/features/auth/api/auth-fns";
 import { useMutation } from "@/hooks/use-mutation";
+import { APP_NAME } from "@/lib/constants";
 import { Button } from "../ui/button";
 
 export function Header() {
@@ -20,7 +21,7 @@ export function Header() {
 			<div className="mx-auto flex h-16 max-w-7xl items-center justify-between px-4 sm:px-6 lg:px-8">
 				<Link to="/dashboard" className="flex items-center gap-2">
 					<Mail className="h-6 w-6" />
-					<span className="text-xl font-bold">GoMail</span>
+					<span className="text-xl font-bold">{APP_NAME}</span>
 				</Link>
 				<Button
 					variant="ghost"

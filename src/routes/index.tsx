@@ -1,6 +1,7 @@
 import { Link, createFileRoute } from "@tanstack/react-router";
 import { ArrowRight, Mail, Send, Users } from "lucide-react";
 import { Button } from "@/components/ui/button";
+import { APP_NAME } from "@/lib/constants";
 
 export const Route = createFileRoute("/")({
 	component: LandingPage,
@@ -16,7 +17,7 @@ function LandingPage() {
 				<div className="mx-auto flex h-16 max-w-7xl items-center justify-between px-4 sm:px-6 lg:px-8">
 					<div className="flex items-center gap-2">
 						<Mail className="h-6 w-6" />
-						<span className="text-xl font-bold">GoMail</span>
+						<span className="text-xl font-bold">{APP_NAME}</span>
 					</div>
 					<div className="flex items-center gap-4">
 						{user ? (
@@ -47,7 +48,7 @@ function LandingPage() {
 					</h1>
 					<p className="mt-6 max-w-2xl text-lg text-muted-foreground">
 						Create beautiful email campaigns, manage your contacts, and send
-						bulk emails with confidence. GoMail makes email outreach effortless.
+						bulk emails with confidence. {APP_NAME} makes email outreach effortless.
 					</p>
 					<div className="mt-10 flex gap-4">
 						{user ? (

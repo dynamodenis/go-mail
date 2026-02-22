@@ -13,6 +13,7 @@ import { Toaster } from "sonner";
 import { fetchUser } from "@/features/auth/api/auth-fns";
 import type { User } from "@/features/auth/schemas/auth";
 import { ThemeProvider } from "@/providers/theme-provider";
+import { APP_DESCRIPTION, APP_NAME } from "@/lib/constants";
 import appCss from "@/styles/app.css?url";
 
 interface RouterContext {
@@ -25,10 +26,10 @@ export const Route = createRootRouteWithContext<RouterContext>()({
 		meta: [
 			{ charSet: "utf-8" },
 			{ name: "viewport", content: "width=device-width, initial-scale=1" },
-			{ title: "GoMail - Bulk Email Sending" },
+			{ title: `${APP_NAME} - Bulk Email Sending` },
 			{
 				name: "description",
-				content: "Send bulk emails with ease using GoMail",
+				content: `${APP_DESCRIPTION} using ${APP_NAME}`,
 			},
 		],
 		links: [

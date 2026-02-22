@@ -18,7 +18,7 @@ A bulk email marketing SaaS platform built with TanStack Start. Users can create
 ---
 
 ## Architecture Rules
-
+This is the Link to github Tanstack react example projects (Tanstack start )[https://github.com/TanStack/router/tree/main/examples/react]
 ### Backend (TanStack Start Server Functions)
 - TanStack Start IS the backend. All API logic lives in server functions (`createServerFn`).
 - Server functions go in: `app/features/{feature}/api/server.ts`

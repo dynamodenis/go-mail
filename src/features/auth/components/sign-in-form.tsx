@@ -12,6 +12,7 @@ import {
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { useMutation } from "@/hooks/use-mutation";
+import { APP_NAME } from "@/lib/constants";
 import { signInFn } from "../api/auth-fns";
 import { type SignInInput, signInSchema } from "../schemas/auth";
 
@@ -69,12 +70,12 @@ export function SignInForm() {
 		<Card className="w-full max-w-md">
 			<CardHeader className="text-center">
 				<CardTitle className="text-2xl font-bold">Welcome back</CardTitle>
-				<CardDescription>Sign in to your GoMail account</CardDescription>
+				<CardDescription>Sign in to your {APP_NAME} account</CardDescription>
 			</CardHeader>
 			<form onSubmit={handleSubmit}>
 				<CardContent className="space-y-4">
 					{serverError && (
-						<div className="rounded-md bg-destructive/10 p-3 text-sm text-destructive">
+						<div className="rounded-md bg-danger p-3 text-sm text-danger-foreground">
 							{serverError}
 						</div>
 					)}
@@ -90,7 +91,7 @@ export function SignInForm() {
 							}
 						/>
 						{validationErrors.email && (
-							<p className="text-sm text-destructive">
+							<p className="text-sm text-danger-foreground">
 								{validationErrors.email}
 							</p>
 						)}
@@ -107,7 +108,7 @@ export function SignInForm() {
 							}
 						/>
 						{validationErrors.password && (
-							<p className="text-sm text-destructive">
+							<p className="text-sm text-danger-foreground">
 								{validationErrors.password}
 							</p>
 						)}
