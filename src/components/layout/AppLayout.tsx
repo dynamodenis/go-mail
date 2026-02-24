@@ -3,6 +3,7 @@ import { Suspense, useState } from "react";
 import { Sidebar } from "./Sidebar";
 import { TopBar } from "./TopBar";
 import Loader from "../global/loader";
+import Footer from "./footer";
 
 export function AppLayout() {
 	const [isCollapsed, setIsCollapsed] = useState(false);
@@ -20,6 +21,7 @@ export function AppLayout() {
 						<Outlet />
 					</Suspense>
 				</main>
+				<Footer />
 			</div>
 		</div>
 	);

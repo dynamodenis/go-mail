@@ -1,14 +1,24 @@
 import { useRouterState } from "@tanstack/react-router";
 import {
+	ActivitySquare,
 	BarChart3,
 	Calendar,
 	FileText,
+	Inbox,
 	LayoutDashboard,
+	Library,
 	type LucideIcon,
 	Mail,
+	Plug,
+	PlusCircle,
+	ScrollText,
 	Send,
 	Settings,
+	ShieldCheck,
+	TrendingUp,
+	UserCog,
 	Users,
+	UsersRound,
 } from "lucide-react";
 import { SidebarNavItem } from "./SidebarNavItem";
 
@@ -16,7 +26,7 @@ interface NavItem {
 	icon: LucideIcon;
 	label: string;
 	href?: string;
-	children?: { label: string; href: string }[];
+	children?: { icon: LucideIcon; label: string; href: string }[];
 }
 
 const NAV_ITEMS: NavItem[] = [
@@ -29,9 +39,9 @@ const NAV_ITEMS: NavItem[] = [
 		icon: Mail,
 		label: "Email",
 		children: [
-			{ label: "Inbox", href: "/email/inbox" },
-			{ label: "Sent", href: "/email/sent" },
-			{ label: "Drafts", href: "/email/drafts" },
+			{ icon: Inbox, label: "Inbox", href: "/email/inbox" },
+			{ icon: Send, label: "Sent", href: "/email/sent" },
+			{ icon: FileText, label: "Drafts", href: "/email/drafts" },
 		],
 	},
 	{
@@ -43,8 +53,8 @@ const NAV_ITEMS: NavItem[] = [
 		icon: Send,
 		label: "Campaigns",
 		children: [
-			{ label: "All Campaigns", href: "/campaigns" },
-			{ label: "Create New", href: "/campaigns/new" },
+			{ icon: Send, label: "All Campaigns", href: "/campaigns" },
+			{ icon: PlusCircle, label: "Create New", href: "/campaigns/new" },
 		],
 	},
 	{
@@ -56,29 +66,29 @@ const NAV_ITEMS: NavItem[] = [
 		icon: Users,
 		label: "Contacts",
 		children: [
-			{ label: "All Contacts", href: "/contacts" },
-			{ label: "Collections", href: "/contacts/collections" },
+			{ icon: Users, label: "All Contacts", href: "/contacts" },
+			{ icon: Library, label: "Collections", href: "/contacts/collections" },
 		],
 	},
 	{
 		icon: BarChart3,
 		label: "Reports",
 		children: [
-			{ label: "Overview", href: "/reports" },
-			{ label: "Deliverability", href: "/reports/deliverability" },
-			{ label: "Engagement", href: "/reports/engagement" },
-			{ label: "Growth", href: "/reports/growth" },
+			{ icon: BarChart3, label: "Overview", href: "/reports" },
+			{ icon: ActivitySquare, label: "Deliverability", href: "/reports/deliverability" },
+			{ icon: TrendingUp, label: "Engagement", href: "/reports/engagement" },
+			{ icon: UsersRound, label: "Growth", href: "/reports/growth" },
 		],
 	},
 	{
 		icon: Settings,
 		label: "Settings",
 		children: [
-			{ label: "Account", href: "/settings/account" },
-			{ label: "Team", href: "/settings/team" },
-			{ label: "Integrations", href: "/settings/integrations" },
-			{ label: "Compliance", href: "/settings/compliance" },
-			{ label: "Logs", href: "/settings/logs" },
+			{ icon: UserCog, label: "Account", href: "/settings/account" },
+			{ icon: UsersRound, label: "Team", href: "/settings/team" },
+			{ icon: Plug, label: "Integrations", href: "/settings/integrations" },
+			{ icon: ShieldCheck, label: "Compliance", href: "/settings/compliance" },
+			{ icon: ScrollText, label: "Logs", href: "/settings/logs" },
 		],
 	},
 ];
@@ -105,7 +115,7 @@ export function SidebarNav({ isCollapsed }: SidebarNavProps) {
 						href={item.href}
 						isActive={isActive}
 						isCollapsed={isCollapsed}
-						children={item.children as { label: string; href: string }[]}
+						children={item.children}
 					/>
 				);
 			})}

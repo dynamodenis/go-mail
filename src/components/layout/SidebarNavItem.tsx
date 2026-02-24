@@ -4,6 +4,7 @@ import { useState } from "react";
 import { cn } from "@/lib/utils";
 
 interface SubItem {
+	icon?: LucideIcon;
 	label: string;
 	href: string;
 }
@@ -38,7 +39,7 @@ export function SidebarNavItem({
 							"flex h-10 w-10 items-center justify-center rounded-md transition-colors",
 							isActive
 								? "bg-primary/10 text-primary"
-								: "text-muted-foreground hover:bg-muted hover:text-foreground",
+								: "text-muted-foreground hover:text-primary",
 						)}
 						title={label}
 					>
@@ -51,7 +52,7 @@ export function SidebarNavItem({
 							"flex h-10 w-10 items-center justify-center rounded-md transition-colors",
 							isActive
 								? "bg-primary/10 text-primary"
-								: "text-muted-foreground hover:bg-muted hover:text-foreground",
+								: "text-muted-foreground hover:text-primary",
 						)}
 						title={label}
 					>
@@ -63,15 +64,19 @@ export function SidebarNavItem({
 						<p className="px-2 py-1 text-xs font-medium text-muted-foreground">
 							{label}
 						</p>
-						{children.map((child) => (
-							<Link
-								key={child.href}
-								to={child.href}
-								className="block rounded-sm px-2 py-1.5 text-sm hover:bg-muted"
-							>
-								{child.label}
-							</Link>
-						))}
+						{children.map((child) => {
+							const ChildIcon = child.icon;
+							return (
+								<Link
+									key={child.href}
+									to={child.href}
+									className="flex items-center gap-2 rounded-sm px-2 py-1.5 text-sm hover:text-primary"
+								>
+									{ChildIcon && <ChildIcon className="h-3.5 w-3.5 shrink-0" />}
+									{child.label}
+								</Link>
+							);
+						})}
 					</div>
 				)}
 			</div>
@@ -88,7 +93,7 @@ export function SidebarNavItem({
 						"flex w-full items-center gap-3 rounded-md px-3 py-2 text-sm font-medium transition-colors",
 						isActive
 							? "bg-primary/10 text-primary"
-							: "text-muted-foreground hover:bg-muted hover:text-foreground",
+							: "text-muted-foreground hover:text-primary",
 					)}
 				>
 					<Icon className="h-5 w-5 shrink-0" />
@@ -102,15 +107,19 @@ export function SidebarNavItem({
 				</button>
 				{isExpanded && (
 					<div className="ml-4 mt-1 space-y-1 border-l pl-4">
-						{children.map((child) => (
-							<Link
-								key={child.href}
-								to={child.href}
-								className="block rounded-md px-3 py-1.5 text-sm text-muted-foreground transition-colors hover:bg-muted hover:text-foreground [&.active]:bg-primary/10 [&.active]:text-primary"
-							>
-								{child.label}
-							</Link>
-						))}
+						{children.map((child) => {
+							const ChildIcon = child.icon;
+							return (
+								<Link
+									key={child.href}
+									to={child.href}
+									className="flex items-center gap-2 rounded-md px-3 py-1.5 text-sm text-muted-foreground transition-colors hover:text-primary [&.active]:bg-primary/10 [&.active]:text-primary"
+								>
+									{ChildIcon && <ChildIcon className="h-4 w-4 shrink-0" />}
+									{child.label}
+								</Link>
+							);
+						})}
 					</div>
 				)}
 			</div>
@@ -119,12 +128,12 @@ export function SidebarNavItem({
 
 	return (
 		<Link
-			to={href!}
+			to={href}
 			className={cn(
 				"flex items-center gap-3 rounded-md px-3 py-2 text-sm font-medium transition-colors",
 				isActive
 					? "bg-primary/10 text-primary"
-					: "text-muted-foreground hover:bg-muted hover:text-foreground",
+					: "text-muted-foreground hover:text-primary",
 			)}
 		>
 			<Icon className="h-5 w-5 shrink-0" />
