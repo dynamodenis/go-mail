@@ -1,8 +1,8 @@
-export const APP_NAME = "GoMail";
+export const APP_NAME = "GoSend";
 export const APP_DESCRIPTION = "Send bulk emails with ease";
-export const APP_TAGLINE = "bulk emails with confidence. GoMail makes email outreach effortless.";
+export const APP_TAGLINE = "bulk emails with confidence. GoSend makes email outreach effortless.";
 
 export const STORAGE_KEYS = {
-	THEME: "gomail-theme",
-	QUERY_CACHE: "gomail-query-cache",
+	THEME: "gosend-theme",
+	QUERY_CACHE: "gosend-query-cache",
 } as const;
