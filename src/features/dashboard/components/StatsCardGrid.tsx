@@ -16,6 +16,7 @@ const KPI_ORDER: (keyof DashboardKpiResponse)[] = [
 
 export function StatsCardGrid() {
 	const range = useDashboardUIStore((s) => s.selectedDateRange);
+	console.log("range", range);
 	const { data, isLoading, isError, refetch } = useDashboardKpis(range);
 
 	if (isLoading) {

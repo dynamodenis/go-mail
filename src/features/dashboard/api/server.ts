@@ -29,6 +29,7 @@ export const getDashboardKpis = createServerFn({ method: "GET" })
 	)
 	.handler(async ({ data }) => {
 		const userId = await requireUserId();
+		console.log("user data", data);
 		return { data: await service.getDashboardKpis(userId, data.dateRange) };
 	});
 

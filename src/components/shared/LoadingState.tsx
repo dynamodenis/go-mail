@@ -1,4 +1,4 @@
-import { Loader2 } from "lucide-react";
+import Loader from "@/components/global/loader";
 import { cn } from "@/lib/utils";
 
 interface LoadingStateProps {
@@ -11,16 +11,15 @@ export function LoadingState({
 	className,
 }: LoadingStateProps) {
 	return (
-		<div
+		<output
 			className={cn(
 				"flex flex-col items-center justify-center gap-3 py-12",
 				className,
 			)}
-			role="status"
 			aria-live="polite"
 		>
-			<Loader2 className="h-8 w-8 animate-spin text-muted-foreground" />
+			<Loader size={102} />
 			<p className="text-sm text-muted-foreground">{message}</p>
-		</div>
+		</output>
 	);
 }
