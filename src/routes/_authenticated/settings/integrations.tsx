@@ -1,6 +1,6 @@
 import { createFileRoute } from "@tanstack/react-router";
 import { lazy } from "react";
-const Integrations = lazy(() => import("@/features/settings/components/Integrations"));
+const Integrations = lazy(() => import("@/features/settings/components/integrations"));
 export const Route = createFileRoute("/_authenticated/settings/integrations")({
 	component: IntegrationsPage,
 });

@@ -145,12 +145,12 @@ prisma/
 - No React component file shall exceed 250 lines of code.
 - If a component approaches 250 lines, decompose it into smaller child components.
 - Child components live in the same feature's `components/` directory.
-- Example: Instead of one `CampaignBuilder.tsx` (400 lines), break into:
-  - `CampaignBuilder.tsx` (orchestrator, <100 lines)
-  - `CampaignStepSelector.tsx`
-  - `CampaignTemplateStep.tsx`
-  - `CampaignRecipientsStep.tsx`
-  - `CampaignReviewStep.tsx`
+- Example: Instead of one `campaing-builder.tsx` (400 lines), break into:
+  - `campaign-builder.tsx` (orchestrator, <100 lines)
+  - `campaign-step-selector.tsx`
+  - `campaign-template-step.tsx`
+  - `campaign-recipients-step.tsx`
+  - `campaign-review-step.tsx`
 
 ### STRICT: Component Responsibility
 - Each component does ONE thing. If you can't describe it in one sentence, split it.
@@ -194,10 +194,10 @@ prisma/
 
 ### STRICT: Every Feature Must Have Tests
 - Tests live in `app/features/{feature}/tests/`
-- Every component gets a test file: `ComponentName.test.tsx`
+- Every component gets a test file: `componentname.test.tsx`
 - Every query/mutation hook gets tested: `queries.test.ts`
 - Use Vitest + React Testing Library.
-- Test file naming: `{FileName}.test.{tsx|ts}`
+- Test file naming: `{filemame}.test.{tsx|ts}`
 
 ### What to Test
 - **Components**: Renders correctly, user interactions, conditional rendering, loading/error states

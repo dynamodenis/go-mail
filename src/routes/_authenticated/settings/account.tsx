@@ -1,6 +1,6 @@
 import { createFileRoute } from "@tanstack/react-router";
 import { lazy } from "react";
-const AccountSettings = lazy(() => import("@/features/settings/components/AccountSettings"));
+const AccountSettings = lazy(() => import("@/features/settings/components/account-settings"));
 export const Route = createFileRoute("/_authenticated/settings/account")({
 	component: AccountSettingsPage,
 });

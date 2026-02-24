@@ -1,0 +1,27 @@
+.tiptap-orbiter-box {
+  backdrop-filter: var(--filter);
+  border-radius: 10px;
+
+  > .tiptap-orbiter-box-content::before {
+    content: "";
+    position: absolute;
+    inset: 0;
+    border-radius: 10px;
+    background-image: var(--border-gradient) !important;
+    border: 1px solid transparent;
+    mask: linear-gradient(hsl(0 0% 100% / 0), hsl(0 0% 100% / 0)),
+      linear-gradient(hsl(0 0% 100%), hsl(0 0% 100%));
+    mask-clip: padding-box, border-box;
+    mask-composite: intersect;
+    transition: all 0.3s linear;
+    z-index: -1;
+  }
+
+  &-content {
+    border-radius: 10px;
+    box-sizing: border-box;
+    backdrop-filter: blur(10px);
+    height: 100%;
+    transition: all 0.3s linear;
+  }
+}
