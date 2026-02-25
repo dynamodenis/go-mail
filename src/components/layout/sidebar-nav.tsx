@@ -42,6 +42,7 @@ const NAV_ITEMS: NavItem[] = [
 			{ icon: Inbox, label: "Inbox", href: "/email/inbox" },
 			{ icon: Send, label: "Sent", href: "/email/sent" },
 			{ icon: FileText, label: "Drafts", href: "/email/drafts" },
+
 		],
 	},
 	{
@@ -59,8 +60,8 @@ const NAV_ITEMS: NavItem[] = [
 	},
 	{
 		icon: FileText,
-		label: "Templates",
-		href: "/templates",
+		label: "Outreach Composer",
+		href: "/outreach-composer",
 	},
 	{
 		icon: Users,
