@@ -1,7 +1,11 @@
 import { createFileRoute } from "@tanstack/react-router";
 import { lazy } from "react";
-const EditTemplate = lazy(() => import("@/features/templates/components/edit-template"));
-export const Route = createFileRoute("/_authenticated/outreach-composer/$templateId/edit")({
+const EditTemplate = lazy(
+	() => import("@/features/email-outreach/components/edit-template"),
+);
+export const Route = createFileRoute(
+	"/_authenticated/outreach-composer/$templateId/edit",
+)({
 	component: EditTemplatePage,
 });
 

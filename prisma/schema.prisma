@@ -117,11 +117,44 @@ model Template {
   createdAt    DateTime         @default(now())
   updatedAt    DateTime         @updatedAt
 
-  campaigns Campaign[]
+  campaigns   Campaign[]
+  attachments TemplateAttachment[]
+  mergeTags   TemplateMergeTag[]
 
   @@index([userId])
   @@index([category])
   @@index([createdAt])
+}
+
+model TemplateAttachment {
+  id         String   @id @default(uuid())
+  templateId String
+  userId     String
+  fileName   String
+  fileUrl    String
+  fileSize   Int
+  mimeType   String
+  createdAt  DateTime @default(now())
+
+  template Template @relation(fields: [templateId], references: [id], onDelete: Cascade)
+
+  @@index([templateId])
+  @@index([userId])
+}
+
+model TemplateMergeTag {
+  id         String   @id @default(uuid())
+  templateId String
+  userId     String
+  label      String
+  value      String
+  createdAt  DateTime @default(now())
+
+  template Template @relation(fields: [templateId], references: [id], onDelete: Cascade)
+
+  @@unique([templateId, value])
+  @@index([templateId])
+  @@index([userId])
 }
 
 model Campaign {
