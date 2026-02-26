@@ -1,7 +1,7 @@
 import { render, screen, fireEvent } from "@testing-library/react";
 import { describe, it, expect, vi, beforeEach } from "vitest";
 import { QueryClient, QueryClientProvider } from "@tanstack/react-query";
-import { MergeTagPanel } from "../components/merge-tag-panel";
+import { MergeTagPanel } from "../components/editor/merge-tag-panel";
 import { useTemplatesUIStore } from "../api/store";
 
 vi.mock("../api/queries", () => ({

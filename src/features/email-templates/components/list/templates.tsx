@@ -6,12 +6,12 @@ import { LoadingState } from "@/components/shared/loading-state";
 import { ErrorState } from "@/components/shared/error-state";
 import { EmptyState } from "@/components/shared/empty-state";
 import { ConfirmDialog } from "@/components/shared/confirm-dialog";
-import { useTemplates, useDeleteTemplate } from "../api/queries";
-import { useTemplatesUIStore } from "../api/store";
+import { useTemplates, useDeleteTemplate } from "../../api/queries";
+import { useTemplatesUIStore } from "../../api/store";
 import { TemplateFiltersBar } from "./template-filters-bar";
 import { TemplateGrid } from "./template-grid";
 import { TemplatePagination } from "./template-pagination";
-import { CreateTemplateModal } from "./create-template-modal";
+import { CreateTemplateModal } from "../create-template-modal";
 
 function Templates() {
 	const {
@@ -54,7 +54,7 @@ function Templates() {
 				description="Create and manage your email templates."
 				actions={
 					<Button onClick={() => setCreateModalOpen(true)}>
-						<Plus className="mr-2 h-4 w-4" />
+						<Plus className=" h-3 w-3" />
 						Create Template
 					</Button>
 				}

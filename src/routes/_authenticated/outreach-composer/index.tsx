@@ -1,12 +1,7 @@
-import { createFileRoute } from "@tanstack/react-router";
-import { lazy } from "react";
-const Templates = lazy(
-	() => import("@/features/email-outreach/components/templates"),
-);
-export const Route = createFileRoute("/_authenticated/outreach-composer/")({
-	component: TemplatesPage,
-});
+import { createFileRoute, redirect } from "@tanstack/react-router";
 
-function TemplatesPage() {
-	return <Templates />;
-}
+export const Route = createFileRoute("/_authenticated/outreach-composer/")({
+	beforeLoad: () => {
+		throw redirect({ to: "/outreach-composer/email-templates" });
+	},
+});

@@ -6,7 +6,7 @@ import {
 	CardHeader,
 	CardTitle,
 } from "@/components/ui/card";
-import type { TemplateAttachment } from "../types";
+import type { TemplateAttachment } from "../../types";
 
 interface TemplateAttachmentPanelProps {
 	templateId?: string;

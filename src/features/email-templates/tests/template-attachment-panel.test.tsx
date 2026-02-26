@@ -1,6 +1,6 @@
 import { render, screen, fireEvent } from "@testing-library/react";
 import { describe, it, expect, vi } from "vitest";
-import { TemplateAttachmentPanel } from "../components/template-attachment-panel";
+import { TemplateAttachmentPanel } from "../components/editor/template-attachment-panel";
 import type { TemplateAttachment } from "../types";
 
 const MOCK_ATTACHMENTS: TemplateAttachment[] = [

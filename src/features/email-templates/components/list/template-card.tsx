@@ -7,7 +7,7 @@ import {
 	CardFooter,
 	CardHeader,
 } from "@/components/ui/card";
-import { TEMPLATE_CATEGORY_LABELS, type Template } from "../types";
+import { TEMPLATE_CATEGORY_LABELS, type Template } from "../../types";
 
 interface TemplateCardProps {
 	template: Template;
@@ -56,7 +56,7 @@ export function TemplateCard({ template, onDelete }: TemplateCardProps) {
 					)}
 				</div>
 				<Link
-					to="/outreach-composer/$templateId/edit"
+					to="/outreach-composer/email-templates/$templateId/edit"
 					params={{ templateId: template.id }}
 					className="inline-flex items-center gap-1 text-xs font-medium text-primary hover:underline"
 				>

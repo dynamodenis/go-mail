@@ -41,7 +41,7 @@ export function Sidebar({ isCollapsed, onToggle }: SidebarProps) {
 		<aside
 			className={cn(
 				"flex h-screen flex-col border-r bg-card transition-all duration-200",
-				isCollapsed ? "w-16" : "w-64",
+				isCollapsed ? "w-16" : "w-60",
 			)}
 		>
 			{/* Logo */}

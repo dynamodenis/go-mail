@@ -1,6 +1,6 @@
 import { render, screen, fireEvent } from "@testing-library/react";
 import { describe, it, expect, beforeEach } from "vitest";
-import { TemplateFiltersBar } from "../components/template-filters-bar";
+import { TemplateFiltersBar } from "../components/list/template-filters-bar";
 import { useTemplatesUIStore } from "../api/store";
 
 describe("TemplateFiltersBar", () => {

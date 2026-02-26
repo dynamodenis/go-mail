@@ -12,8 +12,8 @@ import {
 	templateCategorySchema,
 	TEMPLATE_CATEGORY_LABELS,
 	type TemplateCategory,
-} from "../types";
-import { useTemplatesUIStore } from "../api/store";
+} from "../../types";
+import { useTemplatesUIStore } from "../../api/store";
 
 const DEBOUNCE_MS = 300;
 

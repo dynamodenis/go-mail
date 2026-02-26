@@ -3,7 +3,7 @@ import { describe, it, expect, vi, beforeEach } from "vitest";
 import type { Template } from "../types";
 
 // Mock the TipTap editor to avoid DOM complexity in tests
-vi.mock("../components/template-body-editor", () => ({
+vi.mock("../components/editor/template-body-editor", () => ({
 	TemplateBodyEditor: ({
 		onEditorReady,
 	}: {
@@ -25,17 +25,17 @@ vi.mock("../components/template-body-editor", () => ({
 }));
 
 // Mock the category select to avoid ShadCN Select DOM issues
-vi.mock("../components/template-category-select", () => ({
+vi.mock("../components/editor/template-category-select", () => ({
 	TemplateCategorySelect: () => <div data-testid="mock-category-select">Category Select</div>,
 }));
 
 // Mock the merge tag panel
-vi.mock("../components/merge-tag-panel", () => ({
+vi.mock("../components/editor/merge-tag-panel", () => ({
 	MergeTagPanel: () => <div data-testid="mock-merge-panel">Merge Tags</div>,
 }));
 
 // Mock the attachment panel
-vi.mock("../components/template-attachment-panel", () => ({
+vi.mock("../components/editor/template-attachment-panel", () => ({
 	TemplateAttachmentPanel: () => <div data-testid="mock-attachment-panel">Attachments</div>,
 }));
 
@@ -44,7 +44,7 @@ vi.mock("../api/queries", () => ({
 	useRemoveAttachment: () => ({ mutate: vi.fn(), isPending: false }),
 }));
 
-import { TemplateEditorForm } from "../components/template-editor-form";
+import { TemplateEditorForm } from "../components/editor/template-editor-form";
 
 const MOCK_TEMPLATE: Template = {
 	id: "550e8400-e29b-41d4-a716-446655440000",

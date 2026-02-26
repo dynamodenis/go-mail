@@ -11,17 +11,17 @@ vi.mock("../api/queries", () => ({
 	useRemoveMergeTag: () => ({ mutate: vi.fn(), isPending: false }),
 }));
 
-vi.mock("../components/template-body-editor", () => ({
+vi.mock("../components/editor/template-body-editor", () => ({
 	TemplateBodyEditor: () => {
 		return <div data-testid="mock-editor">Mock Editor</div>;
 	},
 }));
 
-vi.mock("../components/template-category-select", () => ({
+vi.mock("../components/editor/template-category-select", () => ({
 	TemplateCategorySelect: () => <div data-testid="mock-category">Category</div>,
 }));
 
-vi.mock("../components/template-attachment-panel", () => ({
+vi.mock("../components/editor/template-attachment-panel", () => ({
 	TemplateAttachmentPanel: () => <div data-testid="mock-attachments">Attachments</div>,
 }));
 

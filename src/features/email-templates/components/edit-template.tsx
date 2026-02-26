@@ -4,10 +4,10 @@ import { PageHeader } from "@/components/shared/page-header";
 import { LoadingState } from "@/components/shared/loading-state";
 import { ErrorState } from "@/components/shared/error-state";
 import { useTemplate, useUpdateTemplate } from "../api/queries";
-import { TemplateEditorForm } from "./template-editor-form";
+import { TemplateEditorForm } from "./editor/template-editor-form";
 
 const routeApi = getRouteApi(
-	"/_authenticated/outreach-composer/$templateId/edit",
+	"/_authenticated/outreach-composer/email-templates/$templateId/edit",
 );
 
 export default function EditTemplate() {
@@ -38,7 +38,7 @@ export default function EditTemplate() {
 						{
 							onSuccess: () => {
 								toast.success("Template updated");
-								router.navigate({ to: "/outreach-composer" });
+								router.navigate({ to: "/outreach-composer/email-templates" });
 							},
 							onError: () => {
 								toast.error("Failed to update template");

@@ -19,6 +19,8 @@ import {
 	UserCog,
 	Users,
 	UsersRound,
+	BookPlus,
+	MailPlus
 } from "lucide-react";
 import { SidebarNavItem } from "./sidebar-nav-item";
 
@@ -61,7 +63,10 @@ const NAV_ITEMS: NavItem[] = [
 	{
 		icon: FileText,
 		label: "Outreach Composer",
-		href: "/outreach-composer",
+		children: [
+			{ icon: BookPlus, label: "Email Templates", href: "/outreach-composer/email-templates" },
+			{ icon: MailPlus, label: "Email Composer", href: "/outreach-composer/email-composer" },
+		],
 	},
 	{
 		icon: Users,

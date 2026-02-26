@@ -1,4 +1,4 @@
-import type { Template } from "../types";
+import type { Template } from "../../types";
 import { TemplateCard } from "./template-card";
 
 interface TemplateGridProps {

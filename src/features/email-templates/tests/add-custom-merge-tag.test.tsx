@@ -1,6 +1,6 @@
 import { render, screen, fireEvent } from "@testing-library/react";
 import { describe, it, expect, vi } from "vitest";
-import { AddCustomMergeTag } from "../components/add-custom-merge-tag";
+import { AddCustomMergeTag } from "../components/editor/add-custom-merge-tag";
 
 describe("AddCustomMergeTag", () => {
 	it("renders label input and buttons", () => {

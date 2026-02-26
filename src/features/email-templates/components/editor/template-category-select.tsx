@@ -16,7 +16,7 @@ import {
 	templateCategorySchema,
 	TEMPLATE_CATEGORY_LABELS,
 	type TemplateCategory,
-} from "../types";
+} from "../../types";
 
 interface TemplateCategorySelectProps {
 	value: TemplateCategory;

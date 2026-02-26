@@ -28,7 +28,6 @@ import { Route as AuthenticatedSettingsAccountRouteImport } from './routes/_auth
 import { Route as AuthenticatedReportsGrowthRouteImport } from './routes/_authenticated/reports/growth'
 import { Route as AuthenticatedReportsEngagementRouteImport } from './routes/_authenticated/reports/engagement'
 import { Route as AuthenticatedReportsDeliverabilityRouteImport } from './routes/_authenticated/reports/deliverability'
-import { Route as AuthenticatedOutreachComposerNewRouteImport } from './routes/_authenticated/outreach-composer/new'
 import { Route as AuthenticatedEmailSentRouteImport } from './routes/_authenticated/email/sent'
 import { Route as AuthenticatedEmailInboxRouteImport } from './routes/_authenticated/email/inbox'
 import { Route as AuthenticatedEmailDraftsRouteImport } from './routes/_authenticated/email/drafts'
@@ -36,7 +35,9 @@ import { Route as AuthenticatedContactsCollectionsRouteImport } from './routes/_
 import { Route as AuthenticatedContactsContactIdRouteImport } from './routes/_authenticated/contacts/$contactId'
 import { Route as AuthenticatedCampaignsNewRouteImport } from './routes/_authenticated/campaigns/new'
 import { Route as AuthenticatedCampaignsCampaignIdRouteImport } from './routes/_authenticated/campaigns/$campaignId'
-import { Route as AuthenticatedOutreachComposerTemplateIdEditRouteImport } from './routes/_authenticated/outreach-composer/$templateId.edit'
+import { Route as AuthenticatedOutreachComposerEmailTemplatesIndexRouteImport } from './routes/_authenticated/outreach-composer/email-templates/index'
+import { Route as AuthenticatedOutreachComposerEmailComposerIndexRouteImport } from './routes/_authenticated/outreach-composer/email-composer/index'
+import { Route as AuthenticatedOutreachComposerEmailTemplatesTemplateIdEditRouteImport } from './routes/_authenticated/outreach-composer/email-templates/$templateId.edit'
 
 const AuthenticatedRoute = AuthenticatedRouteImport.update({
   id: '/_authenticated',
@@ -143,12 +144,6 @@ const AuthenticatedReportsDeliverabilityRoute =
     path: '/reports/deliverability',
     getParentRoute: () => AuthenticatedRoute,
   } as any)
-const AuthenticatedOutreachComposerNewRoute =
-  AuthenticatedOutreachComposerNewRouteImport.update({
-    id: '/outreach-composer/new',
-    path: '/outreach-composer/new',
-    getParentRoute: () => AuthenticatedRoute,
-  } as any)
 const AuthenticatedEmailSentRoute = AuthenticatedEmailSentRouteImport.update({
   id: '/email/sent',
   path: '/email/sent',
@@ -189,10 +184,22 @@ const AuthenticatedCampaignsCampaignIdRoute =
     path: '/campaigns/$campaignId',
     getParentRoute: () => AuthenticatedRoute,
   } as any)
-const AuthenticatedOutreachComposerTemplateIdEditRoute =
-  AuthenticatedOutreachComposerTemplateIdEditRouteImport.update({
-    id: '/outreach-composer/$templateId/edit',
-    path: '/outreach-composer/$templateId/edit',
+const AuthenticatedOutreachComposerEmailTemplatesIndexRoute =
+  AuthenticatedOutreachComposerEmailTemplatesIndexRouteImport.update({
+    id: '/outreach-composer/email-templates/',
+    path: '/outreach-composer/email-templates/',
+    getParentRoute: () => AuthenticatedRoute,
+  } as any)
+const AuthenticatedOutreachComposerEmailComposerIndexRoute =
+  AuthenticatedOutreachComposerEmailComposerIndexRouteImport.update({
+    id: '/outreach-composer/email-composer/',
+    path: '/outreach-composer/email-composer/',
+    getParentRoute: () => AuthenticatedRoute,
+  } as any)
+const AuthenticatedOutreachComposerEmailTemplatesTemplateIdEditRoute =
+  AuthenticatedOutreachComposerEmailTemplatesTemplateIdEditRouteImport.update({
+    id: '/outreach-composer/email-templates/$templateId/edit',
+    path: '/outreach-composer/email-templates/$templateId/edit',
     getParentRoute: () => AuthenticatedRoute,
   } as any)
 
@@ -209,7 +216,6 @@ export interface FileRoutesByFullPath {
   '/email/drafts': typeof AuthenticatedEmailDraftsRoute
   '/email/inbox': typeof AuthenticatedEmailInboxRoute
   '/email/sent': typeof AuthenticatedEmailSentRoute
-  '/outreach-composer/new': typeof AuthenticatedOutreachComposerNewRoute
   '/reports/deliverability': typeof AuthenticatedReportsDeliverabilityRoute
   '/reports/engagement': typeof AuthenticatedReportsEngagementRoute
   '/reports/growth': typeof AuthenticatedReportsGrowthRoute
@@ -222,7 +228,9 @@ export interface FileRoutesByFullPath {
   '/contacts/': typeof AuthenticatedContactsIndexRoute
   '/outreach-composer/': typeof AuthenticatedOutreachComposerIndexRoute
   '/reports/': typeof AuthenticatedReportsIndexRoute
-  '/outreach-composer/$templateId/edit': typeof AuthenticatedOutreachComposerTemplateIdEditRoute
+  '/outreach-composer/email-composer/': typeof AuthenticatedOutreachComposerEmailComposerIndexRoute
+  '/outreach-composer/email-templates/': typeof AuthenticatedOutreachComposerEmailTemplatesIndexRoute
+  '/outreach-composer/email-templates/$templateId/edit': typeof AuthenticatedOutreachComposerEmailTemplatesTemplateIdEditRoute
 }
 export interface FileRoutesByTo {
   '/': typeof IndexRoute
@@ -237,7 +245,6 @@ export interface FileRoutesByTo {
   '/email/drafts': typeof AuthenticatedEmailDraftsRoute
   '/email/inbox': typeof AuthenticatedEmailInboxRoute
   '/email/sent': typeof AuthenticatedEmailSentRoute
-  '/outreach-composer/new': typeof AuthenticatedOutreachComposerNewRoute
   '/reports/deliverability': typeof AuthenticatedReportsDeliverabilityRoute
   '/reports/engagement': typeof AuthenticatedReportsEngagementRoute
   '/reports/growth': typeof AuthenticatedReportsGrowthRoute
@@ -250,7 +257,9 @@ export interface FileRoutesByTo {
   '/contacts': typeof AuthenticatedContactsIndexRoute
   '/outreach-composer': typeof AuthenticatedOutreachComposerIndexRoute
   '/reports': typeof AuthenticatedReportsIndexRoute
-  '/outreach-composer/$templateId/edit': typeof AuthenticatedOutreachComposerTemplateIdEditRoute
+  '/outreach-composer/email-composer': typeof AuthenticatedOutreachComposerEmailComposerIndexRoute
+  '/outreach-composer/email-templates': typeof AuthenticatedOutreachComposerEmailTemplatesIndexRoute
+  '/outreach-composer/email-templates/$templateId/edit': typeof AuthenticatedOutreachComposerEmailTemplatesTemplateIdEditRoute
 }
 export interface FileRoutesById {
   __root__: typeof rootRouteImport
@@ -268,7 +277,6 @@ export interface FileRoutesById {
   '/_authenticated/email/drafts': typeof AuthenticatedEmailDraftsRoute
   '/_authenticated/email/inbox': typeof AuthenticatedEmailInboxRoute
   '/_authenticated/email/sent': typeof AuthenticatedEmailSentRoute
-  '/_authenticated/outreach-composer/new': typeof AuthenticatedOutreachComposerNewRoute
   '/_authenticated/reports/deliverability': typeof AuthenticatedReportsDeliverabilityRoute
   '/_authenticated/reports/engagement': typeof AuthenticatedReportsEngagementRoute
   '/_authenticated/reports/growth': typeof AuthenticatedReportsGrowthRoute
@@ -281,7 +289,9 @@ export interface FileRoutesById {
   '/_authenticated/contacts/': typeof AuthenticatedContactsIndexRoute
   '/_authenticated/outreach-composer/': typeof AuthenticatedOutreachComposerIndexRoute
   '/_authenticated/reports/': typeof AuthenticatedReportsIndexRoute
-  '/_authenticated/outreach-composer/$templateId/edit': typeof AuthenticatedOutreachComposerTemplateIdEditRoute
+  '/_authenticated/outreach-composer/email-composer/': typeof AuthenticatedOutreachComposerEmailComposerIndexRoute
+  '/_authenticated/outreach-composer/email-templates/': typeof AuthenticatedOutreachComposerEmailTemplatesIndexRoute
+  '/_authenticated/outreach-composer/email-templates/$templateId/edit': typeof AuthenticatedOutreachComposerEmailTemplatesTemplateIdEditRoute
 }
 export interface FileRouteTypes {
   fileRoutesByFullPath: FileRoutesByFullPath
@@ -298,7 +308,6 @@ export interface FileRouteTypes {
     | '/email/drafts'
     | '/email/inbox'
     | '/email/sent'
-    | '/outreach-composer/new'
     | '/reports/deliverability'
     | '/reports/engagement'
     | '/reports/growth'
@@ -311,7 +320,9 @@ export interface FileRouteTypes {
     | '/contacts/'
     | '/outreach-composer/'
     | '/reports/'
-    | '/outreach-composer/$templateId/edit'
+    | '/outreach-composer/email-composer/'
+    | '/outreach-composer/email-templates/'
+    | '/outreach-composer/email-templates/$templateId/edit'
   fileRoutesByTo: FileRoutesByTo
   to:
     | '/'
@@ -326,7 +337,6 @@ export interface FileRouteTypes {
     | '/email/drafts'
     | '/email/inbox'
     | '/email/sent'
-    | '/outreach-composer/new'
     | '/reports/deliverability'
     | '/reports/engagement'
     | '/reports/growth'
@@ -339,7 +349,9 @@ export interface FileRouteTypes {
     | '/contacts'
     | '/outreach-composer'
     | '/reports'
-    | '/outreach-composer/$templateId/edit'
+    | '/outreach-composer/email-composer'
+    | '/outreach-composer/email-templates'
+    | '/outreach-composer/email-templates/$templateId/edit'
   id:
     | '__root__'
     | '/'
@@ -356,7 +368,6 @@ export interface FileRouteTypes {
     | '/_authenticated/email/drafts'
     | '/_authenticated/email/inbox'
     | '/_authenticated/email/sent'
-    | '/_authenticated/outreach-composer/new'
     | '/_authenticated/reports/deliverability'
     | '/_authenticated/reports/engagement'
     | '/_authenticated/reports/growth'
@@ -369,7 +380,9 @@ export interface FileRouteTypes {
     | '/_authenticated/contacts/'
     | '/_authenticated/outreach-composer/'
     | '/_authenticated/reports/'
-    | '/_authenticated/outreach-composer/$templateId/edit'
+    | '/_authenticated/outreach-composer/email-composer/'
+    | '/_authenticated/outreach-composer/email-templates/'
+    | '/_authenticated/outreach-composer/email-templates/$templateId/edit'
   fileRoutesById: FileRoutesById
 }
 export interface RootRouteChildren {
@@ -513,13 +526,6 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof AuthenticatedReportsDeliverabilityRouteImport
       parentRoute: typeof AuthenticatedRoute
     }
-    '/_authenticated/outreach-composer/new': {
-      id: '/_authenticated/outreach-composer/new'
-      path: '/outreach-composer/new'
-      fullPath: '/outreach-composer/new'
-      preLoaderRoute: typeof AuthenticatedOutreachComposerNewRouteImport
-      parentRoute: typeof AuthenticatedRoute
-    }
     '/_authenticated/email/sent': {
       id: '/_authenticated/email/sent'
       path: '/email/sent'
@@ -569,11 +575,25 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof AuthenticatedCampaignsCampaignIdRouteImport
       parentRoute: typeof AuthenticatedRoute
     }
-    '/_authenticated/outreach-composer/$templateId/edit': {
-      id: '/_authenticated/outreach-composer/$templateId/edit'
-      path: '/outreach-composer/$templateId/edit'
-      fullPath: '/outreach-composer/$templateId/edit'
-      preLoaderRoute: typeof AuthenticatedOutreachComposerTemplateIdEditRouteImport
+    '/_authenticated/outreach-composer/email-templates/': {
+      id: '/_authenticated/outreach-composer/email-templates/'
+      path: '/outreach-composer/email-templates'
+      fullPath: '/outreach-composer/email-templates/'
+      preLoaderRoute: typeof AuthenticatedOutreachComposerEmailTemplatesIndexRouteImport
+      parentRoute: typeof AuthenticatedRoute
+    }
+    '/_authenticated/outreach-composer/email-composer/': {
+      id: '/_authenticated/outreach-composer/email-composer/'
+      path: '/outreach-composer/email-composer'
+      fullPath: '/outreach-composer/email-composer/'
+      preLoaderRoute: typeof AuthenticatedOutreachComposerEmailComposerIndexRouteImport
+      parentRoute: typeof AuthenticatedRoute
+    }
+    '/_authenticated/outreach-composer/email-templates/$templateId/edit': {
+      id: '/_authenticated/outreach-composer/email-templates/$templateId/edit'
+      path: '/outreach-composer/email-templates/$templateId/edit'
+      fullPath: '/outreach-composer/email-templates/$templateId/edit'
+      preLoaderRoute: typeof AuthenticatedOutreachComposerEmailTemplatesTemplateIdEditRouteImport
       parentRoute: typeof AuthenticatedRoute
     }
   }
@@ -603,7 +623,6 @@ interface AuthenticatedRouteChildren {
   AuthenticatedEmailDraftsRoute: typeof AuthenticatedEmailDraftsRoute
   AuthenticatedEmailInboxRoute: typeof AuthenticatedEmailInboxRoute
   AuthenticatedEmailSentRoute: typeof AuthenticatedEmailSentRoute
-  AuthenticatedOutreachComposerNewRoute: typeof AuthenticatedOutreachComposerNewRoute
   AuthenticatedReportsDeliverabilityRoute: typeof AuthenticatedReportsDeliverabilityRoute
   AuthenticatedReportsEngagementRoute: typeof AuthenticatedReportsEngagementRoute
   AuthenticatedReportsGrowthRoute: typeof AuthenticatedReportsGrowthRoute
@@ -616,7 +635,9 @@ interface AuthenticatedRouteChildren {
   AuthenticatedContactsIndexRoute: typeof AuthenticatedContactsIndexRoute
   AuthenticatedOutreachComposerIndexRoute: typeof AuthenticatedOutreachComposerIndexRoute
   AuthenticatedReportsIndexRoute: typeof AuthenticatedReportsIndexRoute
-  AuthenticatedOutreachComposerTemplateIdEditRoute: typeof AuthenticatedOutreachComposerTemplateIdEditRoute
+  AuthenticatedOutreachComposerEmailComposerIndexRoute: typeof AuthenticatedOutreachComposerEmailComposerIndexRoute
+  AuthenticatedOutreachComposerEmailTemplatesIndexRoute: typeof AuthenticatedOutreachComposerEmailTemplatesIndexRoute
+  AuthenticatedOutreachComposerEmailTemplatesTemplateIdEditRoute: typeof AuthenticatedOutreachComposerEmailTemplatesTemplateIdEditRoute
 }
 
 const AuthenticatedRouteChildren: AuthenticatedRouteChildren = {
@@ -629,7 +650,6 @@ const AuthenticatedRouteChildren: AuthenticatedRouteChildren = {
   AuthenticatedEmailDraftsRoute: AuthenticatedEmailDraftsRoute,
   AuthenticatedEmailInboxRoute: AuthenticatedEmailInboxRoute,
   AuthenticatedEmailSentRoute: AuthenticatedEmailSentRoute,
-  AuthenticatedOutreachComposerNewRoute: AuthenticatedOutreachComposerNewRoute,
   AuthenticatedReportsDeliverabilityRoute:
     AuthenticatedReportsDeliverabilityRoute,
   AuthenticatedReportsEngagementRoute: AuthenticatedReportsEngagementRoute,
@@ -645,8 +665,12 @@ const AuthenticatedRouteChildren: AuthenticatedRouteChildren = {
   AuthenticatedOutreachComposerIndexRoute:
     AuthenticatedOutreachComposerIndexRoute,
   AuthenticatedReportsIndexRoute: AuthenticatedReportsIndexRoute,
-  AuthenticatedOutreachComposerTemplateIdEditRoute:
-    AuthenticatedOutreachComposerTemplateIdEditRoute,
+  AuthenticatedOutreachComposerEmailComposerIndexRoute:
+    AuthenticatedOutreachComposerEmailComposerIndexRoute,
+  AuthenticatedOutreachComposerEmailTemplatesIndexRoute:
+    AuthenticatedOutreachComposerEmailTemplatesIndexRoute,
+  AuthenticatedOutreachComposerEmailTemplatesTemplateIdEditRoute:
+    AuthenticatedOutreachComposerEmailTemplatesTemplateIdEditRoute,
 }
 
 const AuthenticatedRouteWithChildren = AuthenticatedRoute._addFileChildren(

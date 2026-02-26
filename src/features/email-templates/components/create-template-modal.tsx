@@ -10,7 +10,8 @@ import {
 import OrbiterBox from "@/components/global/orbiter-box";
 import { useCreateTemplate } from "../api/queries";
 import { useTemplatesUIStore } from "../api/store";
-import { TemplateEditorForm } from "./template-editor-form";
+import { TemplateEditorForm } from "./editor/template-editor-form";
+import Divider from "@/components/ui/divider";
 
 export function CreateTemplateModal() {
 	const { isCreateModalOpen, setCreateModalOpen, pendingMergeTags, resetPendingMergeTags } =
@@ -29,7 +30,7 @@ export function CreateTemplateModal() {
 			>
 				<OrbiterBox variant="blue-light-horizontal" borderRadius={8}>
 					<div className="flex flex-col bg-background sm:rounded-lg">
-						<div className="flex items-center justify-between border-b px-4 py-3 sm:px-6 sm:py-4">
+						<div className="flex items-center justify-between px-4 py-3 sm:px-6 sm:py-4">
 							<DialogTitle className="text-base font-semibold sm:text-lg">
 								Create Template
 							</DialogTitle>
@@ -39,6 +40,7 @@ export function CreateTemplateModal() {
 								</Button>
 							</DialogClose>
 						</div>
+						<Divider variant="blue-light-horizontal" />
 						<div className="flex-1 overflow-y-auto p-4 sm:p-6 max-h-[calc(100vh-60px)] sm:max-h-[calc(95vh-80px)]">
 							<TemplateEditorForm
 								mode="create"

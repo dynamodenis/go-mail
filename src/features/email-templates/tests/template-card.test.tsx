@@ -7,7 +7,7 @@ import {
 	createRouter,
 	RouterProvider,
 } from "@tanstack/react-router";
-import { TemplateCard } from "../components/template-card";
+import { TemplateCard } from "../components/list/template-card";
 import type { Template } from "../types";
 
 const MOCK_TEMPLATE: Template = {
@@ -74,7 +74,7 @@ describe("TemplateCard", () => {
 		const editLink = screen.getByText("Edit");
 		expect(editLink.closest("a")).toHaveAttribute(
 			"href",
-			`/outreach-composer/${MOCK_TEMPLATE.id}/edit`,
+			`/outreach-composer/email-templates/${MOCK_TEMPLATE.id}/edit`,
 		);
 	});
 

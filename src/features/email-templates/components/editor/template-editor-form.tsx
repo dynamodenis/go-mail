@@ -6,8 +6,8 @@ import type {
 	TemplateCategory,
 	TemplateAttachment,
 	TemplateMergeTag,
-} from "../types";
-import { useRemoveAttachment } from "../api/queries";
+} from "../../types";
+import { useRemoveAttachment } from "../../api/queries";
 import { TemplateNameInput } from "./template-name-input";
 import { TemplateSubjectInput } from "./template-subject-input";
 import { TemplateCategorySelect } from "./template-category-select";

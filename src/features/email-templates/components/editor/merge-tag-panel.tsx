@@ -12,9 +12,9 @@ import {
 	AVAILABLE_MERGE_TAGS,
 	type MergeTagDefinition,
 	type TemplateMergeTag,
-} from "../types";
-import { useTemplatesUIStore } from "../api/store";
-import { useAddMergeTag, useRemoveMergeTag } from "../api/queries";
+} from "../../types";
+import { useTemplatesUIStore } from "../../api/store";
+import { useAddMergeTag, useRemoveMergeTag } from "../../api/queries";
 import { AddCustomMergeTag } from "./add-custom-merge-tag";
 
 interface MergeTagPanelProps {

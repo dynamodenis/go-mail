@@ -2,7 +2,7 @@ import { useRouter } from "@tanstack/react-router";
 import { toast } from "sonner";
 import { PageHeader } from "@/components/shared/page-header";
 import { useCreateTemplate } from "../api/queries";
-import { TemplateEditorForm } from "./template-editor-form";
+import { TemplateEditorForm } from "./editor/template-editor-form";
 
 export default function CreateTemplate() {
 	const router = useRouter();
@@ -21,7 +21,7 @@ export default function CreateTemplate() {
 					createMutation.mutate(data, {
 						onSuccess: () => {
 							toast.success("Template created");
-							router.navigate({ to: "/outreach-composer" });
+							router.navigate({ to: "/outreach-composer/email-templates" });
 						},
 						onError: () => {
 							toast.error("Failed to create template");
