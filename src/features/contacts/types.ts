@@ -1,4 +1,5 @@
 import { z } from "zod";
+import { fallback } from "@tanstack/zod-adapter";
 
 export const contactStatusSchema = z.enum([
   "ACTIVE",
@@ -35,6 +36,14 @@ export const contactFiltersSchema = z.object({
   pageSize: z.number().int().positive().max(100).default(25),
 });
 export type ContactFilters = z.infer<typeof contactFiltersSchema>;
+
+export const contactSearchSchema = z.object({
+  search: fallback(z.string(), "").default(""),
+  status: fallback(contactStatusSchema.optional(), undefined),
+  page: fallback(z.number().int().positive(), 1).default(1),
+  pageSize: fallback(z.number().int().positive().max(100), 25).default(25),
+});
+export type ContactSearchParams = z.infer<typeof contactSearchSchema>;
 
 export const importContactsSchema = z.object({
   collectionId: z.string().uuid().optional(),

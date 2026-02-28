@@ -1,22 +1,21 @@
 import { create } from "zustand";
 
-/** Contacts UI store — manages client-only UI state for the contacts feature */
+/** Contacts UI store — manages transient client-only UI state for the contacts feature.
+ *  Search/filter/pagination state lives in URL search params, not here. */
 
 interface ContactsUIState {
-  selectedStatus: string | null;
-  searchQuery: string;
+  deleteContactId: string | null;
 }
 
 interface ContactsUIActions {
-  setSelectedStatus: (status: string | null) => void;
-  setSearchQuery: (query: string) => void;
+  openDeleteDialog: (contactId: string) => void;
+  closeDeleteDialog: () => void;
 }
 
 export const useContactsUIStore = create<
   ContactsUIState & ContactsUIActions
 >()((set) => ({
-  selectedStatus: null,
-  searchQuery: "",
-  setSelectedStatus: (status) => set({ selectedStatus: status }),
-  setSearchQuery: (query) => set({ searchQuery: query }),
+  deleteContactId: null,
+  openDeleteDialog: (contactId) => set({ deleteContactId: contactId }),
+  closeDeleteDialog: () => set({ deleteContactId: null }),
 }));
