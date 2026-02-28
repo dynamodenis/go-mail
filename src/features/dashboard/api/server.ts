@@ -1,22 +1,7 @@
 import { createServerFn } from "@tanstack/react-start";
-import { getSupabaseServerClient } from "@/integrations/supabase/server";
+import { requireUserId } from "@/lib/require-user";
 import { dashboardFiltersSchema } from "../types";
 import * as service from "./service";
-
-/**
- * Authenticate the current user and return their ID.
- * Throws if not authenticated.
- */
-async function requireUserId(): Promise<string> {
-	const supabase = getSupabaseServerClient();
-	const {
-		data: { user },
-	} = await supabase.auth.getUser();
-	if (!user) {
-		throw new Error("UNAUTHORIZED");
-	}
-	return user.id;
-}
 
 /**
  * Get the 6 KPI cards for the dashboard.
@@ -29,7 +14,6 @@ export const getDashboardKpis = createServerFn({ method: "GET" })
 	)
 	.handler(async ({ data }) => {
 		const userId = await requireUserId();
-		console.log("user data", data);
 		return { data: await service.getDashboardKpis(userId, data.dateRange) };
 	});
 

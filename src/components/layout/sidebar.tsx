@@ -1,4 +1,5 @@
-import { useRouter, useRouteContext } from "@tanstack/react-router";
+import { useRouter } from "@tanstack/react-router";
+import { useCurrentUser } from "@/hooks/use-current-user";
 import { LogOut, Mail, Moon, PanelLeft, PanelLeftClose, Sun } from "lucide-react";
 import { signOutFn } from "@/features/auth/api/auth-fns";
 import { useMutation } from "@/hooks/use-mutation";
@@ -20,7 +21,7 @@ const THEME_CYCLE: Array<"light" | "dark" | "system"> = [
 
 export function Sidebar({ isCollapsed, onToggle }: SidebarProps) {
 	const router = useRouter();
-	const { user } = useRouteContext({ from: "/_authenticated" });
+	const user = useCurrentUser();
 	const { theme, setTheme } = useTheme();
 
 	const cycleTheme = () => {

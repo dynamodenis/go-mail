@@ -1,4 +1,5 @@
-import { useRouteContext, useRouterState } from "@tanstack/react-router";
+import { useRouterState } from "@tanstack/react-router";
+import { useCurrentUser } from "@/hooks/use-current-user";
 import {
 	BarChart3,
 	Calendar,
@@ -84,8 +85,8 @@ interface TopBarProps {
 
 export function TopBar({ className }: TopBarProps) {
 	const pathname = useRouterState({ select: (s) => s.location.pathname });
-	const { user } = useRouteContext({ from: "/_authenticated" });
-	console.log("user", user);
+	const user = useCurrentUser();
+	console.log("user from top bar", user);
 	const { title, icon: PageIcon } = getRouteInfo(pathname);
 	const breadcrumbs = getBreadcrumbs(pathname);
 

@@ -66,8 +66,6 @@ export function SignInForm() {
 				? "Something went wrong. Please try again."
 				: null;
 
-	console.log("signInMutation.data", signInMutation.data);
-	console.log("signInMutation.error", signInMutation.error);
 	return (
 		<Card className="w-full max-w-md">
 			<CardHeader className="text-center">

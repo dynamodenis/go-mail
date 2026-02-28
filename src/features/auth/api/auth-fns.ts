@@ -19,10 +19,8 @@ export const fetchUser = createServerFn({ method: "GET" }).handler(
 			if (!user) {
 				return null;
 			}
-
 			// Try to get existing User row from PostgreSQL
 			const dbUser = await repository.findUserById(user.id);
-
 			if (dbUser) {
 				return dbUser;
 			}
@@ -62,7 +60,6 @@ export const signInFn = createServerFn({ method: "POST" })
 
 			return { success: true as const };
 		} catch (e) {
-			console.log("error from signInFn", e);
 			return {
 				error:
 					e instanceof Error && e.message.includes("Missing SUPABASE")

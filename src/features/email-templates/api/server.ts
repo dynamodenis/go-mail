@@ -1,6 +1,6 @@
 import { createServerFn } from "@tanstack/react-start";
 import { z } from "zod";
-import { getSupabaseServerClient } from "@/integrations/supabase/server";
+import { requireUserId } from "@/lib/require-user";
 import {
 	templateFiltersSchema,
 	createTemplateSchema,
@@ -15,21 +15,6 @@ import {
 	type TemplateMergeTag,
 } from "../types";
 import * as service from "./service";
-
-/**
- * Authenticate the current user and return their ID.
- * Throws if not authenticated.
- */
-async function requireUserId(): Promise<string> {
-	const supabase = getSupabaseServerClient();
-	const {
-		data: { user },
-	} = await supabase.auth.getUser();
-	if (!user) {
-		throw new Error("UNAUTHORIZED");
-	}
-	return user.id;
-}
 
 /**
  * Get a paginated, filterable list of templates for the current user.

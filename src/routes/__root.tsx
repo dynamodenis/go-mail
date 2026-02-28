@@ -1,7 +1,6 @@
 /// <reference types="vite/client" />
 import type { QueryClient } from "@tanstack/react-query";
 import { QueryClientProvider } from "@tanstack/react-query";
-import { TanStackRouterDevtools } from '@tanstack/react-router-devtools'
 import {
 	HeadContent,
 	Link,
@@ -10,13 +9,29 @@ import {
 	createRootRouteWithContext,
 	useRouteContext,
 } from "@tanstack/react-router";
-import type { ReactNode } from "react";
+import { lazy, Suspense, type ReactNode } from "react";
 import { Toaster } from "sonner";
-import { fetchUser } from "@/features/auth/api/auth-fns";
+import { userQueryOptions } from "@/features/auth/api/queries";
 import type { User } from "@/features/auth/schemas/auth";
 import { ThemeProvider } from "@/providers/theme-provider";
 import { APP_DESCRIPTION, APP_NAME } from "@/lib/constants";
 import appCss from "@/styles/app.css?url";
+
+const ReactQueryDevtools = import.meta.env.DEV
+	? lazy(() =>
+			import("@tanstack/react-query-devtools").then((m) => ({
+				default: m.ReactQueryDevtools,
+			})),
+		)
+	: () => null;
+
+const TanStackRouterDevtools = import.meta.env.DEV
+	? lazy(() =>
+			import("@tanstack/react-router-devtools").then((m) => ({
+				default: m.TanStackRouterDevtools,
+			})),
+		)
+	: () => null;
 
 interface RouterContext {
 	queryClient: QueryClient;
@@ -51,8 +66,8 @@ export const Route = createRootRouteWithContext<RouterContext>()({
 			},
 		],
 	}),
-	beforeLoad: async () => {
-		const user = await fetchUser();
+	beforeLoad: async ({ context }) => {
+		const user = await context.queryClient.ensureQueryData(userQueryOptions);
 		return { user };
 	},
 	component: RootComponent,
@@ -65,9 +80,10 @@ function RootComponent() {
 	return (
 		<QueryClientProvider client={queryClient}>
 			<Outlet />
-			{/* <ClientOnly fallback={null}>
+			<Suspense fallback={null}>
 				<ReactQueryDevtools buttonPosition="bottom-right" />
-			</ClientOnly> */}
+				<TanStackRouterDevtools position="bottom-left" />
+			</Suspense>
 		</QueryClientProvider>
 	);
 }
