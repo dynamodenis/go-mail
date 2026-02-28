@@ -29,10 +29,11 @@ export const signInFn = createServerFn({ method: "POST" })
 	.handler(async ({ data }) => {
 		try {
 			const supabase = getSupabaseServerClient();
-			const { error } = await supabase.auth.signInWithPassword({
+			const { data: response, error } = await supabase.auth.signInWithPassword({
 				email: data.email,
 				password: data.password,
 			});
+			console.log("response from signInWithPassword", response);
 
 			if (error) {
 				return { error: error.message };
