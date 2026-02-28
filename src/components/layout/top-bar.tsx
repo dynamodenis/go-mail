@@ -85,6 +85,7 @@ interface TopBarProps {
 export function TopBar({ className }: TopBarProps) {
 	const pathname = useRouterState({ select: (s) => s.location.pathname });
 	const { user } = useRouteContext({ from: "/_authenticated" });
+	console.log("user", user);
 	const { title, icon: PageIcon } = getRouteInfo(pathname);
 	const breadcrumbs = getBreadcrumbs(pathname);
 

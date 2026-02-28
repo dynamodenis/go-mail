@@ -18,6 +18,7 @@ import { type SignUpInput, signUpSchema } from "../schemas/auth";
 
 export function SignUpForm() {
 	const [formData, setFormData] = useState<SignUpInput>({
+		fullName: "",
 		email: "",
 		password: "",
 		confirmPassword: "",
@@ -48,6 +49,7 @@ export function SignUpForm() {
 			data: {
 				email: result.data.email,
 				password: result.data.password,
+				fullName: result.data.fullName || undefined,
 			},
 		});
 	};
@@ -82,6 +84,26 @@ export function SignUpForm() {
 							{successMessage}
 						</div>
 					)}
+					<div className="space-y-2">
+						<Label htmlFor="fullName">Full Name</Label>
+						<Input
+							id="fullName"
+							type="text"
+							placeholder="John Doe"
+							value={formData.fullName ?? ""}
+							onChange={(e) =>
+								setFormData((prev) => ({
+									...prev,
+									fullName: e.target.value,
+								}))
+							}
+						/>
+						{validationErrors.fullName && (
+							<p className="text-sm text-destructive">
+								{validationErrors.fullName}
+							</p>
+						)}
+					</div>
 					<div className="space-y-2">
 						<Label htmlFor="email">Email</Label>
 						<Input
