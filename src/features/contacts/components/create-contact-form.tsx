@@ -24,8 +24,7 @@ import Loader from "@/components/global/loader";
 import type { ContactStatus, CreateContactInput } from "@/features/contacts/schemas/types";
 
 import { useSaveContact } from "../api/queries";
-import { toast } from "sonner";
-
+import { toast } from "@/components/ui/sooner";
 const INITIAL_FORM: CreateContactInput = {
 	email: "",
 	firstName: "",
