@@ -5,11 +5,17 @@ import { useNavigate } from "@tanstack/react-router";
 import { getCoreRowModel, useReactTable } from "@tanstack/react-table";
 import { Plus } from "lucide-react";
 import { useCallback, useState } from "react";
-import type { Contact, ContactSearchParams, ContactStatus } from "../types";
-import { ContactsTablePagination } from "./contacts-table/contacts-table-pagination";
+import { useContactsUIStore } from "../api/store";
+import type {
+	Contact,
+	ContactSearchParams,
+	ContactStatus,
+} from "@/features/contacts/schemas/types";
 import { contactColumns } from "./contacts-table/contacts-columns";
 import { ContactsDataTable } from "./contacts-table/contacts-data-table";
+import { ContactsTablePagination } from "./contacts-table/contacts-table-pagination";
 import { ContactsToolbar } from "./contacts-table/contacts-toolbar";
+import { CreateContactDialog } from "./create-contact-form";
 
 // TODO: Replace with React Query hook — e.g. useContacts(searchParams)
 const data: Contact[] = [];
@@ -19,6 +25,9 @@ export default function Contacts() {
 	const { search, status, page, pageSize } = Route.useSearch();
 	const navigate = useNavigate();
 	const [rowSelection, setRowSelection] = useState({});
+	const setCreateContactOpen = useContactsUIStore(
+		(s) => s.setCreateContactOpen,
+	);
 
 	const updateSearch = useCallback(
 		(updates: Partial<ContactSearchParams>) => {
@@ -62,17 +71,18 @@ export default function Contacts() {
 	});
 
 	return (
-		<div className="space-y-4">
+		<div className="space-y-1">
 			<PageHeader
 				title="Contacts"
 				description="Manage your email contacts and subscribers."
 				actions={
-					<Button>
-						<Plus className="mr-2 h-4 w-4" />
+					<Button onClick={() => setCreateContactOpen(true)}>
+						<Plus className="h-4 w-4" />
 						Add Contact
 					</Button>
 				}
 			/>
+			<CreateContactDialog />
 			<ContactsToolbar
 				search={search}
 				status={status}

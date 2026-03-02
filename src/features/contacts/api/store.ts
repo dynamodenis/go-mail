@@ -5,17 +5,21 @@ import { create } from "zustand";
 
 interface ContactsUIState {
   deleteContactId: string | null;
+  createContactOpen: boolean;
 }
 
 interface ContactsUIActions {
   openDeleteDialog: (contactId: string) => void;
   closeDeleteDialog: () => void;
+  setCreateContactOpen: (open: boolean) => void;
 }
 
 export const useContactsUIStore = create<
   ContactsUIState & ContactsUIActions
 >()((set) => ({
   deleteContactId: null,
+  createContactOpen: false,
   openDeleteDialog: (contactId) => set({ deleteContactId: contactId }),
   closeDeleteDialog: () => set({ deleteContactId: null }),
+  setCreateContactOpen: (open) => set({ createContactOpen: open }),
 }));

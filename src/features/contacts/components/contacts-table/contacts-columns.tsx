@@ -1,6 +1,6 @@
 import { Checkbox } from "@/components/ui/checkbox";
 import type { ColumnDef } from "@tanstack/react-table";
-import type { Contact } from "../../types";
+import type { Contact } from "../../schemas/types";
 import { ContactRowActions } from "./contact-row-actions";
 import { ContactStatusBadge } from "./contact-status-badge";
 

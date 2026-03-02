@@ -13,10 +13,15 @@ export const createContactSchema = z.object({
   email: z.string().email("Invalid email address"),
   firstName: z.string().max(255).optional(),
   lastName: z.string().max(255).optional(),
+  phone: z.string().max(50).optional(),
+  company: z.string().max(255).optional(),
   status: contactStatusSchema.default("ACTIVE"),
-  metadata: z.record(z.unknown()).optional(),
+  tags: z.array(z.string()).optional(),
+  metadata: z.record(z.string(), z.any()).optional(),
 });
-export type CreateContactInput = z.infer<typeof createContactSchema>;
+export type CreateContactInput = z.infer<typeof createContactSchema> & {
+  userId?: string;
+};
 
 export const updateContactSchema = z.object({
   id: z.string().uuid(),
@@ -24,7 +29,7 @@ export const updateContactSchema = z.object({
   firstName: z.string().max(255).nullable().optional(),
   lastName: z.string().max(255).nullable().optional(),
   status: contactStatusSchema.optional(),
-  metadata: z.record(z.unknown()).optional(),
+  metadata: z.record(z.string(), z.any()).optional(),
 });
 export type UpdateContactInput = z.infer<typeof updateContactSchema>;
 

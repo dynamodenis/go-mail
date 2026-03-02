@@ -8,7 +8,7 @@ import {
 } from "@/components/ui/table";
 import type { Table as TanStackTable } from "@tanstack/react-table";
 import { flexRender } from "@tanstack/react-table";
-import type { Contact } from "../../types";
+import type { Contact } from "../../schemas/types";
 
 interface ContactsDataTableProps {
 	table: TanStackTable<Contact>;
