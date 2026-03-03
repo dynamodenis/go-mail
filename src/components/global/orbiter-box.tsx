@@ -35,6 +35,8 @@ const orbiterBoxVariants = cva(
           "after:bg-[linear-gradient(270deg,rgba(250,204,21,0.05)_0%,rgba(250,204,21,0.70)_51.5%,rgba(250,204,21,0.05)_100%)]",
         "green-horizontal":
           "after:bg-[linear-gradient(270deg,rgba(34,197,94,0.05)_0%,rgba(34,197,94,0.70)_51.5%,rgba(34,197,94,0.05)_100%)]",
+        destructive:
+          "after:bg-[linear-gradient(270deg,rgba(239,68,68,0.05)_0%,rgba(239,68,68,0.70)_51.5%,rgba(239,68,68,0.05)_100%)]",
         gray: "after:bg-st-stroke-solid-base-outer",
         "activity-colors-travel":
           "after:bg-[linear-gradient(270deg,rgba(34,211,238,0.05)_0%,rgba(34,211,238,0.7)_51.5%,rgba(34,211,238,0.05)_100%)]",

@@ -1,13 +1,16 @@
 import { PageHeader } from "@/components/shared/page-header";
+import { LoadingState } from "@/components/shared/loading-state";
+import { ErrorState } from "@/components/shared/error-state";
+import { EmptyState } from "@/components/shared/empty-state";
 import { Button } from "@/components/ui/button";
 import { Route } from "@/routes/_authenticated/contacts/index";
-import { useNavigate } from "@tanstack/react-router";
+import { useRouter } from "@tanstack/react-router";
 import { getCoreRowModel, useReactTable } from "@tanstack/react-table";
-import { Plus } from "lucide-react";
-import { useCallback, useState } from "react";
+import { Plus, Users } from "lucide-react";
+import { useCallback, useDeferredValue, useMemo, useState, useTransition } from "react";
 import { useContactsUIStore } from "../api/store";
+import { useContacts } from "../api/queries";
 import type {
-	Contact,
 	ContactSearchParams,
 	ContactStatus,
 } from "@/features/contacts/schemas/types";
@@ -15,44 +18,57 @@ import { contactColumns } from "./contacts-table/contacts-columns";
 import { ContactsDataTable } from "./contacts-table/contacts-data-table";
 import { ContactsTablePagination } from "./contacts-table/contacts-table-pagination";
 import { ContactsToolbar } from "./contacts-table/contacts-toolbar";
+import { ContactsBulkActions } from "./contacts-table/contacts-bulk-actions";
 import { CreateContactDialog } from "./create-contact-form";
-
-// TODO: Replace with React Query hook — e.g. useContacts(searchParams)
-const data: Contact[] = [];
-const totalRows = 0;
+import { DeleteContactDialog } from "./delete-contact-dialog";
 
 export default function Contacts() {
 	const { search, status, page, pageSize } = Route.useSearch();
-	const navigate = useNavigate();
-	const [rowSelection, setRowSelection] = useState({});
-	const setCreateContactOpen = useContactsUIStore(
-		(s) => s.setCreateContactOpen,
+	const router = useRouter();
+	const [isPending, startTransition] = useTransition();
+	const [rowSelection, setRowSelection] = useState<Record<string, boolean>>({});
+	const openCreateDialog = useContactsUIStore((s) => s.openCreateDialog);
+
+	const deferredSearch = useDeferredValue(search);
+	const filters = useMemo(
+		() => ({ search: deferredSearch, status, page, pageSize }),
+		[deferredSearch, status, page, pageSize],
 	);
+	const { data, isLoading, isFetching, isError, refetch } = useContacts(filters);
+	const isSearching = isPending || deferredSearch !== search || isFetching;
+
+	const contacts = data?.data ?? [];
+	const totalRows = data?.total ?? 0;
 
 	const updateSearch = useCallback(
 		(updates: Partial<ContactSearchParams>) => {
-			navigate({
-				to: "/contacts",
-				search: (prev) => ({
-					...prev,
-					...updates,
-					page: updates.page ?? 1,
-				}),
+			startTransition(() => {
+				router.navigate({
+					to: "/contacts",
+					search: (prev) => ({
+						...prev,
+						...updates,
+						page: updates.page ?? 1,
+					}),
+					replace: true,
+					resetScroll: false,
+				});
 			});
 		},
-		[navigate],
+		[router, startTransition],
 	);
 
 	const handleFilterChange = useCallback(
-		(filters: { search?: string; status?: ContactStatus | undefined }) => {
-			updateSearch(filters);
+		(f: { search?: string; status?: ContactStatus | undefined }) => {
+			updateSearch(f);
 		},
 		[updateSearch],
 	);
 
 	const table = useReactTable({
-		data,
+		data: contacts,
 		columns: contactColumns,
+		getRowId: (row) => row.id,
 		pageCount: Math.ceil(totalRows / pageSize) || 1,
 		state: {
 			pagination: { pageIndex: page - 1, pageSize },
@@ -70,30 +86,63 @@ export default function Contacts() {
 		manualPagination: true,
 	});
 
+	const selectedIds = Object.keys(rowSelection).filter(
+		(id) => rowSelection[id],
+	);
+
 	return (
 		<div className="space-y-1">
 			<PageHeader
 				title="Contacts"
 				description="Manage your email contacts and subscribers."
 				actions={
-					<Button onClick={() => setCreateContactOpen(true)}>
-						<Plus className="h-4 w-4" />
+					<Button onClick={openCreateDialog}>
+						<Plus className="mr-1 h-4 w-4" />
 						Add Contact
 					</Button>
 				}
 			/>
+
 			<CreateContactDialog />
-			<ContactsToolbar
-				search={search}
-				status={status}
-				onFilterChange={handleFilterChange}
-			/>
-			<ContactsDataTable table={table} />
-			<ContactsTablePagination
-				table={table}
-				totalRows={totalRows}
-				onPageSizeChange={(size) => updateSearch({ pageSize: size })}
-			/>
+			<DeleteContactDialog />
+
+			<div className="flex items-center justify-between gap-3">
+				<ContactsToolbar
+					search={search}
+					status={status}
+					onFilterChange={handleFilterChange}
+				/>
+				<ContactsBulkActions
+					selectedIds={selectedIds}
+					onClearSelection={() => setRowSelection({})}
+				/>
+			</div>
+
+			{isLoading && !data ? (
+				<LoadingState message="Loading contacts..." />
+			) : isError ? (
+				<ErrorState
+					message="Failed to load contacts. Please try again."
+					onRetry={() => refetch()}
+				/>
+			) : contacts.length === 0 && !search && !status ? (
+				<EmptyState
+					icon={Users}
+					title="No contacts yet"
+					description="Add your first contact to get started with your email campaigns."
+					actionLabel="Add Contact"
+					onAction={openCreateDialog}
+				/>
+			) : (
+				<div className={isSearching ? "opacity-60 transition-opacity" : ""}>
+					<ContactsDataTable table={table} />
+					<ContactsTablePagination
+						table={table}
+						totalRows={totalRows}
+						onPageSizeChange={(size) => updateSearch({ pageSize: size })}
+					/>
+				</div>
+			)}
 		</div>
 	);
 }

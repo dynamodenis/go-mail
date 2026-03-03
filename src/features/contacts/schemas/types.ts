@@ -28,10 +28,20 @@ export const updateContactSchema = z.object({
   email: z.string().email().optional(),
   firstName: z.string().max(255).nullable().optional(),
   lastName: z.string().max(255).nullable().optional(),
+  phone: z.string().max(50).nullable().optional(),
+  company: z.string().max(255).nullable().optional(),
   status: contactStatusSchema.optional(),
   metadata: z.record(z.string(), z.any()).optional(),
 });
 export type UpdateContactInput = z.infer<typeof updateContactSchema>;
+
+export const deleteContactSchema = z.object({
+  id: z.string().uuid(),
+});
+
+export const deleteContactsSchema = z.object({
+  ids: z.array(z.string().uuid()).min(1).max(500),
+});
 
 export const contactFiltersSchema = z.object({
   status: contactStatusSchema.optional(),
@@ -61,8 +71,17 @@ export interface Contact {
   email: string;
   firstName: string | null;
   lastName: string | null;
+  phone: string | null;
+  company: string | null;
   status: ContactStatus;
-  metadata: Record<string, unknown> | null;
-  createdAt: string;
-  updatedAt: string;
+  tags: string[];
+  createdAt: Date;
+  updatedAt: Date;
+}
+
+export interface PaginatedContacts {
+  data: Contact[];
+  total: number;
+  page: number;
+  pageSize: number;
 }

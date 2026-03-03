@@ -18,6 +18,7 @@ interface ContactRowActionsProps {
 export function ContactRowActions({ contact }: ContactRowActionsProps) {
 	const navigate = useNavigate();
 	const openDeleteDialog = useContactsUIStore((s) => s.openDeleteDialog);
+	const openEditDialog = useContactsUIStore((s) => s.openEditDialog);
 
 	return (
 		<DropdownMenu>
@@ -39,14 +40,7 @@ export function ContactRowActions({ contact }: ContactRowActionsProps) {
 					<Eye className="mr-2 h-4 w-4" />
 					View
 				</DropdownMenuItem>
-				<DropdownMenuItem
-					onClick={() =>
-						navigate({
-							to: "/contacts/$contactId",
-							params: { contactId: contact.id },
-						})
-					}
-				>
+				<DropdownMenuItem onClick={() => openEditDialog(contact)}>
 					<Pencil className="mr-2 h-4 w-4" />
 					Edit
 				</DropdownMenuItem>

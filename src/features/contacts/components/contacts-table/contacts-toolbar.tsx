@@ -7,10 +7,10 @@ import {
 	SelectValue,
 } from "@/components/ui/select";
 import { Search } from "lucide-react";
-import { useEffect, useState } from "react";
+import { useDeferredValue, useState } from "react";
+import { useEffect } from "react";
 import type { ContactStatus } from "../../schemas/types";
 
-const DEBOUNCE_MS = 300;
 const ALL_STATUSES = "ALL";
 
 interface ContactsToolbarProps {
@@ -28,19 +28,13 @@ export function ContactsToolbar({
 	onFilterChange,
 }: ContactsToolbarProps) {
 	const [localSearch, setLocalSearch] = useState(search);
+	const deferredSearch = useDeferredValue(localSearch);
 
 	useEffect(() => {
-		setLocalSearch(search);
-	}, [search]);
-
-	useEffect(() => {
-		const timer = setTimeout(() => {
-			if (localSearch !== search) {
-				onFilterChange({ search: localSearch });
-			}
-		}, DEBOUNCE_MS);
-		return () => clearTimeout(timer);
-	}, [localSearch, search, onFilterChange]);
+		if (deferredSearch !== search) {
+			onFilterChange({ search: deferredSearch });
+		}
+	}, [deferredSearch, search, onFilterChange]);
 
 	return (
 		<div className="flex items-center gap-3">
@@ -50,7 +44,7 @@ export function ContactsToolbar({
 					placeholder="Search contacts..."
 					value={localSearch}
 					onChange={(e) => setLocalSearch(e.target.value)}
-					className="pl-9"
+					className="pl-9 text-xs placeholder:text-xs"
 				/>
 			</div>
 			<Select
@@ -62,10 +56,10 @@ export function ContactsToolbar({
 					})
 				}
 			>
-				<SelectTrigger className="w-[160px]">
+				<SelectTrigger className="w-[160px] text-xs">
 					<SelectValue placeholder="All statuses" />
 				</SelectTrigger>
-				<SelectContent>
+				<SelectContent className="text-xs">
 					<SelectItem value={ALL_STATUSES}>All statuses</SelectItem>
 					<SelectItem value="ACTIVE">Active</SelectItem>
 					<SelectItem value="UNSUBSCRIBED">Unsubscribed</SelectItem>

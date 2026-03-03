@@ -1,17 +1,38 @@
-// TODO: Implement Contacts React Query hooks
-// All query and mutation hooks for the contacts feature go here.
-// - Define query keys as arrays: ['contacts', ...params]
-// - Wrap server functions with useQuery/useMutation
-// - Set appropriate staleTime values
-// - Accept optional queryClient parameter for testing
-import { useMutation, useQueryClient } from "@tanstack/react-query";
-import { saveContact } from "@/features/contacts/api/server";
-import type { CreateContactInput } from "@/features/contacts/schemas/types";
+import { keepPreviousData, useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
+import {
+	saveContact,
+	getContacts,
+	updateContact,
+	deleteContact,
+	deleteContacts,
+} from "@/features/contacts/api/server";
+import type {
+	ContactFilters,
+	CreateContactInput,
+	UpdateContactInput,
+} from "@/features/contacts/schemas/types";
+
+const STALE_TIME = 300_000; // 5 minutes
 
 export const contactsKeys = {
 	all: ["contacts"] as const,
-	contact: (id: string) => [...contactsKeys.all, id] as const,
+	lists: () => [...contactsKeys.all, "list"] as const,
+	list: (filters: ContactFilters) =>
+		[...contactsKeys.lists(), filters] as const,
+	details: () => [...contactsKeys.all, "detail"] as const,
+	detail: (id: string) => [...contactsKeys.details(), id] as const,
 };
+
+export function useContacts(filters: ContactFilters) {
+	return useQuery({
+		queryKey: contactsKeys.list(filters),
+		queryFn: () => getContacts({ data: filters }),
+		staleTime: STALE_TIME,
+		placeholderData: keepPreviousData,
+		retry: 2,
+		select: (res) => ("error" in res ? { data: [], total: 0, page: 1, pageSize: 25 } : res.data),
+	});
+}
 
 export function useSaveContact() {
 	const queryClient = useQueryClient();
@@ -20,10 +41,41 @@ export function useSaveContact() {
 		mutationFn: (contact: CreateContactInput) =>
 			saveContact({ data: contact }),
 		onSettled: () => {
-			queryClient.invalidateQueries({ queryKey: contactsKeys.all });
+			queryClient.invalidateQueries({ queryKey: contactsKeys.lists() });
 		},
-		onError: (error) => {
-			console.error("Failed to save contact:", error);
+	});
+}
+
+export function useUpdateContact() {
+	const queryClient = useQueryClient();
+
+	return useMutation({
+		mutationFn: (input: UpdateContactInput) =>
+			updateContact({ data: input }),
+		onSettled: () => {
+			queryClient.invalidateQueries({ queryKey: contactsKeys.lists() });
+		},
+	});
+}
+
+export function useDeleteContact() {
+	const queryClient = useQueryClient();
+
+	return useMutation({
+		mutationFn: (id: string) => deleteContact({ data: { id } }),
+		onSettled: () => {
+			queryClient.invalidateQueries({ queryKey: contactsKeys.lists() });
+		},
+	});
+}
+
+export function useDeleteContacts() {
+	const queryClient = useQueryClient();
+
+	return useMutation({
+		mutationFn: (ids: string[]) => deleteContacts({ data: { ids } }),
+		onSettled: () => {
+			queryClient.invalidateQueries({ queryKey: contactsKeys.lists() });
 		},
 	});
 }

@@ -35,14 +35,14 @@ export function ContactsTablePagination({
 
 	return (
 		<div className="flex items-center justify-between py-4">
-			<p className="text-sm text-muted-foreground">
+			<p className="text-xs text-muted-foreground">
 				{selectedCount > 0
 					? `${selectedCount} of ${totalRows} row(s) selected`
 					: `${totalRows} row(s) total`}
 			</p>
 			<div className="flex items-center gap-4">
 				<div className="flex items-center gap-2">
-					<p className="text-sm text-muted-foreground">Rows per page</p>
+					<p className="text-xs text-muted-foreground">Rows per page</p>
 					<Select
 						value={String(pageSize)}
 						onValueChange={(value) => onPageSizeChange(Number(value))}
@@ -59,7 +59,7 @@ export function ContactsTablePagination({
 						</SelectContent>
 					</Select>
 				</div>
-				<p className="text-sm text-muted-foreground">
+				<p className="text-xs text-muted-foreground">
 					Page {pageIndex + 1} of {pageCount || 1}
 				</p>
 				<div className="flex items-center gap-1">
