@@ -145,9 +145,11 @@ model Collection {
   userId      String
   name        String
   description String         @default("")
+  color       String         @default("#3B82F6")
   type        CollectionType @default(MANUAL)
   rules       Json?
   createdAt   DateTime       @default(now())
+  updatedAt   DateTime       @updatedAt
 
   user      User                 @relation(fields: [userId], references: [id], onDelete: Cascade)
   contacts  CollectionContact[]
