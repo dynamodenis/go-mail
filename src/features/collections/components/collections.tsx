@@ -33,6 +33,7 @@ export default function Collections() {
 	);
 	const { data, isLoading, isFetching, isError, refetch } =
 		useCollections(filters);
+
 	const isSearching = isPending || deferredSearch !== search || isFetching;
 
 	const collections = data?.data ?? [];
