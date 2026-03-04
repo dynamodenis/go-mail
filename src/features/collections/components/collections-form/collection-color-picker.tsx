@@ -1,6 +1,6 @@
 import { cn } from "@/lib/utils";
 import { Check } from "lucide-react";
-import { COLLECTION_COLORS } from "../schemas/types";
+import { COLLECTION_COLORS } from "../../schemas/types";
 
 interface CollectionColorPickerProps {
 	value: string;
@@ -19,7 +19,8 @@ export function CollectionColorPicker({
 					type="button"
 					className={cn(
 						"flex h-7 w-7 items-center justify-center rounded-full transition-transform hover:scale-110",
-						value === color.value && "ring-2 ring-offset-2 ring-offset-background",
+						value === color.value &&
+							"ring-2 ring-offset-2 ring-offset-background",
 					)}
 					style={{
 						backgroundColor: color.value,

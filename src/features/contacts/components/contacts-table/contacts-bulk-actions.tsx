@@ -1,6 +1,6 @@
 import OrbiterBox from "@/components/global/orbiter-box";
 import { Button } from "@/components/ui/button";
-import { Trash2, X } from "lucide-react";
+import { FolderPlus, Trash2, X } from "lucide-react";
 import Loader from "@/components/global/loader";
 import { useDeleteContacts } from "../../api/queries";
 import { toast } from "@/components/ui/sooner";
@@ -12,6 +12,7 @@ import {
 	DialogTitle,
 } from "@/components/ui/dialog";
 import { AlertTriangle } from "lucide-react";
+import { AddToCollectionsDialog } from "./add-to-collections-dialog";
 
 interface ContactsBulkActionsProps {
 	selectedIds: string[];
@@ -23,6 +24,7 @@ export function ContactsBulkActions({
 	onClearSelection,
 }: ContactsBulkActionsProps) {
 	const [confirmOpen, setConfirmOpen] = useState(false);
+	const [collectionsOpen, setCollectionsOpen] = useState(false);
 	const { mutate: bulkDelete, isPending } = useDeleteContacts();
 	const count = selectedIds.length;
 
@@ -41,19 +43,29 @@ export function ContactsBulkActions({
 
 	return (
 		<>
-			<div className="flex items-center gap-2 rounded-lg border bg-muted/50 px-4 py-2">
+			<div className="flex items-center gap-2 rounded-md border bg-muted/50 px-2 py-0.5">
 				<span className="text-xs font-medium">
 					{count} selected
 				</span>
 				<Button
+					variant="outline"
+					size="sm"
+					onClick={() => setCollectionsOpen(true)}
+					className="h-7"
+				>
+					<FolderPlus className="mr-1 h-3.5 w-3.5" />
+					Collections
+				</Button>
+				<Button
 					variant="destructive"
 					size="sm"
 					onClick={() => setConfirmOpen(true)}
+					className="h-7"
 				>
 					<Trash2 className="mr-1 h-3.5 w-3.5" />
 					Delete
 				</Button>
-				<Button variant="ghost" size="sm" onClick={onClearSelection}>
+				<Button variant="ghost" size="sm" onClick={onClearSelection} className="h-7">
 					<X className="mr-1 h-3.5 w-3.5" />
 					Clear
 				</Button>
@@ -110,6 +122,13 @@ export function ContactsBulkActions({
 					</OrbiterBox>
 				</DialogContent>
 			</Dialog>
+
+			<AddToCollectionsDialog
+				open={collectionsOpen}
+				onOpenChange={setCollectionsOpen}
+				contactIds={selectedIds}
+				onSuccess={onClearSelection}
+			/>
 		</>
 	);
 }

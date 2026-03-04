@@ -1,5 +1,6 @@
 import * as repo from "@/features/collections/api/repository";
 import type {
+	AddContactsToCollectionsInput,
 	CollectionFilters,
 	CreateCollectionInput,
 	UpdateCollectionInput,
@@ -21,6 +22,13 @@ export async function getCollectionsService(
 	return repo.getCollections(userId, filters);
 }
 
+export async function getCollectionContactIdsService(
+	userId: string,
+	collectionId: string,
+) {
+	return repo.getCollectionContactIds(userId, collectionId);
+}
+
 export async function updateCollectionService(
 	userId: string,
 	input: UpdateCollectionInput,
@@ -36,6 +44,13 @@ export async function updateCollectionService(
 		}
 		throw error;
 	}
+}
+
+export async function addContactsToCollectionsService(
+	userId: string,
+	input: AddContactsToCollectionsInput,
+) {
+	return repo.addContactsToCollections(userId, input);
 }
 
 export async function deleteCollectionService(

@@ -1,3 +1,4 @@
+import Loader from "@/components/global/loader";
 import OrbiterBox from "@/components/global/orbiter-box";
 import { Button } from "@/components/ui/button";
 import {
@@ -10,20 +11,31 @@ import {
 import Divider from "@/components/ui/divider";
 import { FormField } from "@/components/ui/form-field";
 import { Input } from "@/components/ui/input";
-import { FolderPlus, Save, X } from "lucide-react";
-import { type FormEvent, useEffect, useState } from "react";
-import { useCollectionsUIStore } from "../api/store";
-import Loader from "@/components/global/loader";
-import type { CreateCollectionInput } from "../schemas/types";
-import { DEFAULT_COLLECTION_COLOR } from "../schemas/types";
-import { useCreateCollection, useUpdateCollection } from "../api/queries";
 import { toast } from "@/components/ui/sooner";
-import { CollectionColorPicker } from "./collection-color-picker";
+import { FolderPlus, Save, X } from "lucide-react";
+import { type FormEvent, useCallback, useEffect, useState } from "react";
+import {
+	useCollectionContactIds,
+	useCreateCollection,
+	useUpdateCollection,
+} from "../api/queries";
+import { useCollectionsUIStore } from "../api/store";
+import { DEFAULT_COLLECTION_COLOR } from "../schemas/types";
+import { CollectionColorPicker } from "./collections-form/collection-color-picker";
+import { ContactSearchSelect } from "./collections-form/contact-search-select";
 
-const INITIAL_FORM: CreateCollectionInput = {
+interface CollectionFormState {
+	name: string;
+	description?: string;
+	color: string;
+	contactIds: string[];
+}
+
+const INITIAL_FORM: CollectionFormState = {
 	name: "",
 	description: "",
 	color: DEFAULT_COLLECTION_COLOR,
+	contactIds: [],
 };
 
 export function CollectionFormDialog() {
@@ -32,11 +44,15 @@ export function CollectionFormDialog() {
 	const closeDialog = useCollectionsUIStore((s) => s.closeCollectionDialog);
 	const isEditMode = !!editingCollection;
 
-	const [form, setForm] = useState<CreateCollectionInput>(INITIAL_FORM);
+	const [form, setForm] = useState<CollectionFormState>(INITIAL_FORM);
 	const [errors, setErrors] = useState<Record<string, string>>({});
 	const { mutate: createMutate, isPending: isCreating } = useCreateCollection();
 	const { mutate: updateMutate, isPending: isUpdating } = useUpdateCollection();
 	const isPending = isCreating || isUpdating;
+
+	const { data: existingContactIds } = useCollectionContactIds(
+		editingCollection?.id ?? null,
+	);
 
 	useEffect(() => {
 		if (editingCollection) {
@@ -44,6 +60,7 @@ export function CollectionFormDialog() {
 				name: editingCollection.name,
 				description: editingCollection.description ?? "",
 				color: editingCollection.color,
+				contactIds: [],
 			});
 		} else {
 			setForm(INITIAL_FORM);
@@ -51,7 +68,13 @@ export function CollectionFormDialog() {
 		setErrors({});
 	}, [editingCollection]);
 
-	const updateField = (field: keyof CreateCollectionInput, value: string) => {
+	useEffect(() => {
+		if (existingContactIds?.length) {
+			setForm((prev) => ({ ...prev, contactIds: existingContactIds }));
+		}
+	}, [existingContactIds]);
+
+	const updateField = (field: keyof CollectionFormState, value: string) => {
 		setForm((prev) => ({ ...prev, [field]: value }));
 		if (errors[field]) {
 			setErrors((prev) => {
@@ -61,6 +84,10 @@ export function CollectionFormDialog() {
 			});
 		}
 	};
+
+	const handleContactIdsChange = useCallback((ids: string[]) => {
+		setForm((prev) => ({ ...prev, contactIds: ids }));
+	}, []);
 
 	const handleSubmit = (e: FormEvent) => {
 		e.preventDefault();
@@ -75,9 +102,11 @@ export function CollectionFormDialog() {
 			return;
 		}
 
+		const { contactIds, ...fields } = form;
+
 		if (isEditMode) {
 			updateMutate(
-				{ id: editingCollection.id, ...form },
+				{ id: editingCollection.id, ...fields, contactIds },
 				{
 					onSuccess: () => {
 						closeDialog();
@@ -87,13 +116,19 @@ export function CollectionFormDialog() {
 				},
 			);
 		} else {
-			createMutate(form, {
-				onSuccess: () => {
-					closeDialog();
-					toast.success("Collection created");
+			createMutate(
+				{
+					...fields,
+					...(contactIds.length > 0 && { contactIds }),
 				},
-				onError: () => toast.error("Failed to create collection"),
-			});
+				{
+					onSuccess: () => {
+						closeDialog();
+						toast.success("Collection created");
+					},
+					onError: () => toast.error("Failed to create collection"),
+				},
+			);
 		}
 	};
 
@@ -106,7 +141,7 @@ export function CollectionFormDialog() {
 		>
 			<DialogContent className="w-full max-w-lg p-0 overflow-hidden sm:rounded-lg">
 				<OrbiterBox variant="blue-light-horizontal" borderRadius={8}>
-					<div className="flex flex-col bg-background sm:rounded-lg">
+					<div className="flex flex-col bg-background sm:rounded-lg overflow-y-auto max-h-[calc(100vh-60px)] sm:max-h-[calc(95vh-80px)]">
 						<div className="flex items-center justify-between px-6 py-4">
 							<div>
 								<DialogTitle className="text-sm font-semibold">
@@ -146,6 +181,12 @@ export function CollectionFormDialog() {
 								<CollectionColorPicker
 									value={form.color ?? DEFAULT_COLLECTION_COLOR}
 									onChange={(color) => updateField("color", color)}
+								/>
+							</FormField>
+							<FormField label="Contacts">
+								<ContactSearchSelect
+									selectedIds={form.contactIds}
+									onChange={handleContactIdsChange}
 								/>
 							</FormField>
 							<div className="flex justify-end gap-3 pt-2">

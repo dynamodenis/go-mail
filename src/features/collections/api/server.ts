@@ -2,7 +2,9 @@ import { createServerFn } from "@tanstack/react-start";
 import {
 	createCollectionService,
 	getCollectionsService,
+	getCollectionContactIdsService,
 	updateCollectionService,
+	addContactsToCollectionsService,
 	deleteCollectionService,
 	deleteCollectionsService,
 } from "@/features/collections/api/service";
@@ -12,11 +14,13 @@ import type {
 	CreateCollectionInput,
 	CollectionFilters,
 	UpdateCollectionInput,
+	AddContactsToCollectionsInput,
 } from "@/features/collections/schemas/types";
 import {
 	createCollectionSchema,
 	collectionFiltersSchema,
 	updateCollectionSchema,
+	addContactsToCollectionsSchema,
 	deleteCollectionSchema,
 	deleteCollectionsSchema,
 } from "@/features/collections/schemas/types";
@@ -55,6 +59,23 @@ export const getCollections = createServerFn({ method: "GET" })
 		}
 	});
 
+/** Fetches contact IDs belonging to a collection.
+ *  Auth: Requires authenticated session.
+ *  Errors: INTERNAL_ERROR */
+export const getCollectionContactIds = createServerFn({ method: "GET" })
+	.inputValidator(
+		(data: { collectionId: string }) => deleteCollectionSchema.parse({ id: data.collectionId }),
+	)
+	.handler(async ({ data }) => {
+		try {
+			const userId = await requireUserId();
+			const contactIds = await getCollectionContactIdsService(userId, data.id);
+			return { data: contactIds };
+		} catch (error) {
+			return handleServerError(error);
+		}
+	});
+
 /** Updates an existing collection.
  *  Auth: Requires authenticated session.
  *  Errors: COLLECTION_NOT_FOUND, INTERNAL_ERROR */
@@ -67,6 +88,24 @@ export const updateCollection = createServerFn({ method: "POST" })
 			const userId = await requireUserId();
 			const collection = await updateCollectionService(userId, data);
 			return { data: collection };
+		} catch (error) {
+			return handleServerError(error);
+		}
+	});
+
+/** Adds multiple contacts to multiple collections.
+ *  Auth: Requires authenticated session.
+ *  Errors: INTERNAL_ERROR */
+export const addContactsToCollections = createServerFn({ method: "POST" })
+	.inputValidator(
+		(data: AddContactsToCollectionsInput) =>
+			addContactsToCollectionsSchema.parse(data),
+	)
+	.handler(async ({ data }) => {
+		try {
+			const userId = await requireUserId();
+			const result = await addContactsToCollectionsService(userId, data);
+			return { data: result };
 		} catch (error) {
 			return handleServerError(error);
 		}

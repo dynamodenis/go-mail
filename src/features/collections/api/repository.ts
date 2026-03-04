@@ -3,6 +3,7 @@ import type {
 	CollectionFilters,
 	CreateCollectionInput,
 	UpdateCollectionInput,
+	AddContactsToCollectionsInput,
 } from "@/features/collections/schemas/types";
 
 const COLLECTION_SELECT = {
@@ -34,8 +35,20 @@ export async function createCollection(
 	userId: string,
 	input: CreateCollectionInput,
 ) {
+	const { contactIds, ...rest } = input;
+
 	const row = await prisma.collection.create({
-		data: { ...input, user: { connect: { id: userId } } },
+		data: {
+			...rest,
+			user: { connect: { id: userId } },
+			...(contactIds?.length && {
+				contacts: {
+					create: contactIds.map((contactId) => ({
+						contact: { connect: { id: contactId } },
+					})),
+				},
+			}),
+		},
 		select: COLLECTION_SELECT,
 	});
 	return toCollection(row);
@@ -75,7 +88,30 @@ export async function updateCollection(
 	userId: string,
 	input: UpdateCollectionInput,
 ) {
-	const { id, description, ...rest } = input;
+	const { id, description, contactIds, ...rest } = input;
+
+	if (contactIds !== undefined) {
+		const [, row] = await prisma.$transaction([
+			prisma.collectionContact.deleteMany({ where: { collectionId: id } }),
+			prisma.collection.update({
+				where: { id, userId },
+				data: {
+					...rest,
+					...(description !== undefined && {
+						description: description ?? "",
+					}),
+					contacts: {
+						create: contactIds.map((contactId) => ({
+							contact: { connect: { id: contactId } },
+						})),
+					},
+				},
+				select: COLLECTION_SELECT,
+			}),
+		]);
+		return toCollection(row);
+	}
+
 	const row = await prisma.collection.update({
 		where: { id, userId },
 		data: {
@@ -87,6 +123,44 @@ export async function updateCollection(
 		select: COLLECTION_SELECT,
 	});
 	return toCollection(row);
+}
+
+export async function getCollectionContactIds(
+	userId: string,
+	collectionId: string,
+) {
+	const rows = await prisma.collectionContact.findMany({
+		where: {
+			collectionId,
+			collection: { userId },
+		},
+		select: { contactId: true },
+	});
+	return rows.map((r) => r.contactId);
+}
+
+export async function addContactsToCollections(
+	userId: string,
+	input: AddContactsToCollectionsInput,
+) {
+	const { contactIds, collectionIds } = input;
+
+	const ownedCollections = await prisma.collection.findMany({
+		where: { id: { in: collectionIds }, userId },
+		select: { id: true },
+	});
+	const ownedIds = ownedCollections.map((c) => c.id);
+
+	const data = ownedIds.flatMap((collectionId) =>
+		contactIds.map((contactId) => ({ collectionId, contactId })),
+	);
+
+	const result = await prisma.collectionContact.createMany({
+		data,
+		skipDuplicates: true,
+	});
+
+	return { addedCount: result.count };
 }
 
 export async function deleteCollection(userId: string, collectionId: string) {

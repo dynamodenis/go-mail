@@ -41,17 +41,18 @@ export function CollectionsBulkActions({
 
 	return (
 		<>
-			<div className="flex items-center gap-2 rounded-lg border bg-muted/50 px-4 py-2">
+			<div className="flex items-center gap-2 rounded-md border bg-muted/50 px-2 py-0.5">
 				<span className="text-xs font-medium">{count} selected</span>
 				<Button
 					variant="destructive"
 					size="sm"
 					onClick={() => setConfirmOpen(true)}
+					className="h-7"
 				>
-					<Trash2 className="mr-1 h-3.5 w-3.5" />
+					<Trash2 className="mr-1 h-3.0 w-3.5" />
 					Delete
 				</Button>
-				<Button variant="ghost" size="sm" onClick={onClearSelection}>
+				<Button variant="ghost" size="sm" onClick={onClearSelection} className="h-7">
 					<X className="mr-1 h-3.5 w-3.5" />
 					Clear
 				</Button>

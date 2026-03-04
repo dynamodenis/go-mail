@@ -20,6 +20,7 @@ export const createCollectionSchema = z.object({
 	name: z.string().min(1, "Collection name is required").max(255),
 	description: z.string().max(1000).optional(),
 	color: z.string().max(20).default(DEFAULT_COLLECTION_COLOR),
+	contactIds: z.array(z.string().uuid()).optional(),
 });
 export type CreateCollectionInput = z.infer<typeof createCollectionSchema>;
 
@@ -28,6 +29,7 @@ export const updateCollectionSchema = z.object({
 	name: z.string().min(1).max(255).optional(),
 	description: z.string().max(1000).nullable().optional(),
 	color: z.string().max(20).optional(),
+	contactIds: z.array(z.string().uuid()).optional(),
 });
 export type UpdateCollectionInput = z.infer<typeof updateCollectionSchema>;
 
@@ -59,6 +61,14 @@ export const addContactsToCollectionSchema = z.object({
 });
 export type AddContactsToCollectionInput = z.infer<
 	typeof addContactsToCollectionSchema
+>;
+
+export const addContactsToCollectionsSchema = z.object({
+	contactIds: z.array(z.string().uuid()).min(1),
+	collectionIds: z.array(z.string().uuid()).min(1),
+});
+export type AddContactsToCollectionsInput = z.infer<
+	typeof addContactsToCollectionsSchema
 >;
 
 export const removeContactsFromCollectionSchema = z.object({
