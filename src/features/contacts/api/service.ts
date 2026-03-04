@@ -2,6 +2,7 @@ import * as repo from "@/features/contacts/api/repository";
 import type {
 	ContactFilters,
 	CreateContactInput,
+	ImportContactsInput,
 	UpdateContactInput,
 } from "@/features/contacts/schemas/types";
 import { AppError } from "@/lib/errors";
@@ -82,4 +83,23 @@ export async function deleteContactsService(
 ) {
 	const result = await repo.deleteContacts(userId, contactIds);
 	return { deletedCount: result.count };
+}
+
+/** Imports contacts in bulk, optionally assigning them to a collection.
+ *  Validates collection ownership if collectionId is provided. */
+export async function importContactsService(
+	userId: string,
+	input: ImportContactsInput,
+) {
+	if (input.collectionId) {
+		const { prisma } = await import("@/lib/prisma");
+		const collection = await prisma.collection.findFirst({
+			where: { id: input.collectionId, userId },
+			select: { id: true },
+		});
+		if (!collection) {
+			throw new AppError("COLLECTION_NOT_FOUND", "Collection not found.");
+		}
+	}
+	return repo.importContacts(userId, input);
 }

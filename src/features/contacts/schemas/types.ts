@@ -85,3 +85,39 @@ export interface PaginatedContacts {
   page: number;
   pageSize: number;
 }
+
+/** Contact fields that can be mapped from import file columns. */
+export type ContactField =
+  | "email"
+  | "firstName"
+  | "lastName"
+  | "phone"
+  | "company";
+
+/** Maps a file column header to a contact field (or null to skip). */
+export interface ContactFieldMapping {
+  header: string;
+  sampleValue: string;
+  field: ContactField | null;
+}
+
+/** A parsed row from the import file with validation status. */
+export interface ParsedContactRow {
+  email: string;
+  firstName?: string;
+  lastName?: string;
+  phone?: string;
+  company?: string;
+  isValid: boolean;
+  error?: string;
+}
+
+/** Parsed result from reading an import file. */
+export interface ParsedFileResult {
+  headers: string[];
+  rows: Record<string, string>[];
+  fileName: string;
+}
+
+/** Steps in the import contact flow. */
+export type ImportStep = "upload" | "mapping" | "preview";

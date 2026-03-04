@@ -5,10 +5,12 @@ import {
 	updateContact,
 	deleteContact,
 	deleteContacts,
+	importContacts,
 } from "@/features/contacts/api/server";
 import type {
 	ContactFilters,
 	CreateContactInput,
+	ImportContactsInput,
 	UpdateContactInput,
 } from "@/features/contacts/schemas/types";
 
@@ -74,6 +76,18 @@ export function useDeleteContacts() {
 
 	return useMutation({
 		mutationFn: (ids: string[]) => deleteContacts({ data: { ids } }),
+		onSettled: () => {
+			queryClient.invalidateQueries({ queryKey: contactsKeys.lists() });
+		},
+	});
+}
+
+export function useImportContacts() {
+	const queryClient = useQueryClient();
+
+	return useMutation({
+		mutationFn: (input: ImportContactsInput) =>
+			importContacts({ data: input }),
 		onSettled: () => {
 			queryClient.invalidateQueries({ queryKey: contactsKeys.lists() });
 		},

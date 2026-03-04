@@ -5,17 +5,20 @@ import {
 	updateContactService,
 	deleteContactService,
 	deleteContactsService,
+	importContactsService,
 } from "@/features/contacts/api/service";
 import { requireUserId } from "@/lib/require-user";
 import { handleServerError } from "@/lib/errors";
 import type {
 	CreateContactInput,
 	ContactFilters,
+	ImportContactsInput,
 	UpdateContactInput,
 } from "@/features/contacts/schemas/types";
 import {
 	createContactSchema,
 	contactFiltersSchema,
+	importContactsSchema,
 	updateContactSchema,
 	deleteContactSchema,
 	deleteContactsSchema,
@@ -100,6 +103,23 @@ export const deleteContacts = createServerFn({ method: "POST" })
 		try {
 			const userId = await requireUserId();
 			const result = await deleteContactsService(userId, data.ids);
+			return { data: result };
+		} catch (error) {
+			return handleServerError(error);
+		}
+	});
+
+/** Bulk-imports contacts from a file upload, optionally assigning to a collection.
+ *  Auth: Requires authenticated session.
+ *  Errors: COLLECTION_NOT_FOUND, INTERNAL_ERROR */
+export const importContacts = createServerFn({ method: "POST" })
+	.inputValidator(
+		(data: ImportContactsInput) => importContactsSchema.parse(data),
+	)
+	.handler(async ({ data }) => {
+		try {
+			const userId = await requireUserId();
+			const result = await importContactsService(userId, data);
 			return { data: result };
 		} catch (error) {
 			return handleServerError(error);

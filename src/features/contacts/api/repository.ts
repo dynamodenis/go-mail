@@ -3,6 +3,7 @@ import type { Prisma } from "@prisma/client";
 import type {
 	ContactFilters,
 	CreateContactInput,
+	ImportContactsInput,
 	UpdateContactInput,
 } from "@/features/contacts/schemas/types";
 
@@ -91,5 +92,50 @@ export async function deleteContact(userId: string, contactId: string) {
 export async function deleteContacts(userId: string, contactIds: string[]) {
 	return prisma.contact.deleteMany({
 		where: { id: { in: contactIds }, userId },
+	});
+}
+
+/** Bulk-imports contacts in a transaction, optionally linking them to a collection.
+ *  Uses skipDuplicates to silently ignore contacts with existing emails. */
+export async function importContacts(
+	userId: string,
+	input: ImportContactsInput,
+) {
+	return prisma.$transaction(async (tx) => {
+		const contactData = input.contacts.map((c) => ({
+			userId,
+			email: c.email,
+			firstName: c.firstName ?? null,
+			lastName: c.lastName ?? null,
+			phone: c.phone ?? null,
+			company: c.company ?? null,
+			status: c.status ?? "ACTIVE",
+			source: "CSV_IMPORT" as const,
+		}));
+
+		const result = await tx.contact.createMany({
+			data: contactData,
+			skipDuplicates: true,
+		});
+
+		if (input.collectionId) {
+			const emails = input.contacts.map((c) => c.email);
+			const createdContacts = await tx.contact.findMany({
+				where: { userId, email: { in: emails } },
+				select: { id: true },
+			});
+
+			const collectionContactData = createdContacts.map((c) => ({
+				collectionId: input.collectionId!,
+				contactId: c.id,
+			}));
+
+			await tx.collectionContact.createMany({
+				data: collectionContactData,
+				skipDuplicates: true,
+			});
+		}
+
+		return { importedCount: result.count };
 	});
 }

@@ -6,7 +6,7 @@ import { Button } from "@/components/ui/button";
 import { Route } from "@/routes/_authenticated/contacts/index";
 import { useRouter } from "@tanstack/react-router";
 import { getCoreRowModel, useReactTable } from "@tanstack/react-table";
-import { Plus, Users } from "lucide-react";
+import { Plus, Upload, Users } from "lucide-react";
 import { useCallback, useDeferredValue, useMemo, useState, useTransition } from "react";
 import { useContactsUIStore } from "../api/store";
 import { useContacts } from "../api/queries";
@@ -21,6 +21,7 @@ import { ContactsToolbar } from "./contacts-table/contacts-toolbar";
 import { ContactsBulkActions } from "./contacts-table/contacts-bulk-actions";
 import { CreateContactDialog } from "./create-contact-form";
 import { DeleteContactDialog } from "./delete-contact-dialog";
+import { ImportContactModal } from "./contacts-imports/import-contact-modal";
 
 export default function Contacts() {
 	const { search, status, page, pageSize } = Route.useSearch();
@@ -28,6 +29,8 @@ export default function Contacts() {
 	const [isPending, startTransition] = useTransition();
 	const [rowSelection, setRowSelection] = useState<Record<string, boolean>>({});
 	const openCreateDialog = useContactsUIStore((s) => s.openCreateDialog);
+
+	const [openImportModal, setOpenImportModal] = useState(false);
 
 	const deferredSearch = useDeferredValue(search);
 	const filters = useMemo(
@@ -96,15 +99,20 @@ export default function Contacts() {
 				title="Contacts"
 				description="Manage your email contacts and subscribers."
 				actions={
-					<Button onClick={openCreateDialog}>
+					<><Button onClick={openCreateDialog}>
 						<Plus className="mr-1 h-4 w-4" />
 						Add Contact
 					</Button>
+					<Button onClick={() => setOpenImportModal(true)}>
+						<Upload className="mr-1 h-4 w-4" />
+						Import Contacts
+					</Button></>
 				}
 			/>
 
 			<CreateContactDialog />
 			<DeleteContactDialog />
+			<ImportContactModal open={openImportModal} onOpenChange={setOpenImportModal} />
 
 			<div className="flex items-center justify-between gap-3">
 				<ContactsToolbar
