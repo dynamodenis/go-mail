@@ -1,7 +1,11 @@
 import { useCallback, useRef, useState } from "react";
-import { Upload, FileText, X } from "lucide-react";
+import { Upload, FileText, X, Download } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { validateFile } from "@/features/contacts/utils/parse-import-file";
+import {
+	downloadImportTemplate,
+	IMPORT_TEMPLATE_HEADERS,
+} from "@/features/contacts/utils/download-import-template";
 
 interface FileDropZoneProps {
 	file: File | null;
@@ -92,7 +96,7 @@ export function FileDropZone({
 	}
 
 	return (
-		<div className="space-y-2">
+		<div className="space-y-3">
 			<div
 				role="button"
 				tabIndex={0}
@@ -126,9 +130,47 @@ export function FileDropZone({
 				className="hidden"
 				onChange={handleInputChange}
 			/>
+
 			{displayError && (
 				<p className="text-xs text-red-500">{displayError}</p>
 			)}
+
+			<div className="rounded-md border border-border bg-muted/20 p-3 space-y-2">
+				<p className="text-xs font-medium">Expected format</p>
+				<p className="text-xs text-muted-foreground">
+					Your file should include the following columns. Only{" "}
+					<span className="font-semibold text-foreground">Email</span> is
+					required — all other columns are optional.
+				</p>
+				<div className="flex flex-wrap gap-1.5">
+					{IMPORT_TEMPLATE_HEADERS.map((header) => (
+						<span
+							key={header}
+							className={`inline-flex items-center rounded-md px-2 py-0.5 text-xs ${
+								header === "Email"
+									? "bg-blue-500/10 text-blue-600 font-medium ring-1 ring-blue-500/20"
+									: "bg-muted text-muted-foreground"
+							}`}
+						>
+							{header}
+							{header === "Email" && (
+								<span className="ml-1 text-[10px]">*</span>
+							)}
+						</span>
+					))}
+				</div>
+				<button
+					type="button"
+					onClick={(e) => {
+						e.stopPropagation();
+						downloadImportTemplate();
+					}}
+					className="inline-flex items-center gap-1.5 text-xs text-blue-600 hover:text-blue-700 hover:underline font-medium mt-1"
+				>
+					<Download className="size-3" />
+					Download template file
+				</button>
+			</div>
 		</div>
 	);
 }
