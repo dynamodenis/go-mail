@@ -1,3 +1,4 @@
+import { useRef } from "react";
 import { toast } from "sonner";
 import { X } from "lucide-react";
 import { Button } from "@/components/ui/button";
@@ -11,12 +12,15 @@ import OrbiterBox from "@/components/global/orbiter-box";
 import { useCreateTemplate } from "../api/queries";
 import { useTemplatesUIStore } from "../api/store";
 import { TemplateEditorForm } from "./editor/template-editor-form";
+import type { TemplateEditorFormHandle } from "./editor/template-editor-form";
 import Divider from "@/components/ui/divider";
+import Loader from "@/components/global/loader";
 
 export function CreateTemplateModal() {
 	const { isCreateModalOpen, setCreateModalOpen, pendingMergeTags, resetPendingMergeTags } =
 		useTemplatesUIStore();
 	const createMutation = useCreateTemplate();
+	const formRef = useRef<TemplateEditorFormHandle>(null);
 
 	const handleClose = () => {
 		setCreateModalOpen(false);
@@ -34,15 +38,18 @@ export function CreateTemplateModal() {
 							<DialogTitle className="text-base font-semibold sm:text-lg">
 								Create Template
 							</DialogTitle>
-							<DialogClose>
-								<Button variant="ghost" size="sm" className="h-7 w-7 p-0">
-									<X className="h-4 w-4" />
-								</Button>
-							</DialogClose>
+							<div className="flex items-center gap-2">
+								<DialogClose>
+									<Button variant="ghost" size="sm" className="h-7 w-7 p-0">
+										<X className="h-4 w-4" />
+									</Button>
+								</DialogClose>
+							</div>
 						</div>
 						<Divider variant="blue-light-horizontal" />
 						<div className="flex-1 overflow-y-auto p-4 sm:p-6 max-h-[calc(100vh-60px)] sm:max-h-[calc(95vh-80px)]">
 							<TemplateEditorForm
+								ref={formRef}
 								mode="create"
 								isSaving={createMutation.isPending}
 								onSave={(data) => {

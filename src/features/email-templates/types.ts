@@ -94,8 +94,9 @@ export interface MergeTagDefinition {
 
 export const AVAILABLE_MERGE_TAGS: MergeTagDefinition[] = [
 	{ label: "First Name", value: "{first_name}" },
-	{ label: "Full Name", value: "{full_name}" },
+	{ label: "Last Name", value: "{last_name}" },
 	{ label: "Email", value: "{email}" },
+	{ label: "Company Name", value: "{company}" },
 ];
 
 export const addAttachmentSchema = z.object({

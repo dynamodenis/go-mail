@@ -5,7 +5,7 @@ function Card({ className, ...props }: HTMLAttributes<HTMLDivElement>) {
 	return (
 		<div
 			className={cn(
-				"rounded-xl border bg-card text-card-foreground shadow",
+				"rounded-md border bg-card text-card-foreground shadow",
 				className,
 			)}
 			{...props}
@@ -16,7 +16,7 @@ function Card({ className, ...props }: HTMLAttributes<HTMLDivElement>) {
 function CardHeader({ className, ...props }: HTMLAttributes<HTMLDivElement>) {
 	return (
 		<div
-			className={cn("flex flex-col space-y-1.5 p-6", className)}
+			className={cn("flex flex-col space-y-1.5 pl-6 pt-2", className)}
 			{...props}
 		/>
 	);
@@ -44,7 +44,7 @@ function CardDescription({
 }
 
 function CardContent({ className, ...props }: HTMLAttributes<HTMLDivElement>) {
-	return <div className={cn("p-6 pt-0", className)} {...props} />;
+	return <div className={cn("pl-6 pb-2 pr-2 pt-0", className)} {...props} />;
 }
 
 function CardFooter({ className, ...props }: HTMLAttributes<HTMLDivElement>) {

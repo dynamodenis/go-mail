@@ -24,11 +24,13 @@
   white-space: pre-wrap;
   outline: none;
   caret-color: var(--tt-cursor-color);
+  font-size: 0.875rem;
+  line-height: 1.5;
 
   // Paragraph spacing
   p:not(:first-child):not(td p):not(th p) {
-    font-size: 1rem;
-    line-height: 1.6;
+    font-size: 0.875rem;
+    line-height: 1.5;
     font-weight: normal;
     margin-top: 20px;
   }

@@ -1,4 +1,4 @@
-import { useEffect, useState } from "react";
+import { useDeferredValue, useEffect, useState } from "react";
 import { Search } from "lucide-react";
 import { Input } from "@/components/ui/input";
 import {
@@ -15,20 +15,18 @@ import {
 } from "../../types";
 import { useTemplatesUIStore } from "../../api/store";
 
-const DEBOUNCE_MS = 300;
-
 export function TemplateFiltersBar() {
 	const { searchQuery, selectedCategory, setSearchQuery, setSelectedCategory } =
 		useTemplatesUIStore();
 	const [localSearch, setLocalSearch] = useState(searchQuery);
+	const deferredSearch = useDeferredValue(localSearch);
 	const categories = templateCategorySchema.options;
 
 	useEffect(() => {
-		const timer = setTimeout(() => {
-			setSearchQuery(localSearch);
-		}, DEBOUNCE_MS);
-		return () => clearTimeout(timer);
-	}, [localSearch, setSearchQuery]);
+		if (deferredSearch !== searchQuery) {
+			setSearchQuery(deferredSearch);
+		}
+	}, [deferredSearch, searchQuery, setSearchQuery]);
 
 	return (
 		<div className="flex flex-col gap-3 sm:flex-row sm:items-center">

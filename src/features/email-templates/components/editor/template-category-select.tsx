@@ -31,7 +31,7 @@ export function TemplateCategorySelect({
 
 	return (
 		<Card>
-			<CardHeader className="pb-3">
+			<CardHeader className="pb-2">
 				<CardTitle className="text-sm">Category</CardTitle>
 			</CardHeader>
 			<CardContent>
