@@ -35,11 +35,14 @@ export async function saveContact(
 }
 
 export async function getContacts(userId: string, filters: ContactFilters) {
-	const { search, status, page, pageSize } = filters;
+	const { search, status, collectionId, page, pageSize } = filters;
 
 	const where: Prisma.ContactWhereInput = {
 		userId,
 		...(status && { status }),
+		...(collectionId && {
+			collections: { some: { collectionId } },
+		}),
 		...(search && {
 			OR: [
 				{ email: { contains: search, mode: "insensitive" as const } },

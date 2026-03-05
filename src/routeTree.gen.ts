@@ -31,12 +31,13 @@ import { Route as AuthenticatedReportsDeliverabilityRouteImport } from './routes
 import { Route as AuthenticatedEmailSentRouteImport } from './routes/_authenticated/email/sent'
 import { Route as AuthenticatedEmailInboxRouteImport } from './routes/_authenticated/email/inbox'
 import { Route as AuthenticatedEmailDraftsRouteImport } from './routes/_authenticated/email/drafts'
-import { Route as AuthenticatedContactsCollectionsRouteImport } from './routes/_authenticated/contacts/collections'
 import { Route as AuthenticatedContactsContactIdRouteImport } from './routes/_authenticated/contacts/$contactId'
 import { Route as AuthenticatedCampaignsNewRouteImport } from './routes/_authenticated/campaigns/new'
 import { Route as AuthenticatedCampaignsCampaignIdRouteImport } from './routes/_authenticated/campaigns/$campaignId'
 import { Route as AuthenticatedOutreachComposerEmailTemplatesIndexRouteImport } from './routes/_authenticated/outreach-composer/email-templates/index'
 import { Route as AuthenticatedOutreachComposerEmailComposerIndexRouteImport } from './routes/_authenticated/outreach-composer/email-composer/index'
+import { Route as AuthenticatedContactsCollectionsIndexRouteImport } from './routes/_authenticated/contacts/collections/index'
+import { Route as AuthenticatedContactsCollectionsCollectionIdRouteImport } from './routes/_authenticated/contacts/collections/$collectionId'
 import { Route as AuthenticatedOutreachComposerEmailTemplatesTemplateIdEditRouteImport } from './routes/_authenticated/outreach-composer/email-templates/$templateId.edit'
 
 const AuthenticatedRoute = AuthenticatedRouteImport.update({
@@ -160,12 +161,6 @@ const AuthenticatedEmailDraftsRoute =
     path: '/email/drafts',
     getParentRoute: () => AuthenticatedRoute,
   } as any)
-const AuthenticatedContactsCollectionsRoute =
-  AuthenticatedContactsCollectionsRouteImport.update({
-    id: '/contacts/collections',
-    path: '/contacts/collections',
-    getParentRoute: () => AuthenticatedRoute,
-  } as any)
 const AuthenticatedContactsContactIdRoute =
   AuthenticatedContactsContactIdRouteImport.update({
     id: '/contacts/$contactId',
@@ -196,6 +191,18 @@ const AuthenticatedOutreachComposerEmailComposerIndexRoute =
     path: '/outreach-composer/email-composer/',
     getParentRoute: () => AuthenticatedRoute,
   } as any)
+const AuthenticatedContactsCollectionsIndexRoute =
+  AuthenticatedContactsCollectionsIndexRouteImport.update({
+    id: '/contacts/collections/',
+    path: '/contacts/collections/',
+    getParentRoute: () => AuthenticatedRoute,
+  } as any)
+const AuthenticatedContactsCollectionsCollectionIdRoute =
+  AuthenticatedContactsCollectionsCollectionIdRouteImport.update({
+    id: '/contacts/collections/$collectionId',
+    path: '/contacts/collections/$collectionId',
+    getParentRoute: () => AuthenticatedRoute,
+  } as any)
 const AuthenticatedOutreachComposerEmailTemplatesTemplateIdEditRoute =
   AuthenticatedOutreachComposerEmailTemplatesTemplateIdEditRouteImport.update({
     id: '/outreach-composer/email-templates/$templateId/edit',
@@ -212,7 +219,6 @@ export interface FileRoutesByFullPath {
   '/campaigns/$campaignId': typeof AuthenticatedCampaignsCampaignIdRoute
   '/campaigns/new': typeof AuthenticatedCampaignsNewRoute
   '/contacts/$contactId': typeof AuthenticatedContactsContactIdRoute
-  '/contacts/collections': typeof AuthenticatedContactsCollectionsRoute
   '/email/drafts': typeof AuthenticatedEmailDraftsRoute
   '/email/inbox': typeof AuthenticatedEmailInboxRoute
   '/email/sent': typeof AuthenticatedEmailSentRoute
@@ -228,6 +234,8 @@ export interface FileRoutesByFullPath {
   '/contacts/': typeof AuthenticatedContactsIndexRoute
   '/outreach-composer/': typeof AuthenticatedOutreachComposerIndexRoute
   '/reports/': typeof AuthenticatedReportsIndexRoute
+  '/contacts/collections/$collectionId': typeof AuthenticatedContactsCollectionsCollectionIdRoute
+  '/contacts/collections/': typeof AuthenticatedContactsCollectionsIndexRoute
   '/outreach-composer/email-composer/': typeof AuthenticatedOutreachComposerEmailComposerIndexRoute
   '/outreach-composer/email-templates/': typeof AuthenticatedOutreachComposerEmailTemplatesIndexRoute
   '/outreach-composer/email-templates/$templateId/edit': typeof AuthenticatedOutreachComposerEmailTemplatesTemplateIdEditRoute
@@ -241,7 +249,6 @@ export interface FileRoutesByTo {
   '/campaigns/$campaignId': typeof AuthenticatedCampaignsCampaignIdRoute
   '/campaigns/new': typeof AuthenticatedCampaignsNewRoute
   '/contacts/$contactId': typeof AuthenticatedContactsContactIdRoute
-  '/contacts/collections': typeof AuthenticatedContactsCollectionsRoute
   '/email/drafts': typeof AuthenticatedEmailDraftsRoute
   '/email/inbox': typeof AuthenticatedEmailInboxRoute
   '/email/sent': typeof AuthenticatedEmailSentRoute
@@ -257,6 +264,8 @@ export interface FileRoutesByTo {
   '/contacts': typeof AuthenticatedContactsIndexRoute
   '/outreach-composer': typeof AuthenticatedOutreachComposerIndexRoute
   '/reports': typeof AuthenticatedReportsIndexRoute
+  '/contacts/collections/$collectionId': typeof AuthenticatedContactsCollectionsCollectionIdRoute
+  '/contacts/collections': typeof AuthenticatedContactsCollectionsIndexRoute
   '/outreach-composer/email-composer': typeof AuthenticatedOutreachComposerEmailComposerIndexRoute
   '/outreach-composer/email-templates': typeof AuthenticatedOutreachComposerEmailTemplatesIndexRoute
   '/outreach-composer/email-templates/$templateId/edit': typeof AuthenticatedOutreachComposerEmailTemplatesTemplateIdEditRoute
@@ -273,7 +282,6 @@ export interface FileRoutesById {
   '/_authenticated/campaigns/$campaignId': typeof AuthenticatedCampaignsCampaignIdRoute
   '/_authenticated/campaigns/new': typeof AuthenticatedCampaignsNewRoute
   '/_authenticated/contacts/$contactId': typeof AuthenticatedContactsContactIdRoute
-  '/_authenticated/contacts/collections': typeof AuthenticatedContactsCollectionsRoute
   '/_authenticated/email/drafts': typeof AuthenticatedEmailDraftsRoute
   '/_authenticated/email/inbox': typeof AuthenticatedEmailInboxRoute
   '/_authenticated/email/sent': typeof AuthenticatedEmailSentRoute
@@ -289,6 +297,8 @@ export interface FileRoutesById {
   '/_authenticated/contacts/': typeof AuthenticatedContactsIndexRoute
   '/_authenticated/outreach-composer/': typeof AuthenticatedOutreachComposerIndexRoute
   '/_authenticated/reports/': typeof AuthenticatedReportsIndexRoute
+  '/_authenticated/contacts/collections/$collectionId': typeof AuthenticatedContactsCollectionsCollectionIdRoute
+  '/_authenticated/contacts/collections/': typeof AuthenticatedContactsCollectionsIndexRoute
   '/_authenticated/outreach-composer/email-composer/': typeof AuthenticatedOutreachComposerEmailComposerIndexRoute
   '/_authenticated/outreach-composer/email-templates/': typeof AuthenticatedOutreachComposerEmailTemplatesIndexRoute
   '/_authenticated/outreach-composer/email-templates/$templateId/edit': typeof AuthenticatedOutreachComposerEmailTemplatesTemplateIdEditRoute
@@ -304,7 +314,6 @@ export interface FileRouteTypes {
     | '/campaigns/$campaignId'
     | '/campaigns/new'
     | '/contacts/$contactId'
-    | '/contacts/collections'
     | '/email/drafts'
     | '/email/inbox'
     | '/email/sent'
@@ -320,6 +329,8 @@ export interface FileRouteTypes {
     | '/contacts/'
     | '/outreach-composer/'
     | '/reports/'
+    | '/contacts/collections/$collectionId'
+    | '/contacts/collections/'
     | '/outreach-composer/email-composer/'
     | '/outreach-composer/email-templates/'
     | '/outreach-composer/email-templates/$templateId/edit'
@@ -333,7 +344,6 @@ export interface FileRouteTypes {
     | '/campaigns/$campaignId'
     | '/campaigns/new'
     | '/contacts/$contactId'
-    | '/contacts/collections'
     | '/email/drafts'
     | '/email/inbox'
     | '/email/sent'
@@ -349,6 +359,8 @@ export interface FileRouteTypes {
     | '/contacts'
     | '/outreach-composer'
     | '/reports'
+    | '/contacts/collections/$collectionId'
+    | '/contacts/collections'
     | '/outreach-composer/email-composer'
     | '/outreach-composer/email-templates'
     | '/outreach-composer/email-templates/$templateId/edit'
@@ -364,7 +376,6 @@ export interface FileRouteTypes {
     | '/_authenticated/campaigns/$campaignId'
     | '/_authenticated/campaigns/new'
     | '/_authenticated/contacts/$contactId'
-    | '/_authenticated/contacts/collections'
     | '/_authenticated/email/drafts'
     | '/_authenticated/email/inbox'
     | '/_authenticated/email/sent'
@@ -380,6 +391,8 @@ export interface FileRouteTypes {
     | '/_authenticated/contacts/'
     | '/_authenticated/outreach-composer/'
     | '/_authenticated/reports/'
+    | '/_authenticated/contacts/collections/$collectionId'
+    | '/_authenticated/contacts/collections/'
     | '/_authenticated/outreach-composer/email-composer/'
     | '/_authenticated/outreach-composer/email-templates/'
     | '/_authenticated/outreach-composer/email-templates/$templateId/edit'
@@ -547,13 +560,6 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof AuthenticatedEmailDraftsRouteImport
       parentRoute: typeof AuthenticatedRoute
     }
-    '/_authenticated/contacts/collections': {
-      id: '/_authenticated/contacts/collections'
-      path: '/contacts/collections'
-      fullPath: '/contacts/collections'
-      preLoaderRoute: typeof AuthenticatedContactsCollectionsRouteImport
-      parentRoute: typeof AuthenticatedRoute
-    }
     '/_authenticated/contacts/$contactId': {
       id: '/_authenticated/contacts/$contactId'
       path: '/contacts/$contactId'
@@ -589,6 +595,20 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof AuthenticatedOutreachComposerEmailComposerIndexRouteImport
       parentRoute: typeof AuthenticatedRoute
     }
+    '/_authenticated/contacts/collections/': {
+      id: '/_authenticated/contacts/collections/'
+      path: '/contacts/collections'
+      fullPath: '/contacts/collections/'
+      preLoaderRoute: typeof AuthenticatedContactsCollectionsIndexRouteImport
+      parentRoute: typeof AuthenticatedRoute
+    }
+    '/_authenticated/contacts/collections/$collectionId': {
+      id: '/_authenticated/contacts/collections/$collectionId'
+      path: '/contacts/collections/$collectionId'
+      fullPath: '/contacts/collections/$collectionId'
+      preLoaderRoute: typeof AuthenticatedContactsCollectionsCollectionIdRouteImport
+      parentRoute: typeof AuthenticatedRoute
+    }
     '/_authenticated/outreach-composer/email-templates/$templateId/edit': {
       id: '/_authenticated/outreach-composer/email-templates/$templateId/edit'
       path: '/outreach-composer/email-templates/$templateId/edit'
@@ -619,7 +639,6 @@ interface AuthenticatedRouteChildren {
   AuthenticatedCampaignsCampaignIdRoute: typeof AuthenticatedCampaignsCampaignIdRoute
   AuthenticatedCampaignsNewRoute: typeof AuthenticatedCampaignsNewRoute
   AuthenticatedContactsContactIdRoute: typeof AuthenticatedContactsContactIdRoute
-  AuthenticatedContactsCollectionsRoute: typeof AuthenticatedContactsCollectionsRoute
   AuthenticatedEmailDraftsRoute: typeof AuthenticatedEmailDraftsRoute
   AuthenticatedEmailInboxRoute: typeof AuthenticatedEmailInboxRoute
   AuthenticatedEmailSentRoute: typeof AuthenticatedEmailSentRoute
@@ -635,6 +654,8 @@ interface AuthenticatedRouteChildren {
   AuthenticatedContactsIndexRoute: typeof AuthenticatedContactsIndexRoute
   AuthenticatedOutreachComposerIndexRoute: typeof AuthenticatedOutreachComposerIndexRoute
   AuthenticatedReportsIndexRoute: typeof AuthenticatedReportsIndexRoute
+  AuthenticatedContactsCollectionsCollectionIdRoute: typeof AuthenticatedContactsCollectionsCollectionIdRoute
+  AuthenticatedContactsCollectionsIndexRoute: typeof AuthenticatedContactsCollectionsIndexRoute
   AuthenticatedOutreachComposerEmailComposerIndexRoute: typeof AuthenticatedOutreachComposerEmailComposerIndexRoute
   AuthenticatedOutreachComposerEmailTemplatesIndexRoute: typeof AuthenticatedOutreachComposerEmailTemplatesIndexRoute
   AuthenticatedOutreachComposerEmailTemplatesTemplateIdEditRoute: typeof AuthenticatedOutreachComposerEmailTemplatesTemplateIdEditRoute
@@ -646,7 +667,6 @@ const AuthenticatedRouteChildren: AuthenticatedRouteChildren = {
   AuthenticatedCampaignsCampaignIdRoute: AuthenticatedCampaignsCampaignIdRoute,
   AuthenticatedCampaignsNewRoute: AuthenticatedCampaignsNewRoute,
   AuthenticatedContactsContactIdRoute: AuthenticatedContactsContactIdRoute,
-  AuthenticatedContactsCollectionsRoute: AuthenticatedContactsCollectionsRoute,
   AuthenticatedEmailDraftsRoute: AuthenticatedEmailDraftsRoute,
   AuthenticatedEmailInboxRoute: AuthenticatedEmailInboxRoute,
   AuthenticatedEmailSentRoute: AuthenticatedEmailSentRoute,
@@ -665,6 +685,10 @@ const AuthenticatedRouteChildren: AuthenticatedRouteChildren = {
   AuthenticatedOutreachComposerIndexRoute:
     AuthenticatedOutreachComposerIndexRoute,
   AuthenticatedReportsIndexRoute: AuthenticatedReportsIndexRoute,
+  AuthenticatedContactsCollectionsCollectionIdRoute:
+    AuthenticatedContactsCollectionsCollectionIdRoute,
+  AuthenticatedContactsCollectionsIndexRoute:
+    AuthenticatedContactsCollectionsIndexRoute,
   AuthenticatedOutreachComposerEmailComposerIndexRoute:
     AuthenticatedOutreachComposerEmailComposerIndexRoute,
   AuthenticatedOutreachComposerEmailTemplatesIndexRoute:

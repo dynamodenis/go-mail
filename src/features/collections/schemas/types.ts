@@ -55,6 +55,14 @@ export const collectionSearchSchema = z.object({
 });
 export type CollectionSearchParams = z.infer<typeof collectionSearchSchema>;
 
+export const collectionDetailSearchSchema = z.object({
+	search: fallback(z.string(), "").default(""),
+	status: fallback(z.enum(["ACTIVE", "UNSUBSCRIBED", "BOUNCED", "CLEANED"]).optional(), undefined),
+	page: fallback(z.number().int().positive(), 1).default(1),
+	pageSize: fallback(z.number().int().positive().max(100), 25).default(25),
+});
+export type CollectionDetailSearchParams = z.infer<typeof collectionDetailSearchSchema>;
+
 export const addContactsToCollectionSchema = z.object({
 	collectionId: z.string().uuid(),
 	contactIds: z.array(z.string().uuid()).min(1),

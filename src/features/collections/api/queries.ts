@@ -2,9 +2,11 @@ import { keepPreviousData, useInfiniteQuery, useMutation, useQuery, useQueryClie
 import {
 	createCollection,
 	getCollections,
+	getCollectionById,
 	getCollectionContactIds,
 	updateCollection,
 	addContactsToCollections,
+	removeContactsFromCollection,
 	deleteCollection,
 	deleteCollections,
 } from "@/features/collections/api/server";
@@ -13,8 +15,10 @@ import type {
 	AddContactsToCollectionsInput,
 	CollectionFilters,
 	CreateCollectionInput,
+	RemoveContactsFromCollectionInput,
 	UpdateCollectionInput,
 } from "@/features/collections/schemas/types";
+import type { ContactFilters } from "@/features/contacts/schemas/types";
 
 const STALE_TIME = 300_000; // 5 minutes
 
@@ -51,6 +55,42 @@ export function useCollectionContactIds(collectionId: string | null) {
 		enabled: !!collectionId,
 		staleTime: STALE_TIME,
 		select: (res) => ("error" in res ? [] : res.data),
+	});
+}
+
+/** Fetches a single collection by ID for the detail page. */
+export function useCollectionDetail(collectionId: string) {
+	return useQuery({
+		queryKey: collectionsKeys.detail(collectionId),
+		queryFn: () => getCollectionById({ data: { id: collectionId } }),
+		staleTime: STALE_TIME,
+		select: (res) => ("error" in res ? null : res.data),
+	});
+}
+
+/** Fetches contacts belonging to a collection with search/pagination. */
+export function useCollectionContacts(filters: ContactFilters) {
+	return useQuery({
+		queryKey: [...collectionsKeys.detail(filters.collectionId!), "contacts", filters] as const,
+		queryFn: () => getContacts({ data: filters }),
+		staleTime: STALE_TIME,
+		placeholderData: keepPreviousData,
+		retry: 2,
+		enabled: !!filters.collectionId,
+		select: (res) => ("error" in res ? { data: [], total: 0, page: 1, pageSize: 25 } : res.data),
+	});
+}
+
+/** Mutation to remove contacts from a collection. */
+export function useRemoveContactsFromCollection() {
+	const queryClient = useQueryClient();
+
+	return useMutation({
+		mutationFn: (input: RemoveContactsFromCollectionInput) =>
+			removeContactsFromCollection({ data: input }),
+		onSettled: () => {
+			queryClient.invalidateQueries({ queryKey: collectionsKeys.all });
+		},
 	});
 }
 

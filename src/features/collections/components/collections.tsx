@@ -3,7 +3,7 @@ import { LoadingState } from "@/components/shared/loading-state";
 import { ErrorState } from "@/components/shared/error-state";
 import { EmptyState } from "@/components/shared/empty-state";
 import { Button } from "@/components/ui/button";
-import { Route } from "@/routes/_authenticated/contacts/collections";
+import { Route } from "@/routes/_authenticated/contacts/collections/index";
 import { useRouter } from "@tanstack/react-router";
 import { getCoreRowModel, useReactTable } from "@tanstack/react-table";
 import { FolderPlus, Layers } from "lucide-react";

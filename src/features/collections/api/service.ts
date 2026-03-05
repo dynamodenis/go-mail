@@ -3,6 +3,7 @@ import type {
 	AddContactsToCollectionsInput,
 	CollectionFilters,
 	CreateCollectionInput,
+	RemoveContactsFromCollectionInput,
 	UpdateCollectionInput,
 } from "@/features/collections/schemas/types";
 import { AppError } from "@/lib/errors";
@@ -44,6 +45,24 @@ export async function updateCollectionService(
 		}
 		throw error;
 	}
+}
+
+export async function getCollectionByIdService(
+	userId: string,
+	collectionId: string,
+) {
+	const collection = await repo.getCollectionById(userId, collectionId);
+	if (!collection) {
+		throw new AppError("COLLECTION_NOT_FOUND", "Collection not found.");
+	}
+	return collection;
+}
+
+export async function removeContactsFromCollectionService(
+	userId: string,
+	input: RemoveContactsFromCollectionInput,
+) {
+	return repo.removeContactsFromCollection(userId, input);
 }
 
 export async function addContactsToCollectionsService(

@@ -4,6 +4,7 @@ import type {
 	CreateCollectionInput,
 	UpdateCollectionInput,
 	AddContactsToCollectionsInput,
+	RemoveContactsFromCollectionInput,
 } from "@/features/collections/schemas/types";
 
 const COLLECTION_SELECT = {
@@ -161,6 +162,29 @@ export async function addContactsToCollections(
 	});
 
 	return { addedCount: result.count };
+}
+
+export async function getCollectionById(userId: string, collectionId: string) {
+	const row = await prisma.collection.findFirst({
+		where: { id: collectionId, userId },
+		select: COLLECTION_SELECT,
+	});
+	if (!row) return null;
+	return toCollection(row);
+}
+
+export async function removeContactsFromCollection(
+	userId: string,
+	input: RemoveContactsFromCollectionInput,
+) {
+	const result = await prisma.collectionContact.deleteMany({
+		where: {
+			collectionId: input.collectionId,
+			contactId: { in: input.contactIds },
+			collection: { userId },
+		},
+	});
+	return { removedCount: result.count };
 }
 
 export async function deleteCollection(userId: string, collectionId: string) {

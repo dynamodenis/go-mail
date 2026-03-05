@@ -2,9 +2,11 @@ import { createServerFn } from "@tanstack/react-start";
 import {
 	createCollectionService,
 	getCollectionsService,
+	getCollectionByIdService,
 	getCollectionContactIdsService,
 	updateCollectionService,
 	addContactsToCollectionsService,
+	removeContactsFromCollectionService,
 	deleteCollectionService,
 	deleteCollectionsService,
 } from "@/features/collections/api/service";
@@ -15,12 +17,14 @@ import type {
 	CollectionFilters,
 	UpdateCollectionInput,
 	AddContactsToCollectionsInput,
+	RemoveContactsFromCollectionInput,
 } from "@/features/collections/schemas/types";
 import {
 	createCollectionSchema,
 	collectionFiltersSchema,
 	updateCollectionSchema,
 	addContactsToCollectionsSchema,
+	removeContactsFromCollectionSchema,
 	deleteCollectionSchema,
 	deleteCollectionsSchema,
 } from "@/features/collections/schemas/types";
@@ -71,6 +75,41 @@ export const getCollectionContactIds = createServerFn({ method: "GET" })
 			const userId = await requireUserId();
 			const contactIds = await getCollectionContactIdsService(userId, data.id);
 			return { data: contactIds };
+		} catch (error) {
+			return handleServerError(error);
+		}
+	});
+
+/** Fetches a single collection by ID.
+ *  Auth: Requires authenticated session.
+ *  Errors: COLLECTION_NOT_FOUND, INTERNAL_ERROR */
+export const getCollectionById = createServerFn({ method: "GET" })
+	.inputValidator(
+		(data: { id: string }) => deleteCollectionSchema.parse(data),
+	)
+	.handler(async ({ data }) => {
+		try {
+			const userId = await requireUserId();
+			const collection = await getCollectionByIdService(userId, data.id);
+			return { data: collection };
+		} catch (error) {
+			return handleServerError(error);
+		}
+	});
+
+/** Removes contacts from a collection.
+ *  Auth: Requires authenticated session.
+ *  Errors: INTERNAL_ERROR */
+export const removeContactsFromCollection = createServerFn({ method: "POST" })
+	.inputValidator(
+		(data: RemoveContactsFromCollectionInput) =>
+			removeContactsFromCollectionSchema.parse(data),
+	)
+	.handler(async ({ data }) => {
+		try {
+			const userId = await requireUserId();
+			const result = await removeContactsFromCollectionService(userId, data);
+			return { data: result };
 		} catch (error) {
 			return handleServerError(error);
 		}

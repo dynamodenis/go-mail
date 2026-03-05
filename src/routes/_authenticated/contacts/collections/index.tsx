@@ -7,7 +7,7 @@ const Collections = lazy(
 	() => import("@/features/collections/components/collections"),
 );
 
-export const Route = createFileRoute("/_authenticated/contacts/collections")({
+export const Route = createFileRoute("/_authenticated/contacts/collections/")({
 	validateSearch: zodValidator(collectionSearchSchema),
 	component: CollectionsPage,
 });
