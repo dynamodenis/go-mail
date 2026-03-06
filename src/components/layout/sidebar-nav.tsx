@@ -65,7 +65,7 @@ const NAV_ITEMS: NavItem[] = [
 		label: "Outreach Composer",
 		children: [
 			{ icon: BookPlus, label: "Email Templates", href: "/outreach-composer/email-templates" },
-			{ icon: MailPlus, label: "Email Composer", href: "/outreach-composer/email-composer" },
+			{ icon: MailPlus, label: "Outreach Emails", href: "/outreach-composer/email-composer" },
 		],
 	},
 	{
