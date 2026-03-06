@@ -1,7 +1,7 @@
 import { forwardRef, useCallback, useImperativeHandle, useRef, useState } from "react";
 import type { Editor } from "@tiptap/react";
 import { Button } from "@/components/ui/button";
-import { Plus, Save } from "lucide-react";
+import { Plus, Save, MessageSquareIcon, XIcon } from "lucide-react";
 import type {
 	Template,
 	TemplateCategory,
@@ -108,8 +108,65 @@ export const TemplateEditorForm = forwardRef<TemplateEditorFormHandle, TemplateE
 									? <><Plus className="mr-1 h-4 w-4" /> Create Template</>
 									: <><Save className="mr-1 h-4 w-4" /> Update Changes</>}
 						</Button>
+						<Button
+							variant="outline"
+							className="w-full"
+							onClick={() => setShowComments((prev) => !prev)}
+						>
+							<MessageSquareIcon className="mr-1 h-4 w-4" />
+							{showComments ? "Hide Comments" : "Comments"}
+						</Button>
 					</div>
 				</div>
+
+				{/* Comments slide-over panel — overlays from right, doesn't compress form */}
+				{showComments && (
+					<>
+						<div
+							className="fixed inset-0 z-40 bg-black/20"
+							onClick={() => setShowComments(false)}
+							onKeyDown={() => {}}
+							role="presentation"
+						/>
+						<div className="fixed right-0 top-0 z-50 flex h-full w-[320px] flex-col border-l bg-background shadow-xl">
+							<div className="flex items-center justify-between border-b px-4 py-3">
+								<div className="flex items-center gap-2">
+									<MessageSquareIcon className="size-4 text-primary" />
+									<span className="text-sm font-medium">Template Comments</span>
+								</div>
+								<Button
+									variant="ghost"
+									size="sm"
+									className="h-7 w-7 p-0"
+									onClick={() => setShowComments(false)}
+								>
+									<XIcon className="size-4" />
+								</Button>
+							</div>
+							<div className="flex-1 overflow-y-auto p-4">
+								<div className="flex flex-col items-center justify-center h-full text-center">
+									<MessageSquareIcon className="size-8 text-muted-foreground/30 mb-3" />
+									<p className="text-xs text-muted-foreground">No comments yet</p>
+									<p className="text-[10px] text-muted-foreground/60 mt-1">
+										Leave comments to collaborate with your team on this template.
+									</p>
+								</div>
+							</div>
+							<div className="border-t p-3">
+								<div className="flex items-end gap-2">
+									<textarea
+										placeholder="Add a comment..."
+										rows={2}
+										className="flex-1 resize-none rounded-md border bg-transparent px-2.5 py-1.5 text-xs focus:outline-none focus:ring-1 focus:ring-primary"
+									/>
+									<Button size="sm" className="h-8 shrink-0">
+										Post
+									</Button>
+								</div>
+							</div>
+						</div>
+					</>
+				)}
 			</div>
 		);
 	},

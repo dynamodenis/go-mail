@@ -1,4 +1,4 @@
-import { XIcon, PanelLeftIcon, MessageSquareIcon } from "lucide-react";
+import { XIcon, PanelLeftIcon } from "lucide-react";
 import { useCallback, useEffect, useRef } from "react";
 import { Button } from "@/components/ui/button";
 import {
@@ -20,7 +20,6 @@ export default function EmailComposer() {
   const isLeftSidebarOpen = useEmailComposerStore((s) => s.isLeftSidebarOpen);
   const isRightSidebarOpen = useEmailComposerStore((s) => s.isRightSidebarOpen);
   const toggleLeftSidebar = useEmailComposerStore((s) => s.toggleLeftSidebar);
-  const toggleRightSidebar = useEmailComposerStore((s) => s.toggleRightSidebar);
   const addFiles = useEmailComposerStore((s) => s.addFiles);
 
   const fileInputRef = useRef<HTMLInputElement>(null);
@@ -84,17 +83,6 @@ export default function EmailComposer() {
           </div>
 
           <div className="flex items-center gap-2">
-            <Button
-              variant="ghost"
-              size="sm"
-              onClick={toggleRightSidebar}
-              className={cn(
-                "h-8 w-8 p-0 hidden sm:inline-flex",
-                isRightSidebarOpen && "bg-accent",
-              )}
-            >
-              <MessageSquareIcon className="size-4" />
-            </Button>
             <DialogClose
               className="h-8 w-8 p-0 inline-flex items-center justify-center rounded-md text-muted-foreground hover:bg-accent hover:text-foreground transition-colors"
             >
