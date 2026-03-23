@@ -1,7 +1,18 @@
-import { useMemo } from "react";
+import { useCallback, useMemo } from "react";
+import type { Editor } from "@tiptap/react";
 import { useEmailComposerStore } from "../../api/store";
 import { resolveTemplateHtml } from "@/features/email-templates/utils/resolve-merge-tags";
+import { NotionEditor, MergeTag } from "@/features/tiptap-editor";
 import type { MergeTagContext } from "../../types";
+
+const LOCAL_USER = {
+  id: "local",
+  name: "",
+  avatar: "",
+  color: "#000",
+};
+
+const MERGE_TAG_EXTENSIONS = [MergeTag];
 
 interface ComposerBodyProps {
   mergeContext: MergeTagContext | null;
@@ -12,7 +23,8 @@ export default function ComposerBody({ mergeContext }: ComposerBodyProps) {
   const setBodyHtml = useEmailComposerStore((s) => s.setBodyHtml);
   const selectedTemplate = useEmailComposerStore((s) => s.selectedTemplate);
 
-  // Resolve merge tags in the template body for preview
+  const editorRoom = selectedTemplate?.tiptapReference ?? "";
+
   const resolvedHtml = useMemo(() => {
     if (!bodyHtml) return "";
     if (!mergeContext) return bodyHtml;
@@ -24,8 +36,21 @@ export default function ComposerBody({ mergeContext }: ComposerBodyProps) {
     });
   }, [bodyHtml, mergeContext]);
 
-  // If we have a template, show the resolved preview + raw editor
-  // If no template, show a simple textarea editor
+  const handleEditorReady = useCallback((editor: Editor) => {
+    const currentHtml = useEmailComposerStore.getState().bodyHtml;
+    if (currentHtml && editor.isEmpty) {
+      editor.commands.setContent(currentHtml);
+    }
+    editor.commands.focus("start");
+  }, []);
+
+  const handleChange = useCallback(
+    (html: string) => {
+      setBodyHtml(html);
+    },
+    [setBodyHtml],
+  );
+
   if (selectedTemplate) {
     return (
       <div className="flex flex-col h-full">
@@ -47,33 +72,48 @@ export default function ComposerBody({ mergeContext }: ComposerBodyProps) {
           />
         </div>
 
-        {/* Raw HTML editor (collapsible) */}
-        <div className="border-t p-4">
+        {/* Editable template body */}
+        <div className="border-t">
           <details>
-            <summary className="text-[10px] text-muted-foreground cursor-pointer mb-2">
-              Edit raw template body
+            <summary className="px-4 py-2 text-[10px] text-muted-foreground cursor-pointer">
+              Edit template body
             </summary>
-            <textarea
-              value={bodyHtml}
-              onChange={(e) => setBodyHtml(e.target.value)}
-              className="w-full min-h-[120px] rounded-md border bg-transparent p-3 text-xs font-mono resize-y focus:outline-none focus:ring-1 focus:ring-primary"
-              placeholder="Template HTML body..."
-            />
+            <div className="composer-body-editor relative min-h-[200px]">
+              <div className="h-full overflow-y-auto px-4 pb-4">
+                <NotionEditor
+                  key={editorRoom}
+                  room={editorRoom}
+                  parentSelector=".composer-body-editor"
+                  user={LOCAL_USER}
+                  showTitle={false}
+                  additionalExtensions={MERGE_TAG_EXTENSIONS}
+                  onEditorReady={handleEditorReady}
+                  onChange={handleChange}
+                  paragraphPlaceholder="Edit template body..."
+                />
+              </div>
+            </div>
           </details>
         </div>
       </div>
     );
   }
 
-  // No template — free-form compose mode
+  // No template — free-form compose mode with NotionEditor
   return (
-    <div className="p-4 h-full">
-      <textarea
-        value={bodyHtml}
-        onChange={(e) => setBodyHtml(e.target.value)}
-        className="w-full h-full min-h-[300px] rounded-md border bg-transparent p-3 text-sm resize-none focus:outline-none focus:ring-1 focus:ring-primary"
-        placeholder="Write your email..."
-      />
+    <div className="composer-body-editor relative h-full min-h-[300px]">
+      <div className="h-full overflow-y-auto px-4">
+        <NotionEditor
+          room=""
+          parentSelector=".composer-body-editor"
+          user={LOCAL_USER}
+          showTitle={false}
+          additionalExtensions={MERGE_TAG_EXTENSIONS}
+          onEditorReady={handleEditorReady}
+          onChange={handleChange}
+          paragraphPlaceholder="Write your email..."
+        />
+      </div>
     </div>
   );
 }

@@ -15,6 +15,8 @@ interface TemplateBodyEditorProps {
 	onEditorReady: (editor: Editor) => void;
 	onChange?: (html: string) => void;
 	showComments?: boolean;
+	/** Tiptap collaboration room ID — uses template's tiptapReference */
+	room?: string;
 }
 
 // Format date as "February 02, 2026 at 11:40 am"
@@ -50,6 +52,7 @@ export function TemplateBodyEditor({
 	onEditorReady,
 	onChange,
 	showComments = false,
+	room = "",
 }: TemplateBodyEditorProps) {
 	const handleEditorReady = useCallback(
 		(editor: Editor) => {
@@ -68,7 +71,8 @@ export function TemplateBodyEditor({
 				</div>
 				<div className="min-h-0 flex-1 overflow-y-auto pl-16 pt-2">
 					<NotionEditor
-						room=""
+						key={room}
+						room={room}
 						parentSelector=".template-body-editor"
 						user={LOCAL_USER}
 						showTitle={false}

@@ -62,6 +62,7 @@ export const createTemplate = createServerFn({ method: "POST" })
 			bodyHtml: string;
 			bodyJson?: Record<string, unknown>;
 			category?: string;
+			tiptapReference: string;
 			mergeTags?: { label: string; value: string }[];
 		}) => createTemplateSchema.parse(data),
 	)

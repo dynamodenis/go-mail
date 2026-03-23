@@ -28,6 +28,7 @@ interface TemplateEditorFormProps {
 		bodyHtml: string;
 		bodyJson: Record<string, NonNullable<unknown>>;
 		category: TemplateCategory;
+		tiptapReference: string;
 	}) => void;
 	isSaving: boolean;
 	mode: "create" | "edit";
@@ -42,20 +43,41 @@ export const TemplateEditorForm = forwardRef<TemplateEditorFormHandle, TemplateE
 		);
 		const [showComments, setShowComments] = useState(false);
 		const [editor, setEditor] = useState<Editor | null>(null);
+		const [generatedRoom, setGeneratedRoom] = useState("");
 		const contentSetRef = useRef(false);
+		const editorRef = useRef<Editor | null>(null);
 		const removeAttachmentMutation = useRemoveAttachment();
+
+		// Use existing tiptapReference for edit mode, or client-generated one for create
+		const tiptapReference = initialData?.tiptapReference ?? generatedRoom;
 
 		const isValid = !!(name.trim() && subject.trim());
 
 		const handleEditorReady = useCallback(
 			(editorInstance: Editor) => {
 				setEditor(editorInstance);
+				editorRef.current = editorInstance;
 				if (initialData?.bodyHtml && !contentSetRef.current) {
 					editorInstance.commands.setContent(initialData.bodyHtml);
 					contentSetRef.current = true;
 				}
 			},
 			[initialData?.bodyHtml],
+		);
+
+		// Generate tiptapReference on first content change for new templates
+		const handleEditorChange = useCallback(
+			(html: string) => {
+				if (
+					mode === "create" &&
+					!generatedRoom &&
+					editorRef.current &&
+					!editorRef.current.isEmpty
+				) {
+					setGeneratedRoom(`email-template-${Date.now()}`);
+				}
+			},
+			[mode, generatedRoom],
 		);
 
 		const handleSave = useCallback(() => {
@@ -66,8 +88,15 @@ export const TemplateEditorForm = forwardRef<TemplateEditorFormHandle, TemplateE
 
 			if (!name.trim() || !subject.trim() || !bodyHtml.trim()) return;
 
-			onSave({ name: name.trim(), subject: subject.trim(), bodyHtml, bodyJson, category });
-		}, [editor, name, subject, category, onSave]);
+			onSave({
+				name: name.trim(),
+				subject: subject.trim(),
+				bodyHtml,
+				bodyJson,
+				category,
+				tiptapReference: tiptapReference || `email-template-${Date.now()}`,
+			});
+		}, [editor, name, subject, category, tiptapReference, onSave]);
 
 		useImperativeHandle(ref, () => ({
 			save: handleSave,
@@ -81,7 +110,9 @@ export const TemplateEditorForm = forwardRef<TemplateEditorFormHandle, TemplateE
 					<TemplateSubjectInput value={subject} onChange={setSubject} />
 					<TemplateBodyEditor
 						onEditorReady={handleEditorReady}
+						onChange={handleEditorChange}
 						showComments={showComments}
+						room={tiptapReference}
 					/>
 				</div>
 				<div className="flex flex-col gap-3 sm:gap-4 md:w-1/4">

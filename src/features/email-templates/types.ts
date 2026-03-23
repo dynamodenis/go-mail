@@ -22,6 +22,7 @@ export const createTemplateSchema = z.object({
 	bodyHtml: z.string().min(1, "Template content is required"),
 	bodyJson: z.record(z.string(), z.any()).optional(),
 	category: templateCategorySchema.default("PROMOTIONAL"),
+	tiptapReference: z.string().min(1, "Tiptap reference is required"),
 	mergeTags: z
 		.array(z.object({ label: z.string().min(1), value: z.string().min(1) }))
 		.optional(),
@@ -72,6 +73,7 @@ export interface Template {
 	bodyJson: Record<string, NonNullable<unknown>>;
 	category: TemplateCategory;
 	thumbnailUrl: string | null;
+	tiptapReference: string | null;
 	timesUsed: number;
 	attachmentCount?: number;
 	attachments?: TemplateAttachment[];

@@ -12,6 +12,7 @@ const TEMPLATE_LIST_SELECT = {
 	bodyJson: true,
 	category: true,
 	thumbnailUrl: true,
+	tiptapReference: true,
 	timesUsed: true,
 	createdAt: true,
 	updatedAt: true,
@@ -26,6 +27,7 @@ const TEMPLATE_DETAIL_SELECT = {
 	bodyJson: true,
 	category: true,
 	thumbnailUrl: true,
+	tiptapReference: true,
 	timesUsed: true,
 	createdAt: true,
 	updatedAt: true,
@@ -99,6 +101,7 @@ export async function createTemplate(
 		bodyHtml: string;
 		bodyJson?: Record<string, unknown>;
 		category: TemplateCategory;
+		tiptapReference: string;
 	},
 ) {
 	return prisma.template.create({
@@ -109,6 +112,7 @@ export async function createTemplate(
 			bodyHtml: data.bodyHtml,
 			bodyJson: (data.bodyJson ?? {}) as Prisma.InputJsonValue,
 			category: data.category,
+			tiptapReference: data.tiptapReference,
 		},
 		select: TEMPLATE_DETAIL_SELECT,
 	});

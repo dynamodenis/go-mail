@@ -22,6 +22,7 @@ function toTemplate(row: Record<string, any>): Template {
 		bodyJson: (row.bodyJson ?? {}) as Record<string, NonNullable<unknown>>,
 		category: row.category as Template["category"],
 		thumbnailUrl: row.thumbnailUrl,
+		tiptapReference: row.tiptapReference ?? null,
 		timesUsed: row.timesUsed,
 		createdAt: row.createdAt.toISOString(),
 		updatedAt: row.updatedAt.toISOString(),
@@ -116,6 +117,7 @@ export async function createTemplate(
 		bodyHtml: sanitizeHtml(input.bodyHtml),
 		bodyJson: input.bodyJson,
 		category: input.category,
+		tiptapReference: input.tiptapReference,
 	});
 
 	if (input.mergeTags && input.mergeTags.length > 0) {
