@@ -6,6 +6,8 @@ import { getRecipientEmail, getRecipientName } from "../../types";
 export default function RecipientList() {
   const toRecipients = useEmailComposerStore((s) => s.toRecipients);
   const removeRecipient = useEmailComposerStore((s) => s.removeRecipient);
+  const activeRecipientEmail = useEmailComposerStore((s) => s.activeRecipientEmail);
+  const selectRecipientForPreview = useEmailComposerStore((s) => s.selectRecipientForPreview);
 
   if (toRecipients.length === 0) return null;
 
@@ -21,17 +23,26 @@ export default function RecipientList() {
           const email = getRecipientEmail(recipient);
           const name = getRecipientName(recipient);
           const isContact = recipient.type === "contact";
+          const isSelected = email === activeRecipientEmail;
 
           return (
-            <div
+            <button
+              type="button"
               key={email}
-              className="flex items-center gap-2 rounded-md bg-accent/50 px-2 py-1 group"
+              onClick={() => selectRecipientForPreview(email)}
+              className={`flex items-center gap-2 rounded-md px-2 py-1 group text-left transition-colors ${
+                isSelected
+                  ? "bg-primary/15 ring-1 ring-primary/30"
+                  : "bg-accent/50 hover:bg-accent/80"
+              }`}
             >
-              <div className="flex size-5 items-center justify-center rounded-full bg-primary/10 shrink-0">
-                <UserIcon className="size-3 text-primary" />
+              <div className={`flex size-5 items-center justify-center rounded-full shrink-0 ${
+                isSelected ? "bg-primary/20" : "bg-primary/10"
+              }`}>
+                <UserIcon className={`size-3 ${isSelected ? "text-primary" : "text-primary/70"}`} />
               </div>
               <div className="min-w-0 flex-1">
-                <span className="block truncate text-xs font-medium">
+                <span className={`block truncate text-xs ${isSelected ? "font-semibold text-foreground" : "font-medium"}`}>
                   {name}
                 </span>
                 {isContact && name !== email && (
@@ -49,11 +60,14 @@ export default function RecipientList() {
                 variant="ghost"
                 size="sm"
                 className="h-5 w-5 p-0 opacity-0 group-hover:opacity-100 transition-opacity shrink-0"
-                onClick={() => removeRecipient(email)}
+                onClick={(e) => {
+                  e.stopPropagation();
+                  removeRecipient(email);
+                }}
               >
                 <XIcon className="size-3" />
               </Button>
-            </div>
+            </button>
           );
         })}
       </div>

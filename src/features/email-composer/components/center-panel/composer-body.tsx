@@ -1,21 +1,25 @@
 import { useCallback, useMemo } from "react";
-import type { Editor } from "@tiptap/react";
+import type { Editor, JSONContent } from "@tiptap/react";
+import { PencilIcon, UserIcon } from "lucide-react";
+import { Button } from "@/components/ui/button";
 import { useEmailComposerStore } from "../../api/store";
-import { resolveTemplateHtml } from "@/features/email-templates/utils/resolve-merge-tags";
+import { composerRefs } from "../../api/store";
 import { NotionEditor, MergeTag } from "@/features/tiptap-editor";
 import { useCurrentUser } from "@/hooks/use-current-user";
-import type { MergeTagContext } from "../../types";
+import { getRecipientEmail, getRecipientName } from "../../types";
 
 const MERGE_TAG_EXTENSIONS = [MergeTag];
 
-interface ComposerBodyProps {
-  mergeContext: MergeTagContext | null;
-}
-
-export default function ComposerBody({ mergeContext }: ComposerBodyProps) {
-  const bodyHtml = useEmailComposerStore((s) => s.bodyHtml);
+export default function ComposerBody() {
   const setBodyHtml = useEmailComposerStore((s) => s.setBodyHtml);
   const selectedTemplate = useEmailComposerStore((s) => s.selectedTemplate);
+  const toRecipients = useEmailComposerStore((s) => s.toRecipients);
+  const activeRecipientEmail = useEmailComposerStore((s) => s.activeRecipientEmail);
+  const recipientRooms = useEmailComposerStore((s) => s.recipientRooms);
+  const selectRecipientForPreview = useEmailComposerStore((s) => s.selectRecipientForPreview);
+  const setEditorRef = useEmailComposerStore((s) => s.setEditorRef);
+  const recipientRoomInitialized = useEmailComposerStore((s) => s.recipientRoomInitialized);
+  const recipientContentChanged = useEmailComposerStore((s) => s.recipientContentChanged);
   const currentUser = useCurrentUser();
 
   const editorUser = {
@@ -25,102 +29,148 @@ export default function ComposerBody({ mergeContext }: ComposerBodyProps) {
     color: "#000",
   };
 
-  const editorRoom = selectedTemplate?.tiptapReference ?? "";
+  // Determine which room to show: recipient-specific or template
+  const templateRoom = selectedTemplate?.tiptapReference ?? "";
+  const isRecipientMode = activeRecipientEmail !== null;
+  const activeRecipientRoomId = activeRecipientEmail
+    ? (recipientRooms[activeRecipientEmail] ?? null)
+    : null;
+  const roomId = activeRecipientRoomId || templateRoom;
 
-  console.log("editorRoom", editorRoom);
-
-  const resolvedHtml = useMemo(() => {
-    if (!bodyHtml) return "";
-    if (!mergeContext) return bodyHtml;
-
-    return resolveTemplateHtml(bodyHtml, {
-      firstName: mergeContext.firstName ?? null,
-      lastName: mergeContext.lastName ?? null,
-      email: mergeContext.email,
-    });
-  }, [bodyHtml, mergeContext]);
-
-  const handleEditorReady = useCallback((editor: Editor) => {
-    const currentHtml = useEmailComposerStore.getState().bodyHtml;
-    if (currentHtml && editor.isEmpty) {
-      editor.commands.setContent(currentHtml);
+  // Get initial content for recipient room (resolved merge tags)
+  const recipientInitialContent: JSONContent | null = useMemo(() => {
+    if (
+      activeRecipientEmail &&
+      activeRecipientRoomId &&
+      !composerRefs.initializedRooms.has(activeRecipientRoomId)
+    ) {
+      return (composerRefs.pendingRecipientContent[activeRecipientEmail] as JSONContent) ?? null;
     }
-    editor.commands.focus("start");
-  }, []);
+    return null;
+  }, [activeRecipientEmail, activeRecipientRoomId]);
+
+  const activeRecipientName = useMemo(() => {
+    if (!activeRecipientEmail) return null;
+    const recipient = toRecipients.find(
+      (r) => getRecipientEmail(r) === activeRecipientEmail,
+    );
+    return recipient ? getRecipientName(recipient) : activeRecipientEmail;
+  }, [activeRecipientEmail, toRecipients]);
+
+  const handleEditorReady = useCallback(
+    (editor: Editor) => {
+      setEditorRef(editor);
+
+      // For recipient rooms: seed with resolved content if room is empty
+      if (activeRecipientRoomId && recipientInitialContent) {
+        const content = recipientInitialContent;
+        const currentRoom = activeRecipientRoomId;
+        setTimeout(() => {
+          if (editor.isEmpty) {
+            editor.commands.setContent(content);
+          }
+          recipientRoomInitialized(currentRoom);
+        }, 100);
+      } else if (!isRecipientMode) {
+        // Template mode: restore body if available
+        const currentHtml = useEmailComposerStore.getState().bodyHtml;
+        if (currentHtml && editor.isEmpty) {
+          editor.commands.setContent(currentHtml);
+        }
+      }
+
+      requestAnimationFrame(() => {
+        editor.commands.focus("start");
+      });
+    },
+    [activeRecipientRoomId, recipientInitialContent, isRecipientMode, setEditorRef, recipientRoomInitialized],
+  );
 
   const handleChange = useCallback(
     (html: string) => {
+      if (isRecipientMode) {
+        recipientContentChanged(html);
+        return;
+      }
       setBodyHtml(html);
     },
-    [setBodyHtml],
+    [isRecipientMode, setBodyHtml, recipientContentChanged],
   );
+
+  // Header bar showing which mode we're in
+  const modeBar = isRecipientMode ? (
+    <div className="flex items-center gap-2 border-b bg-primary/5 px-4 py-1.5">
+      <UserIcon className="size-3.5 text-primary" />
+      <span className="text-xs text-muted-foreground">
+        Editing for <span className="font-medium text-foreground">{activeRecipientName}</span>
+      </span>
+      <Button
+        variant="ghost"
+        size="sm"
+        className="ml-auto h-6 gap-1.5 text-[11px]"
+        onClick={() => selectRecipientForPreview(null)}
+      >
+        <PencilIcon className="size-3" />
+        Back to template
+      </Button>
+    </div>
+  ) : null;
 
   if (selectedTemplate) {
     return (
       <div className="flex flex-col h-full">
-        {/* Resolved preview */}
-        <div className="flex-1 p-4">
-          <div className="mb-2 flex items-center gap-2">
-            <span className="text-[10px] font-medium text-muted-foreground uppercase tracking-wider">
-              Preview
-            </span>
-            {mergeContext && (
-              <span className="text-[10px] text-muted-foreground">
-                (merge tags resolved for selected recipient)
-              </span>
-            )}
-          </div>
-          <div
-            className="prose prose-sm max-w-none rounded-md border bg-white p-4 dark:bg-accent/20"
-            dangerouslySetInnerHTML={{ __html: resolvedHtml }}
-          />
-        </div>
-
-        {/* Editable template body */}
-        <div className="border-t">
-          <details>
-            <summary className="px-4 py-2 text-[10px] text-muted-foreground cursor-pointer">
-              Edit template body
-            </summary>
-            <div className="composer-body-editor relative min-h-[200px]">
-              <div className="h-full overflow-y-auto px-4 pb-4">
-                <NotionEditor
-                  key={editorRoom}
-                  room={editorRoom}
-                  parentSelector=".composer-body-editor"
-                  user={editorUser}
-                  showTitle={false}
-                  additionalExtensions={MERGE_TAG_EXTENSIONS}
-                  onEditorReady={handleEditorReady}
-                  onChange={handleChange}
-                  paragraphPlaceholder="Edit template body..."
-                  tiptapCollabToken={currentUser?.tiptapCollabJwt ?? undefined}
-                  tiptapAiToken={currentUser?.tiptapAiJwt ?? undefined}
-                />
-              </div>
+        {modeBar}
+        <div className="border-t py-2 px-4">
+          <div className="composer-body-editor relative min-h-[200px]">
+            <div className="h-full overflow-y-auto px-4 pb-4">
+              <NotionEditor
+                key={roomId}
+                room={roomId}
+                parentSelector=".composer-body-editor"
+                user={editorUser}
+                showTitle={false}
+                additionalExtensions={MERGE_TAG_EXTENSIONS}
+                onEditorReady={handleEditorReady}
+                onChange={handleChange}
+                paragraphPlaceholder={
+                  isRecipientMode
+                    ? `Editing email for ${activeRecipientName}...`
+                    : "Edit template body..."
+                }
+                tiptapCollabToken={currentUser?.tiptapCollabJwt ?? undefined}
+                tiptapAiToken={currentUser?.tiptapAiJwt ?? undefined}
+              />
             </div>
-          </details>
+          </div>
         </div>
       </div>
     );
   }
 
-  // No template — free-form compose mode with NotionEditor
+  // No template — free-form compose mode
   return (
-    <div className="composer-body-editor relative h-full min-h-[300px]">
-      <div className="h-full overflow-y-auto px-4">
-        <NotionEditor
-          room=""
-          parentSelector=".composer-body-editor"
-          user={editorUser}
-          showTitle={false}
-          additionalExtensions={MERGE_TAG_EXTENSIONS}
-          onEditorReady={handleEditorReady}
-          onChange={handleChange}
-          paragraphPlaceholder="Write your email..."
-          tiptapCollabToken={currentUser?.tiptapCollabJwt ?? undefined}
-          tiptapAiToken={currentUser?.tiptapAiJwt ?? undefined}
-        />
+    <div className="flex flex-col h-full">
+      {modeBar}
+      <div className="composer-body-editor relative h-full min-h-[300px]">
+        <div className="h-full overflow-y-auto px-4">
+          <NotionEditor
+            key={roomId}
+            room={roomId}
+            parentSelector=".composer-body-editor"
+            user={editorUser}
+            showTitle={false}
+            additionalExtensions={MERGE_TAG_EXTENSIONS}
+            onEditorReady={handleEditorReady}
+            onChange={handleChange}
+            paragraphPlaceholder={
+              isRecipientMode
+                ? `Editing email for ${activeRecipientName}...`
+                : "Write your email..."
+            }
+            tiptapCollabToken={currentUser?.tiptapCollabJwt ?? undefined}
+            tiptapAiToken={currentUser?.tiptapAiJwt ?? undefined}
+          />
+        </div>
       </div>
     </div>
   );

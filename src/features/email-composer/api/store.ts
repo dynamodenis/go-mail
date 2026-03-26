@@ -1,6 +1,11 @@
 import { create } from "zustand";
+import type { Editor, JSONContent } from "@tiptap/react";
 import type { Contact } from "@/features/contacts/schemas/types";
 import type { Template } from "@/features/email-templates/types";
+import {
+  resolveTemplateHtml,
+  resolveTemplateTags,
+} from "@/features/email-templates/utils/resolve-merge-tags";
 import type { Recipient, ManualRecipient, ComposerMode } from "../types";
 import { getRecipientEmail } from "../types";
 
@@ -45,6 +50,10 @@ interface EmailComposerState {
   // Preview — which recipient's merge tags to show in live preview
   previewRecipientIndex: number;
 
+  // Per-recipient Tiptap rooms — each recipient gets their own collab doc
+  activeRecipientEmail: string | null;
+  recipientRooms: Record<string, string>;
+
   // Draft
   draftId: string | null;
 }
@@ -82,6 +91,12 @@ interface EmailComposerActions {
   setPreviewRecipientIndex: (idx: number) => void;
   setDraftId: (id: string | null) => void;
 
+  // Per-recipient room actions
+  selectRecipientForPreview: (email: string | null) => void;
+  setEditorRef: (editor: Editor) => void;
+  recipientRoomInitialized: (roomId: string) => void;
+  recipientContentChanged: (html: string) => void;
+
   getAllToEmails: () => string[];
   reset: () => void;
 }
@@ -92,11 +107,31 @@ export type EmailComposerStoreType = EmailComposerState & EmailComposerActions;
 export const composerRefs = {
   localFiles: [] as File[],
   openFilePicker: null as (() => void) | null,
+  editor: null as Editor | null,
+  templateContent: null as JSONContent | null,
+  templateHtml: null as string | null,
+  pendingRecipientContent: {} as Record<string, JSONContent>,
+  initializedRooms: new Set<string>(),
+  recipientBodyMap: {} as Record<string, string>,
 };
 
 function clearRefs() {
   composerRefs.localFiles = [];
   composerRefs.openFilePicker = null;
+  composerRefs.editor = null;
+  composerRefs.templateContent = null;
+  composerRefs.templateHtml = null;
+  composerRefs.pendingRecipientContent = {};
+  composerRefs.initializedRooms = new Set();
+  composerRefs.recipientBodyMap = {};
+}
+
+function clearRecipientRefs() {
+  composerRefs.pendingRecipientContent = {};
+  composerRefs.initializedRooms = new Set();
+  composerRefs.recipientBodyMap = {};
+  composerRefs.templateContent = null;
+  composerRefs.templateHtml = null;
 }
 
 const initialState: EmailComposerState = {
@@ -116,129 +151,266 @@ const initialState: EmailComposerState = {
   conversationMessage: "",
   fileVersion: 0,
   previewRecipientIndex: 0,
+  activeRecipientEmail: null,
+  recipientRooms: {},
   draftId: null,
 };
 
 export const useEmailComposerStore = create<EmailComposerStoreType>()(
-  (set, get) => ({
-    ...initialState,
+  (set, get) => {
+    // ── Private helpers ─────────────────────────────────────────────
 
-    setOpen: (open) => set({ open }),
-    setMode: (mode) => set({ mode }),
-
-    // Template — also populates subject & body from template
-    setSelectedTemplate: (template) => {
-      set({
-        selectedTemplate: template,
-        subject: template?.subject ?? get().subject,
-        bodyHtml: template?.bodyHtml ?? get().bodyHtml,
-        isTemplateModalOpen: false,
-      });
-    },
-    setTemplateModalOpen: (open) => set({ isTemplateModalOpen: open }),
-
-    // Content
-    setSubject: (subject) => set({ subject }),
-    setBodyHtml: (html) => set({ bodyHtml: html }),
-
-    // Recipients — deduplicate by email
-    addContactRecipient: (contact) => {
-      const exists = get().toRecipients.some(
-        (r) => getRecipientEmail(r) === contact.email,
-      );
-      if (!exists) {
-        set((s) => ({
-          toRecipients: [...s.toRecipients, { type: "contact", contact }],
-        }));
+    function captureTemplateContent() {
+      if (composerRefs.editor) {
+        composerRefs.templateContent = composerRefs.editor.getJSON();
+        composerRefs.templateHtml = composerRefs.editor.getHTML();
       }
-    },
+    }
 
-    addManualRecipient: (email, name) => {
-      const exists = get().toRecipients.some(
-        (r) => getRecipientEmail(r) === email,
-      );
-      if (!exists) {
-        set((s) => ({
-          toRecipients: [...s.toRecipients, { type: "manual", email, name }],
-        }));
+    function getContactFields(recipient: Recipient) {
+      if (recipient.type === "contact") {
+        return {
+          firstName: recipient.contact.firstName,
+          lastName: recipient.contact.lastName,
+          email: recipient.contact.email,
+        };
       }
-    },
+      return { firstName: null, lastName: null, email: recipient.email };
+    }
 
-    removeRecipient: (email) => {
-      set((s) => ({
-        toRecipients: s.toRecipients.filter(
-          (r) => getRecipientEmail(r) !== email,
-        ),
+    function createRecipientRoom(recipient: Recipient) {
+      const { selectedTemplate } = get();
+      const tiptapRef = selectedTemplate?.tiptapReference;
+      const hasTemplate = !!tiptapRef;
+      const hasContent =
+        composerRefs.templateContent !== null &&
+        composerRefs.editor !== null &&
+        !composerRefs.editor.isEmpty;
+      if (!hasTemplate && !hasContent) return;
+
+      const templateJSON = composerRefs.templateContent;
+      if (!templateJSON) return;
+
+      const email = getRecipientEmail(recipient);
+      const contactFields = getContactFields(recipient);
+      const resolvedContent = resolveTemplateTags(
+        templateJSON as Record<string, unknown>,
+        contactFields,
+      );
+      const roomId = `email-recipient-${email}-${tiptapRef ?? Date.now()}`;
+
+      set((state) => ({
+        recipientRooms: { ...state.recipientRooms, [email]: roomId },
       }));
-    },
+      composerRefs.pendingRecipientContent[email] = resolvedContent as JSONContent;
 
-    bulkAddContactRecipients: (contacts) => {
-      const existing = new Set(get().toRecipients.map(getRecipientEmail));
-      const newRecipients: Recipient[] = contacts
-        .filter((c) => !existing.has(c.email))
-        .map((contact) => ({ type: "contact", contact }));
-      if (newRecipients.length > 0) {
+      if (composerRefs.templateHtml) {
+        composerRefs.recipientBodyMap[email] = resolveTemplateHtml(
+          composerRefs.templateHtml,
+          contactFields,
+        );
+      }
+    }
+
+    // ── Store definition ────────────────────────────────────────────
+
+    return {
+      ...initialState,
+
+      setOpen: (open) => set({ open }),
+      setMode: (mode) => set({ mode }),
+
+      // Template — also populates subject & body from template
+      setSelectedTemplate: (template) => {
+        set({
+          selectedTemplate: template,
+          subject: template?.subject ?? get().subject,
+          bodyHtml: template?.bodyHtml ?? get().bodyHtml,
+          isTemplateModalOpen: false,
+          recipientRooms: {},
+          activeRecipientEmail: null,
+        });
+        clearRecipientRefs();
+      },
+      setTemplateModalOpen: (open) => set({ isTemplateModalOpen: open }),
+
+      // Content
+      setSubject: (subject) => set({ subject }),
+      setBodyHtml: (html) => set({ bodyHtml: html }),
+
+      // Recipients — deduplicate by email
+      addContactRecipient: (contact) => {
+        const exists = get().toRecipients.some(
+          (r) => getRecipientEmail(r) === contact.email,
+        );
+        if (!exists) {
+          const newRecipient: Recipient = { type: "contact", contact };
+          set((s) => ({
+            toRecipients: [...s.toRecipients, newRecipient],
+          }));
+
+          // Create a recipient room if template content exists
+          if (get().toRecipients.length === 1) {
+            captureTemplateContent();
+          }
+          createRecipientRoom(newRecipient);
+        }
+      },
+
+      addManualRecipient: (email, name) => {
+        const exists = get().toRecipients.some(
+          (r) => getRecipientEmail(r) === email,
+        );
+        if (!exists) {
+          const newRecipient: Recipient = { type: "manual", email, name };
+          set((s) => ({
+            toRecipients: [...s.toRecipients, newRecipient],
+          }));
+
+          if (get().toRecipients.length === 1) {
+            captureTemplateContent();
+          }
+          createRecipientRoom(newRecipient);
+        }
+      },
+
+      removeRecipient: (email) => {
+        const { activeRecipientEmail } = get();
+        set((s) => {
+          const { [email]: _r, ...restRooms } = s.recipientRooms;
+          return {
+            toRecipients: s.toRecipients.filter(
+              (r) => getRecipientEmail(r) !== email,
+            ),
+            recipientRooms: restRooms,
+            activeRecipientEmail:
+              activeRecipientEmail === email ? null : activeRecipientEmail,
+          };
+        });
+        delete composerRefs.pendingRecipientContent[email];
+        delete composerRefs.recipientBodyMap[email];
+      },
+
+      bulkAddContactRecipients: (contacts) => {
+        const existing = new Set(get().toRecipients.map(getRecipientEmail));
+        const newRecipients: Recipient[] = contacts
+          .filter((c) => !existing.has(c.email))
+          .map((contact) => ({ type: "contact", contact }));
+        if (newRecipients.length === 0) return;
+
+        const isFirstAdd = get().toRecipients.length === 0;
         set((s) => ({
           toRecipients: [...s.toRecipients, ...newRecipients],
         }));
-      }
-    },
 
-    setRecipientSearch: (search) => set({ recipientSearch: search }),
-    setShowCcBcc: (show) => set({ showCcBcc: show }),
+        if (isFirstAdd) {
+          captureTemplateContent();
+        }
+        for (const recipient of newRecipients) {
+          createRecipientRoom(recipient);
+        }
+      },
 
-    // CC / BCC
-    addCcRecipient: (email, name) => {
-      if (!get().ccRecipients.some((r) => r.email === email)) {
-        set((s) => ({ ccRecipients: [...s.ccRecipients, { email, name }] }));
-      }
-    },
-    removeCcRecipient: (email) =>
-      set((s) => ({
-        ccRecipients: s.ccRecipients.filter((r) => r.email !== email),
-      })),
-    addBccRecipient: (email, name) => {
-      if (!get().bccRecipients.some((r) => r.email === email)) {
-        set((s) => ({ bccRecipients: [...s.bccRecipients, { email, name }] }));
-      }
-    },
-    removeBccRecipient: (email) =>
-      set((s) => ({
-        bccRecipients: s.bccRecipients.filter((r) => r.email !== email),
-      })),
+      setRecipientSearch: (search) => set({ recipientSearch: search }),
+      setShowCcBcc: (show) => set({ showCcBcc: show }),
 
-    // Panels
-    toggleLeftSidebar: () =>
-      set((s) => ({ isLeftSidebarOpen: !s.isLeftSidebarOpen })),
-    toggleRightSidebar: () =>
-      set((s) => ({ isRightSidebarOpen: !s.isRightSidebarOpen })),
+      // CC / BCC
+      addCcRecipient: (email, name) => {
+        if (!get().ccRecipients.some((r) => r.email === email)) {
+          set((s) => ({ ccRecipients: [...s.ccRecipients, { email, name }] }));
+        }
+      },
+      removeCcRecipient: (email) =>
+        set((s) => ({
+          ccRecipients: s.ccRecipients.filter((r) => r.email !== email),
+        })),
+      addBccRecipient: (email, name) => {
+        if (!get().bccRecipients.some((r) => r.email === email)) {
+          set((s) => ({ bccRecipients: [...s.bccRecipients, { email, name }] }));
+        }
+      },
+      removeBccRecipient: (email) =>
+        set((s) => ({
+          bccRecipients: s.bccRecipients.filter((r) => r.email !== email),
+        })),
 
-    // Collaboration
-    setConversationMessage: (msg) => set({ conversationMessage: msg }),
+      // Panels
+      toggleLeftSidebar: () =>
+        set((s) => ({ isLeftSidebarOpen: !s.isLeftSidebarOpen })),
+      toggleRightSidebar: () =>
+        set((s) => ({ isRightSidebarOpen: !s.isRightSidebarOpen })),
 
-    // File management (actual File objects in composerRefs)
-    addFiles: (files) => {
-      composerRefs.localFiles = [...composerRefs.localFiles, ...files];
-      set((s) => ({ fileVersion: s.fileVersion + 1 }));
-    },
-    removeFile: (index) => {
-      composerRefs.localFiles = composerRefs.localFiles.filter(
-        (_, i) => i !== index,
-      );
-      set((s) => ({ fileVersion: s.fileVersion + 1 }));
-    },
+      // Collaboration
+      setConversationMessage: (msg) => set({ conversationMessage: msg }),
 
-    // Preview
-    setPreviewRecipientIndex: (idx) => set({ previewRecipientIndex: idx }),
-    setDraftId: (id) => set({ draftId: id }),
+      // File management (actual File objects in composerRefs)
+      addFiles: (files) => {
+        composerRefs.localFiles = [...composerRefs.localFiles, ...files];
+        set((s) => ({ fileVersion: s.fileVersion + 1 }));
+      },
+      removeFile: (index) => {
+        composerRefs.localFiles = composerRefs.localFiles.filter(
+          (_, i) => i !== index,
+        );
+        set((s) => ({ fileVersion: s.fileVersion + 1 }));
+      },
 
-    // Helpers
-    getAllToEmails: () => get().toRecipients.map(getRecipientEmail),
+      // Preview
+      setPreviewRecipientIndex: (idx) => set({ previewRecipientIndex: idx }),
+      setDraftId: (id) => set({ draftId: id }),
 
-    // Reset
-    reset: () => {
-      set(initialState);
-      clearRefs();
-    },
-  }),
+      // Per-recipient room actions
+      selectRecipientForPreview: (email) => {
+        const { activeRecipientEmail, recipientRooms, toRecipients } = get();
+        if (email === activeRecipientEmail) return;
+
+        // Capture outgoing recipient's body before switching
+        if (activeRecipientEmail !== null && composerRefs.editor) {
+          composerRefs.recipientBodyMap[activeRecipientEmail] =
+            composerRefs.editor.getHTML();
+        }
+
+        // Switching from template mode to recipient mode — capture template
+        if (activeRecipientEmail === null && email !== null) {
+          captureTemplateContent();
+        }
+
+        // Create room if recipient doesn't have one yet
+        if (email !== null && !recipientRooms[email]) {
+          const recipient = toRecipients.find(
+            (r) => getRecipientEmail(r) === email,
+          );
+          if (recipient) {
+            createRecipientRoom(recipient);
+          }
+        }
+
+        set({ activeRecipientEmail: email });
+      },
+
+      setEditorRef: (editor) => {
+        composerRefs.editor = editor;
+      },
+
+      recipientRoomInitialized: (roomId) => {
+        composerRefs.initializedRooms.add(roomId);
+      },
+
+      recipientContentChanged: (html) => {
+        const { activeRecipientEmail } = get();
+        if (activeRecipientEmail !== null) {
+          composerRefs.recipientBodyMap[activeRecipientEmail] = html;
+        }
+      },
+
+      // Helpers
+      getAllToEmails: () => get().toRecipients.map(getRecipientEmail),
+
+      // Reset
+      reset: () => {
+        set(initialState);
+        clearRefs();
+      },
+    };
+  },
 );
