@@ -6,7 +6,238 @@ datasource db {
   provider = "postgresql"
 }
 
-// ─── Enums ───────────────────────────────────────────────────────────────────
+model User {
+  id                  String               @id
+  email               String               @unique
+  fullName            String?
+  avatarUrl           String?
+  companyName         String?
+  role                UserRole             @default(OWNER)
+  plan                Plan                 @default(FREE)
+  onboardingCompleted Boolean              @default(false)
+  tiptapCollabJwt     String?
+  tiptapAiJwt         String?
+  timezone            String               @default("Africa/Nairobi")
+  dailySendLimit      Int                  @default(1000)
+  lastLoginAt         DateTime?
+  createdAt           DateTime             @default(now())
+  updatedAt           DateTime             @updatedAt
+  auditLogs           AuditLog[]
+  campaigns           Campaign[]
+  collections         Collection[]
+  contacts            Contact[]
+  templates           Template[]
+  templateAttachments TemplateAttachment[]
+  templateMergeTags   TemplateMergeTag[]
+  settings            UserSettings?
+
+  @@index([email])
+  @@index([plan])
+}
+
+model Contact {
+  id            String              @id @default(uuid())
+  userId        String
+  email         String
+  firstName     String?
+  lastName      String?
+  status        ContactStatus       @default(ACTIVE)
+  metadata      Json                @default("{}")
+  createdAt     DateTime            @default(now())
+  updatedAt     DateTime            @updatedAt
+  company       String?
+  lastEngagedAt DateTime?
+  phone         String?
+  source        ContactSource       @default(MANUAL)
+  tags          String[]
+  campaignSends CampaignSend[]
+  collections   CollectionContact[]
+  user          User                @relation(fields: [userId], references: [id], onDelete: Cascade)
+
+  @@unique([userId, email])
+  @@unique([userId, phone])
+  @@index([userId])
+  @@index([status])
+  @@index([source])
+  @@index([createdAt])
+  @@index([lastEngagedAt])
+}
+
+model Collection {
+  id          String               @id @default(uuid())
+  userId      String
+  name        String
+  description String               @default("")
+  type        CollectionType       @default(MANUAL)
+  rules       Json?
+  createdAt   DateTime             @default(now())
+  color       String               @default("#3B82F6")
+  updatedAt   DateTime             @updatedAt
+  campaigns   CampaignCollection[]
+  user        User                 @relation(fields: [userId], references: [id], onDelete: Cascade)
+  contacts    CollectionContact[]
+
+  @@index([userId])
+  @@index([createdAt])
+}
+
+model CollectionContact {
+  collectionId String
+  contactId    String
+  collection   Collection @relation(fields: [collectionId], references: [id], onDelete: Cascade)
+  contact      Contact    @relation(fields: [contactId], references: [id], onDelete: Cascade)
+
+  @@id([collectionId, contactId])
+  @@index([contactId])
+  @@index([collectionId])
+}
+
+model Template {
+  id              String               @id @default(uuid())
+  userId          String
+  name            String
+  subject         String
+  bodyHtml        String
+  bodyJson        Json                 @default("{}")
+  category        TemplateCategory     @default(PROMOTIONAL)
+  thumbnailUrl    String?
+  timesUsed       Int                  @default(0)
+  createdAt       DateTime             @default(now())
+  updatedAt       DateTime             @updatedAt
+  tiptapReference String?
+  campaigns       Campaign[]
+  user            User                 @relation(fields: [userId], references: [id], onDelete: Cascade)
+  attachments     TemplateAttachment[]
+  mergeTags       TemplateMergeTag[]
+
+  @@index([userId])
+  @@index([category])
+  @@index([createdAt])
+}
+
+model TemplateAttachment {
+  id         String   @id @default(uuid())
+  templateId String
+  userId     String
+  fileName   String
+  fileUrl    String
+  fileSize   Int
+  mimeType   String
+  createdAt  DateTime @default(now())
+  template   Template @relation(fields: [templateId], references: [id], onDelete: Cascade)
+  user       User     @relation(fields: [userId], references: [id], onDelete: Cascade)
+
+  @@index([templateId])
+  @@index([userId])
+}
+
+model TemplateMergeTag {
+  id         String   @id @default(uuid())
+  templateId String
+  userId     String
+  label      String
+  value      String
+  createdAt  DateTime @default(now())
+  template   Template @relation(fields: [templateId], references: [id], onDelete: Cascade)
+  user       User     @relation(fields: [userId], references: [id], onDelete: Cascade)
+
+  @@unique([templateId, value])
+  @@index([templateId])
+  @@index([userId])
+}
+
+model Campaign {
+  id          String               @id @default(uuid())
+  userId      String
+  name        String
+  templateId  String
+  subject     String
+  previewText String               @default("")
+  status      CampaignStatus       @default(DRAFT)
+  scheduledAt DateTime?
+  sentAt      DateTime?
+  createdAt   DateTime             @default(now())
+  template    Template             @relation(fields: [templateId], references: [id])
+  user        User                 @relation(fields: [userId], references: [id], onDelete: Cascade)
+  collections CampaignCollection[]
+  links       CampaignLink[]
+  sends       CampaignSend[]
+
+  @@index([userId])
+  @@index([status])
+  @@index([templateId])
+  @@index([createdAt])
+}
+
+model CampaignCollection {
+  campaignId   String
+  collectionId String
+  campaign     Campaign   @relation(fields: [campaignId], references: [id], onDelete: Cascade)
+  collection   Collection @relation(fields: [collectionId], references: [id], onDelete: Cascade)
+
+  @@id([campaignId, collectionId])
+  @@index([collectionId])
+  @@index([campaignId])
+}
+
+model CampaignSend {
+  id             String     @id @default(uuid())
+  campaignId     String
+  contactId      String
+  status         SendStatus @default(QUEUED)
+  sentAt         DateTime?
+  openedAt       DateTime?
+  clickedAt      DateTime?
+  bouncedAt      DateTime?
+  unsubscribedAt DateTime?
+  campaign       Campaign   @relation(fields: [campaignId], references: [id], onDelete: Cascade)
+  contact        Contact    @relation(fields: [contactId], references: [id])
+
+  @@index([campaignId])
+  @@index([contactId])
+  @@index([status])
+}
+
+model CampaignLink {
+  id         String   @id @default(uuid())
+  campaignId String
+  url        String
+  clickCount Int      @default(0)
+  campaign   Campaign @relation(fields: [campaignId], references: [id], onDelete: Cascade)
+
+  @@index([campaignId])
+}
+
+model UserSettings {
+  id              String          @id @default(uuid())
+  userId          String          @unique
+  fromName        String          @default("")
+  replyTo         String          @default("")
+  sendingProvider SendingProvider @default(NONE)
+  apiKeyEncrypted String?
+  dailyLimit      Int             @default(10000)
+  nylasGrantId    String?
+  createdAt       DateTime        @default(now())
+  updatedAt       DateTime        @updatedAt
+  user            User            @relation(fields: [userId], references: [id], onDelete: Cascade)
+
+  @@index([userId])
+}
+
+model AuditLog {
+  id         String   @id @default(uuid())
+  userId     String
+  action     String
+  entityType String
+  entityId   String
+  metadata   Json     @default("{}")
+  createdAt  DateTime @default(now())
+  user       User     @relation(fields: [userId], references: [id], onDelete: Cascade)
+
+  @@index([userId])
+  @@index([entityType, entityId])
+  @@index([createdAt])
+}
 
 enum ContactStatus {
   ACTIVE
@@ -55,11 +286,11 @@ enum SendingProvider {
 }
 
 enum ContactSource {
-  MANUAL      // added one by one
-  CSV_IMPORT  // bulk CSV upload
-  API         // added via API
-  FORM        // signup form / landing page
-  INTEGRATION // synced from another tool
+  MANUAL
+  CSV_IMPORT
+  API
+  FORM
+  INTEGRATION
 }
 
 enum UserRole {
@@ -74,255 +305,4 @@ enum Plan {
   STARTER
   GROWTH
   PRO
-}
-
-// ─── Models ──────────────────────────────────────────────────────────────────
-model User {
-  id            String    @id                  // Same UUID as Supabase auth.users.id
-  email         String    @unique
-  fullName      String?
-  avatarUrl     String?
-  
-  // Your custom fields that Supabase doesn't have
-  companyName   String?
-  role          UserRole  @default(OWNER)
-  plan          Plan      @default(FREE)
-  onboardingCompleted Boolean @default(false)
-  timezone      String    @default("Africa/Nairobi")
-  dailySendLimit Int      @default(1000)
-  
-  // Timestamps
-  lastLoginAt   DateTime?
-  createdAt     DateTime  @default(now())
-  updatedAt     DateTime  @updatedAt
-
-  // Relations — everything ties back to User
-  contacts             Contact[]
-  collections          Collection[]
-  templates            Template[]
-  templateAttachments  TemplateAttachment[]
-  templateMergeTags    TemplateMergeTag[]
-  campaigns            Campaign[]
-  settings             UserSettings?
-  auditLogs            AuditLog[]
-  // teamMembers       TeamMember[]
-
-  @@index([email])
-  @@index([plan])
-}
-
-model Contact {
-  id          String        @id @default(uuid())
-  userId      String
-  email       String
-  phone       String?         // SMS sending needs this as a real column
-  firstName   String?
-  lastName    String?
-  company     String?         // very common in B2B, used in merge tags
-  status      ContactStatus   @default(ACTIVE)
-  source      ContactSource   @default(MANUAL)
-  tags        String[]
-  metadata    Json            @default("{}")     // truly custom stuff
-  lastEngagedAt DateTime?     // last open/click, useful for re-engagement
-  createdAt   DateTime        @default(now())
-  updatedAt   DateTime        @updatedAt
-
-  user          User              @relation(fields: [userId], references: [id], onDelete: Cascade)
-  collections   CollectionContact[]
-  campaignSends CampaignSend[]
-
-  @@unique([userId, email])
-  @@unique([userId, phone])   // prevent duplicate phone numbers too
-  @@index([userId])
-  @@index([status])
-  @@index([source])
-  @@index([createdAt])
-  @@index([lastEngagedAt])    // for "inactive contacts" queries
-}
-
-model Collection {
-  id          String         @id @default(uuid())
-  userId      String
-  name        String
-  description String         @default("")
-  color       String         @default("#3B82F6")
-  type        CollectionType @default(MANUAL)
-  rules       Json?
-  createdAt   DateTime       @default(now())
-  updatedAt   DateTime       @updatedAt
-
-  user      User                 @relation(fields: [userId], references: [id], onDelete: Cascade)
-  contacts  CollectionContact[]
-  campaigns CampaignCollection[]
-
-  @@index([userId])
-  @@index([createdAt])
-}
-
-model CollectionContact {
-  collectionId String
-  contactId    String
-
-  collection Collection @relation(fields: [collectionId], references: [id], onDelete: Cascade)
-  contact    Contact    @relation(fields: [contactId], references: [id], onDelete: Cascade)
-
-  @@id([collectionId, contactId])
-  @@index([contactId])
-  @@index([collectionId])
-}
-
-model Template {
-  id               String           @id @default(uuid())
-  userId           String
-  name             String
-  subject          String
-  bodyHtml         String
-  bodyJson         Json             @default("{}")
-  category         TemplateCategory @default(PROMOTIONAL)
-  thumbnailUrl     String?
-  tiptapReference  String?
-  timesUsed        Int              @default(0)
-  createdAt        DateTime         @default(now())
-  updatedAt        DateTime         @updatedAt
-
-  user        User                 @relation(fields: [userId], references: [id], onDelete: Cascade)
-  campaigns   Campaign[]
-  attachments TemplateAttachment[]
-  mergeTags   TemplateMergeTag[]
-
-  @@index([userId])
-  @@index([category])
-  @@index([createdAt])
-}
-
-model TemplateAttachment {
-  id         String   @id @default(uuid())
-  templateId String
-  userId     String
-  fileName   String
-  fileUrl    String
-  fileSize   Int
-  mimeType   String
-  createdAt  DateTime @default(now())
-
-  template Template @relation(fields: [templateId], references: [id], onDelete: Cascade)
-  user     User     @relation(fields: [userId], references: [id], onDelete: Cascade)
-
-  @@index([templateId])
-  @@index([userId])
-}
-
-model TemplateMergeTag {
-  id         String   @id @default(uuid())
-  templateId String
-  userId     String
-  label      String
-  value      String
-  createdAt  DateTime @default(now())
-
-  template Template @relation(fields: [templateId], references: [id], onDelete: Cascade)
-  user     User     @relation(fields: [userId], references: [id], onDelete: Cascade)
-
-  @@unique([templateId, value])
-  @@index([templateId])
-  @@index([userId])
-}
-
-model Campaign {
-  id          String         @id @default(uuid())
-  userId      String
-  name        String
-  templateId  String
-  subject     String
-  previewText String         @default("")
-  status      CampaignStatus @default(DRAFT)
-  scheduledAt DateTime?
-  sentAt      DateTime?
-  createdAt   DateTime       @default(now())
-
-  user        User                 @relation(fields: [userId], references: [id], onDelete: Cascade)
-  template    Template             @relation(fields: [templateId], references: [id])
-  collections CampaignCollection[]
-  sends       CampaignSend[]
-  links       CampaignLink[]
-
-  @@index([userId])
-  @@index([status])
-  @@index([templateId])
-  @@index([createdAt])
-}
-
-model CampaignCollection {
-  campaignId   String
-  collectionId String
-
-  campaign   Campaign   @relation(fields: [campaignId], references: [id], onDelete: Cascade)
-  collection Collection @relation(fields: [collectionId], references: [id], onDelete: Cascade)
-
-  @@id([campaignId, collectionId])
-  @@index([collectionId])
-  @@index([campaignId])
-}
-
-model CampaignSend {
-  id             String     @id @default(uuid())
-  campaignId     String
-  contactId      String
-  status         SendStatus @default(QUEUED)
-  sentAt         DateTime?
-  openedAt       DateTime?
-  clickedAt      DateTime?
-  bouncedAt      DateTime?
-  unsubscribedAt DateTime?
-
-  campaign Campaign @relation(fields: [campaignId], references: [id], onDelete: Cascade)
-  contact  Contact  @relation(fields: [contactId], references: [id])
-
-  @@index([campaignId])
-  @@index([contactId])
-  @@index([status])
-}
-
-model CampaignLink {
-  id         String @id @default(uuid())
-  campaignId String
-  url        String
-  clickCount Int    @default(0)
-
-  campaign Campaign @relation(fields: [campaignId], references: [id], onDelete: Cascade)
-
-  @@index([campaignId])
-}
-
-model UserSettings {
-  id              String          @id @default(uuid())
-  userId          String          @unique
-  fromName        String          @default("")
-  replyTo         String          @default("")
-  sendingProvider SendingProvider @default(NONE)
-  apiKeyEncrypted String?
-  dailyLimit      Int             @default(10000)
-  nylasGrantId    String?
-  createdAt       DateTime        @default(now())
-  updatedAt       DateTime        @updatedAt
-
-  user User @relation(fields: [userId], references: [id], onDelete: Cascade)
-
-  @@index([userId])
-}
-
-model AuditLog {
-  id         String   @id @default(uuid())
-  userId     String
-  action     String
-  entityType String
-  entityId   String
-  metadata   Json     @default("{}")
-  createdAt  DateTime @default(now())
-
-  user User @relation(fields: [userId], references: [id], onDelete: Cascade)
-
-  @@index([userId])
-  @@index([entityType, entityId])
-  @@index([createdAt])
 }

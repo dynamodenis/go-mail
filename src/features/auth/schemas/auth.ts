@@ -33,4 +33,6 @@ export type User = {
 	plan: string;
 	role: string;
 	onboardingCompleted: boolean;
+	tiptapCollabJwt: string | null;
+	tiptapAiJwt: string | null;
 };

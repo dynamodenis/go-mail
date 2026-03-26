@@ -1,13 +1,7 @@
 import { useCallback } from "react";
 import type { Editor } from "@tiptap/react";
 import { NotionEditor, MergeTag } from "@/features/tiptap-editor";
-
-const LOCAL_USER = {
-	id: "local",
-	name: "",
-	avatar: "",
-	color: "#000",
-};
+import { useCurrentUser } from "@/hooks/use-current-user";
 
 const MERGE_TAG_EXTENSIONS = [MergeTag];
 
@@ -54,6 +48,15 @@ export function TemplateBodyEditor({
 	showComments = false,
 	room = "",
 }: TemplateBodyEditorProps) {
+	const currentUser = useCurrentUser();
+
+	const editorUser = {
+		id: currentUser?.id ?? "local",
+		name: currentUser?.fullName ?? "",
+		avatar: currentUser?.avatarUrl ?? "",
+		color: "#000",
+	};
+
 	const handleEditorReady = useCallback(
 		(editor: Editor) => {
 			onEditorReady(editor);
@@ -74,13 +77,15 @@ export function TemplateBodyEditor({
 						key={room}
 						room={room}
 						parentSelector=".template-body-editor"
-						user={LOCAL_USER}
+						user={editorUser}
 						showTitle={false}
 						showComments={showComments}
 						additionalExtensions={MERGE_TAG_EXTENSIONS}
 						onEditorReady={handleEditorReady}
 						onChange={onChange}
 						paragraphPlaceholder="Start writing your email template here..."
+						tiptapCollabToken={currentUser?.tiptapCollabJwt ?? undefined}
+						tiptapAiToken={currentUser?.tiptapAiJwt ?? undefined}
 					/>
 				</div>
 			</div>

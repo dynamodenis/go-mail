@@ -3,14 +3,8 @@ import type { Editor } from "@tiptap/react";
 import { useEmailComposerStore } from "../../api/store";
 import { resolveTemplateHtml } from "@/features/email-templates/utils/resolve-merge-tags";
 import { NotionEditor, MergeTag } from "@/features/tiptap-editor";
+import { useCurrentUser } from "@/hooks/use-current-user";
 import type { MergeTagContext } from "../../types";
-
-const LOCAL_USER = {
-  id: "local",
-  name: "",
-  avatar: "",
-  color: "#000",
-};
 
 const MERGE_TAG_EXTENSIONS = [MergeTag];
 
@@ -22,8 +16,18 @@ export default function ComposerBody({ mergeContext }: ComposerBodyProps) {
   const bodyHtml = useEmailComposerStore((s) => s.bodyHtml);
   const setBodyHtml = useEmailComposerStore((s) => s.setBodyHtml);
   const selectedTemplate = useEmailComposerStore((s) => s.selectedTemplate);
+  const currentUser = useCurrentUser();
+
+  const editorUser = {
+    id: currentUser?.id ?? "local",
+    name: currentUser?.fullName ?? "",
+    avatar: currentUser?.avatarUrl ?? "",
+    color: "#000",
+  };
 
   const editorRoom = selectedTemplate?.tiptapReference ?? "";
+
+  console.log("editorRoom", editorRoom);
 
   const resolvedHtml = useMemo(() => {
     if (!bodyHtml) return "";
@@ -84,12 +88,14 @@ export default function ComposerBody({ mergeContext }: ComposerBodyProps) {
                   key={editorRoom}
                   room={editorRoom}
                   parentSelector=".composer-body-editor"
-                  user={LOCAL_USER}
+                  user={editorUser}
                   showTitle={false}
                   additionalExtensions={MERGE_TAG_EXTENSIONS}
                   onEditorReady={handleEditorReady}
                   onChange={handleChange}
                   paragraphPlaceholder="Edit template body..."
+                  tiptapCollabToken={currentUser?.tiptapCollabJwt ?? undefined}
+                  tiptapAiToken={currentUser?.tiptapAiJwt ?? undefined}
                 />
               </div>
             </div>
@@ -106,12 +112,14 @@ export default function ComposerBody({ mergeContext }: ComposerBodyProps) {
         <NotionEditor
           room=""
           parentSelector=".composer-body-editor"
-          user={LOCAL_USER}
+          user={editorUser}
           showTitle={false}
           additionalExtensions={MERGE_TAG_EXTENSIONS}
           onEditorReady={handleEditorReady}
           onChange={handleChange}
           paragraphPlaceholder="Write your email..."
+          tiptapCollabToken={currentUser?.tiptapCollabJwt ?? undefined}
+          tiptapAiToken={currentUser?.tiptapAiJwt ?? undefined}
         />
       </div>
     </div>

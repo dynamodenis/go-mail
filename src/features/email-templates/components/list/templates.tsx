@@ -32,8 +32,8 @@ function Templates() {
 	};
 
 	const { data, isLoading, isError, refetch } = useTemplates(filters);
-	const deleteMutation = useDeleteTemplate();
 
+	const deleteMutation = useDeleteTemplate();
 	const handleDelete = () => {
 		if (!deleteConfirmId) return;
 		deleteMutation.mutate(deleteConfirmId, {

@@ -14,6 +14,7 @@ import { MergeTagPanel } from "./merge-tag-panel";
 import { TemplateBodyEditor } from "./template-body-editor";
 import { TemplateAttachmentPanel } from "./template-attachment-panel";
 import Loader from "@/components/global/loader";
+import { useCurrentUser } from "@/hooks/use-current-user";
 
 export interface TemplateEditorFormHandle {
 	save: () => void;
@@ -47,6 +48,8 @@ export const TemplateEditorForm = forwardRef<TemplateEditorFormHandle, TemplateE
 		const contentSetRef = useRef(false);
 		const editorRef = useRef<Editor | null>(null);
 		const removeAttachmentMutation = useRemoveAttachment();
+		const currentUser = useCurrentUser();
+
 
 		// Use existing tiptapReference for edit mode, or client-generated one for create
 		const tiptapReference = initialData?.tiptapReference ?? generatedRoom;
@@ -65,7 +68,16 @@ export const TemplateEditorForm = forwardRef<TemplateEditorFormHandle, TemplateE
 			[initialData?.bodyHtml],
 		);
 
-		// Generate tiptapReference on first content change for new templates
+		// Generate tiptapReference once on first content change for new templates
+		const generatedRoomRef = useRef("");
+		const getOrCreateRoom = useCallback(() => {
+			if (!generatedRoomRef.current) {
+				generatedRoomRef.current = `email-template-${currentUser?.id}-${Date.now()}`;
+				setGeneratedRoom(generatedRoomRef.current);
+			}
+			return generatedRoomRef.current;
+		}, [currentUser?.id]);
+
 		const handleEditorChange = useCallback(
 			(html: string) => {
 				if (
@@ -74,10 +86,10 @@ export const TemplateEditorForm = forwardRef<TemplateEditorFormHandle, TemplateE
 					editorRef.current &&
 					!editorRef.current.isEmpty
 				) {
-					setGeneratedRoom(`email-template-${Date.now()}`);
+					getOrCreateRoom();
 				}
 			},
-			[mode, generatedRoom],
+			[mode, generatedRoom, getOrCreateRoom],
 		);
 
 		const handleSave = useCallback(() => {
@@ -94,9 +106,9 @@ export const TemplateEditorForm = forwardRef<TemplateEditorFormHandle, TemplateE
 				bodyHtml,
 				bodyJson,
 				category,
-				tiptapReference: tiptapReference || `email-template-${Date.now()}`,
+				tiptapReference: tiptapReference || getOrCreateRoom(),
 			});
-		}, [editor, name, subject, category, tiptapReference, onSave]);
+		}, [editor, name, subject, category, tiptapReference, onSave, getOrCreateRoom]);
 
 		useImperativeHandle(ref, () => ({
 			save: handleSave,

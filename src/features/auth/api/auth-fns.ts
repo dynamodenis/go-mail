@@ -2,6 +2,10 @@ import { createServerFn } from "@tanstack/react-start";
 import { getSupabaseServerClient } from "@/integrations/supabase/server";
 import type { User } from "../schemas/auth";
 import * as repository from "./repository";
+import {
+	generateTiptapCollabJwt,
+	generateTiptapAiJwt,
+} from "@/lib/tiptap-jwt";
 
 /**
  * Fetches the current authenticated user with profile data from PostgreSQL.
@@ -22,6 +26,10 @@ export const fetchUser = createServerFn({ method: "GET" }).handler(
 			// Try to get existing User row from PostgreSQL
 			const dbUser = await repository.findUserById(user.id);
 			if (dbUser) {
+				// Backfill TipTap tokens for existing users who don't have them
+				if (!dbUser.tiptapCollabJwt || !dbUser.tiptapAiJwt) {
+					return repository.backfillTiptapTokens(user.id);
+				}
 				return dbUser;
 			}
 

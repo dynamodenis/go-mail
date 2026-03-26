@@ -31,8 +31,13 @@ export const getTemplates = createServerFn({ method: "GET" })
 		}) => templateFiltersSchema.parse(data),
 	)
 	.handler(async ({ data }): Promise<{ data: TemplateListResponse }> => {
-		const userId = await requireUserId();
-		return { data: await service.listTemplates(userId, data) };
+		try {
+			const userId = await requireUserId();
+			return { data: await service.listTemplates(userId, data) };
+		} catch (error) {
+			console.error("getTemplates error:", error);
+			throw error;
+		}
 	});
 
 /**
