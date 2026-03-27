@@ -38,7 +38,7 @@ export default function RecipientList() {
       <div
         ref={scrollRef}
         onScroll={handleScroll}
-        className="flex flex-col gap-0.5 max-h-[200px] overflow-y-auto"
+        className="flex flex-col gap-0.5 min-h-[140px] max-h-[180px] overflow-y-auto"
       >
         {toRecipients.map((recipient) => {
           const email = getRecipientEmail(recipient);
