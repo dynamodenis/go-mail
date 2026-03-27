@@ -6,6 +6,7 @@ import {
   resolveTemplateHtml,
   resolveTemplateTags,
 } from "@/features/email-templates/utils/resolve-merge-tags";
+import { getContacts } from "@/features/contacts/api/server";
 import type { Recipient, ManualRecipient, ComposerMode } from "../types";
 import { getRecipientEmail } from "../types";
 
@@ -54,6 +55,12 @@ interface EmailComposerState {
   activeRecipientEmail: string | null;
   recipientRooms: Record<string, string>;
 
+  // Collection infinite scroll
+  loadedCollectionId: string | null;
+  collectionPage: number;
+  collectionTotal: number;
+  isLoadingMoreRecipients: boolean;
+
   // Draft
   draftId: string | null;
 }
@@ -96,6 +103,11 @@ interface EmailComposerActions {
   setEditorRef: (editor: Editor) => void;
   recipientRoomInitialized: (roomId: string) => void;
   recipientContentChanged: (html: string) => void;
+
+  // Collection infinite scroll
+  setCollectionPagination: (collectionId: string, total: number) => void;
+  loadMoreCollectionRecipients: () => Promise<void>;
+  hasMoreCollectionRecipients: () => boolean;
 
   getAllToEmails: () => string[];
   reset: () => void;
@@ -153,6 +165,10 @@ const initialState: EmailComposerState = {
   previewRecipientIndex: 0,
   activeRecipientEmail: null,
   recipientRooms: {},
+  loadedCollectionId: null,
+  collectionPage: 0,
+  collectionTotal: 0,
+  isLoadingMoreRecipients: false,
   draftId: null,
 };
 
@@ -173,9 +189,10 @@ export const useEmailComposerStore = create<EmailComposerStoreType>()(
           firstName: recipient.contact.firstName,
           lastName: recipient.contact.lastName,
           email: recipient.contact.email,
+          company: recipient.contact.company,
         };
       }
-      return { firstName: null, lastName: null, email: recipient.email };
+      return { firstName: null, lastName: null, email: recipient.email, company: null };
     }
 
     function createRecipientRoom(recipient: Recipient) {
@@ -401,6 +418,46 @@ export const useEmailComposerStore = create<EmailComposerStoreType>()(
         if (activeRecipientEmail !== null) {
           composerRefs.recipientBodyMap[activeRecipientEmail] = html;
         }
+      },
+
+      // Collection infinite scroll
+      setCollectionPagination: (collectionId, total) => {
+        set({
+          loadedCollectionId: collectionId,
+          collectionPage: 1,
+          collectionTotal: total,
+          isLoadingMoreRecipients: false,
+        });
+      },
+
+      loadMoreCollectionRecipients: async () => {
+        const { loadedCollectionId, collectionPage, isLoadingMoreRecipients } = get();
+        if (!loadedCollectionId || isLoadingMoreRecipients) return;
+
+        const nextPage = collectionPage + 1;
+        set({ isLoadingMoreRecipients: true });
+
+        try {
+          const result = await getContacts({
+            data: {
+              collectionId: loadedCollectionId,
+              page: nextPage,
+              pageSize: 100,
+            },
+          });
+          if (!("error" in result)) {
+            get().bulkAddContactRecipients(result.data.data);
+            set({ collectionPage: nextPage });
+          }
+        } finally {
+          set({ isLoadingMoreRecipients: false });
+        }
+      },
+
+      hasMoreCollectionRecipients: () => {
+        const { loadedCollectionId, collectionPage, collectionTotal } = get();
+        if (!loadedCollectionId) return false;
+        return collectionPage * 100 < collectionTotal;
       },
 
       // Helpers

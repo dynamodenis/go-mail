@@ -14,7 +14,6 @@ import { useTemplatesUIStore } from "../api/store";
 import { TemplateEditorForm } from "./editor/template-editor-form";
 import type { TemplateEditorFormHandle } from "./editor/template-editor-form";
 import Divider from "@/components/ui/divider";
-import Loader from "@/components/global/loader";
 
 export function CreateTemplateModal() {
 	const { isCreateModalOpen, setCreateModalOpen, pendingMergeTags, resetPendingMergeTags } =

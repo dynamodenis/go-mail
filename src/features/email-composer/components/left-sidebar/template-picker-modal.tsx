@@ -1,11 +1,15 @@
 import { useState } from "react";
-import { SearchIcon, FileTextIcon, CheckIcon } from "lucide-react";
+import { SearchIcon, FileTextIcon, CheckIcon, PlusIcon } from "lucide-react";
 import { Dialog, DialogContent, DialogTitle } from "@/components/ui/dialog";
 import { Input } from "@/components/ui/input";
 import { useTemplates } from "@/features/email-templates/api/queries";
 import type { Template } from "@/features/email-templates/types";
 import { cn } from "@/lib/utils";
 import { useEmailComposerStore } from "../../api/store";
+
+import { Button } from "@/components/ui/button";
+import { useTemplatesUIStore } from "@/features/email-templates/api/store";
+import { CreateTemplateModal } from "@/features/email-templates/components/create-template-modal";
 
 interface TemplatePickerModalProps {
   open: boolean;
@@ -20,6 +24,8 @@ export default function TemplatePickerModal({
 }: TemplatePickerModalProps) {
   const [search, setSearch] = useState("");
   const selectedTemplate = useEmailComposerStore((s) => s.selectedTemplate);
+  const { isCreateModalOpen, setCreateModalOpen } =
+		useTemplatesUIStore();
 
   const { data: templatesResult, isLoading } = useTemplates({
     search: search || undefined,
@@ -34,14 +40,26 @@ export default function TemplatePickerModal({
   })();
 
   return (
+  <>
     <Dialog open={open} onOpenChange={onOpenChange}>
       <DialogContent className="w-[500px] max-h-[70vh] p-0 overflow-hidden">
-        <DialogTitle className="px-4 pt-4 text-sm font-medium">
+        <DialogTitle className="px-2 pt-4 text-sm font-medium">
           Select Template
+
+          {/* Button to open full template picker modal */}
+        <Button
+          variant="outline"
+          size="sm"
+          className="h-6 w-6 p-0 shrink-0 float-right"
+          onClick={() => setCreateModalOpen(true)}
+          title="Create new template"
+        >
+          <PlusIcon className="size-3.5" />
+        </Button>
         </DialogTitle>
 
         {/* Search */}
-        <div className="px-4 pb-2">
+        <div className="p-2">
           <div className="relative">
             <SearchIcon className="absolute left-2.5 top-1/2 -translate-y-1/2 size-3.5 text-muted-foreground" />
             <Input
@@ -104,5 +122,8 @@ export default function TemplatePickerModal({
         </div>
       </DialogContent>
     </Dialog>
+
+    <CreateTemplateModal />
+  </>
   );
 }

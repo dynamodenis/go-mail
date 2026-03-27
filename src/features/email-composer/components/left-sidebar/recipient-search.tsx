@@ -17,6 +17,7 @@ export default function RecipientSearch() {
   const addContactRecipient = useEmailComposerStore((s) => s.addContactRecipient);
   const addManualRecipient = useEmailComposerStore((s) => s.addManualRecipient);
   const bulkAddContactRecipients = useEmailComposerStore((s) => s.bulkAddContactRecipients);
+  const setCollectionPagination = useEmailComposerStore((s) => s.setCollectionPagination);
   const toRecipients = useEmailComposerStore((s) => s.toRecipients);
 
   const [isFocused, setIsFocused] = useState(false);
@@ -53,18 +54,19 @@ export default function RecipientSearch() {
           data: {
             collectionId: collection.id,
             page: 1,
-            pageSize: 1000,
+            pageSize: 100,
           },
         });
         if (!("error" in result)) {
           bulkAddContactRecipients(result.data.data);
+          setCollectionPagination(collection.id, result.data.total);
         }
       } finally {
         setLoadingCollectionId(null);
         setRecipientSearch("");
       }
     },
-    [bulkAddContactRecipients, setRecipientSearch],
+    [bulkAddContactRecipients, setCollectionPagination, setRecipientSearch],
   );
 
   const addEmail = (raw: string) => {

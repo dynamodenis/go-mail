@@ -1,4 +1,5 @@
-import { XIcon, UserIcon } from "lucide-react";
+import { useCallback, useRef } from "react";
+import { XIcon, UserIcon, LoaderIcon } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { useEmailComposerStore } from "../../api/store";
 import { getRecipientEmail, getRecipientName } from "../../types";
@@ -8,17 +9,37 @@ export default function RecipientList() {
   const removeRecipient = useEmailComposerStore((s) => s.removeRecipient);
   const activeRecipientEmail = useEmailComposerStore((s) => s.activeRecipientEmail);
   const selectRecipientForPreview = useEmailComposerStore((s) => s.selectRecipientForPreview);
+  const isLoadingMore = useEmailComposerStore((s) => s.isLoadingMoreRecipients);
+  const loadMore = useEmailComposerStore((s) => s.loadMoreCollectionRecipients);
+  const collectionTotal = useEmailComposerStore((s) => s.collectionTotal);
+  const scrollRef = useRef<HTMLDivElement>(null);
+
+  const handleScroll = useCallback(() => {
+    const el = scrollRef.current;
+    if (!el) return;
+    const { scrollTop, scrollHeight, clientHeight } = el;
+    const nearBottom = scrollHeight - scrollTop - clientHeight < 40;
+    if (nearBottom && useEmailComposerStore.getState().hasMoreCollectionRecipients()) {
+      loadMore();
+    }
+  }, [loadMore]);
 
   if (toRecipients.length === 0) return null;
+
+  const hasMore = useEmailComposerStore.getState().hasMoreCollectionRecipients();
 
   return (
     <div className="flex flex-col gap-1 px-3 py-1">
       <div className="flex items-center justify-between">
         <span className="text-[10px] text-muted-foreground uppercase tracking-wider">
-          To ({toRecipients.length})
+          To ({toRecipients.length}{collectionTotal > toRecipients.length ? ` / ${collectionTotal}` : ""})
         </span>
       </div>
-      <div className="flex flex-col gap-0.5 max-h-[200px] overflow-y-auto">
+      <div
+        ref={scrollRef}
+        onScroll={handleScroll}
+        className="flex flex-col gap-0.5 max-h-[200px] overflow-y-auto"
+      >
         {toRecipients.map((recipient) => {
           const email = getRecipientEmail(recipient);
           const name = getRecipientName(recipient);
@@ -70,6 +91,21 @@ export default function RecipientList() {
             </button>
           );
         })}
+
+        {/* Loading indicator */}
+        {isLoadingMore && (
+          <div className="flex items-center justify-center py-2">
+            <LoaderIcon className="size-3.5 animate-spin text-muted-foreground" />
+            <span className="ml-1.5 text-[10px] text-muted-foreground">Loading more...</span>
+          </div>
+        )}
+
+        {/* Load more hint */}
+        {!isLoadingMore && hasMore && (
+          <div className="py-1 text-center text-[10px] text-muted-foreground">
+            Scroll for more
+          </div>
+        )}
       </div>
     </div>
   );

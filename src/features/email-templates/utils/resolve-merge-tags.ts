@@ -2,6 +2,7 @@ interface ContactFields {
 	firstName?: string | null;
 	lastName?: string | null;
 	email: string;
+	company?: string | null;
 }
 
 type TagResolver = (contact: ContactFields) => string;
@@ -11,6 +12,7 @@ const TAG_RESOLVERS: Record<string, TagResolver> = {
 	"{full_name}": (c) =>
 		[c.firstName, c.lastName].filter(Boolean).join(" ") || "",
 	"{email}": (c) => c.email,
+	"{company}": (c) => c.company ?? "",
 };
 
 /**
