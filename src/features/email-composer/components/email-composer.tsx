@@ -129,15 +129,16 @@ export default function EmailComposer() {
           )}
         </div>
 
-        {/* Hidden file input */}
-        <input
-          ref={fileInputRef}
-          type="file"
-          multiple
-          className="hidden"
-          onChange={handleAttachFiles}
-        />
       </DialogContent>
+
+      {/* Hidden file input — outside DialogContent to avoid portal/focus-trap interference */}
+      <input
+        ref={fileInputRef}
+        type="file"
+        multiple
+        className="hidden"
+        onChange={handleAttachFiles}
+      />
     </Dialog>
   );
 }

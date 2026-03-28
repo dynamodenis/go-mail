@@ -29,7 +29,7 @@ export default function CenterPanel() {
           placeholder="Subject..."
           value={subject}
           onChange={(e) => setSubject(e.target.value)}
-          className="border-none bg-transparent p-0 text-sm font-medium placeholder:text-muted-foreground focus-visible:ring-0 h-auto"
+          className="border-none bg-transparent p-0 text-md font-medium placeholder:text-muted-foreground focus-visible:ring-0 h-auto"
         />
       </div>
 

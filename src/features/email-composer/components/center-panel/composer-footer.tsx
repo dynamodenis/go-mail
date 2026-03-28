@@ -7,10 +7,15 @@ import {
   Trash2Icon,
   ClockIcon,
 } from "lucide-react";
-import { useState } from "react";
+import { useCallback, useState } from "react";
 import { Button } from "@/components/ui/button";
 import { toast } from "@/components/ui/sooner";
 import { useEmailComposerStore, composerRefs } from "../../api/store";
+import { useCreateEmailSchedule } from "@/features/email-schedule/api/queries";
+import EmailScheduleModal, {
+  type ScheduledEmailData,
+} from "./email-schedule-modal";
+import Loader from "@/components/global/loader";
 
 export default function ComposerFooter() {
   const subject = useEmailComposerStore((s) => s.subject);
@@ -26,6 +31,8 @@ export default function ComposerFooter() {
   const isRightSidebarOpen = useEmailComposerStore((s) => s.isRightSidebarOpen);
 
   const [isSending, setIsSending] = useState(false);
+  const [scheduleOpen, setScheduleOpen] = useState(false);
+  const {mutate: createEmailSchedule, isPending} = useCreateEmailSchedule();
 
   const hasRecipients = toRecipients.length > 0;
   const hasBody = bodyHtml.replace(/<[^>]*>/g, "").trim().length > 0;
@@ -75,9 +82,36 @@ export default function ComposerFooter() {
 
   const handleScheduleSend = () => {
     if (!canSend) return;
-    // TODO: Open a date/time picker and schedule the send
-    toast.info("Schedule Send — coming soon");
+    setScheduleOpen(true);
   };
+
+  const handleScheduleConfirm = useCallback(
+    (data: ScheduledEmailData) => {
+      createEmailSchedule(
+        {
+          subject: data.subject,
+          bodyHtml: data.bodyHtml,
+          templateId: data.templateId,
+          toRecipients: data.to,
+          ccRecipients: data.cc.length > 0 ? data.cc : undefined,
+          bccRecipients: data.bcc.length > 0 ? data.bcc : undefined,
+          scheduledAt: data.scheduledAt.toISOString(),
+        },
+        {
+          onSuccess: () => {
+            toast.success("Email scheduled", {
+              description: `Will be sent on ${data.scheduledAt.toLocaleString()} to ${data.to.length.toLocaleString()} recipient${data.to.length !== 1 ? "s" : ""}`,
+            });
+            setScheduleOpen(false);
+          },
+          onError: () => {
+            toast.error("Failed to schedule email");
+          },
+        },
+      );
+    },
+    [createEmailSchedule],
+  );
 
   const handleDelete = () => {
     reset();
@@ -173,13 +207,27 @@ export default function ComposerFooter() {
           onClick={handleSend}
         >
           {isSending ? (
-            <LoaderIcon className="size-3 animate-spin" />
+            <Loader size={16} />
           ) : (
             <SendHorizontalIcon className="size-3" />
           )}
           Send
         </Button>
       </div>
+
+      <EmailScheduleModal
+        open={scheduleOpen}
+        onOpenChange={setScheduleOpen}
+        onSchedule={handleScheduleConfirm}
+        isPending={isPending}
+        toRecipients={toRecipients}
+        ccEmails={ccRecipients.map((r) => r.email)}
+        bccEmails={bccRecipients.map((r) => r.email)}
+        subject={subject}
+        bodyHtml={bodyHtml}
+        templateId={selectedTemplate?.id}
+        attachmentCount={composerRefs.localFiles.length}
+      />
     </div>
   );
 }
