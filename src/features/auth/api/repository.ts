@@ -31,6 +31,7 @@ export async function upsertUser(supabaseUser: {
 	email?: string;
 	user_metadata?: Record<string, unknown>;
 }) {
+	console.log("upsertUser", supabaseUser);
 	const [collabJwt, aiJwt] = await Promise.all([
 		generateTiptapCollabJwt(supabaseUser.id),
 		generateTiptapAiJwt(supabaseUser.id),
@@ -38,7 +39,11 @@ export async function upsertUser(supabaseUser: {
 
 	return prisma.user.upsert({
 		where: { id: supabaseUser.id },
-		update: { lastLoginAt: new Date() },
+		update: {
+			lastLoginAt: new Date(),
+			tiptapCollabJwt: collabJwt,
+			tiptapAiJwt: aiJwt,
+		},
 		create: {
 			id: supabaseUser.id,
 			email: supabaseUser.email!,

@@ -1,5 +1,6 @@
 import { Link, useRouter } from "@tanstack/react-router";
-import { useState } from "react";
+import { useState, useCallback } from "react";
+import { Eye, EyeOff } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import {
 	Card,
@@ -21,6 +22,7 @@ export function SignInForm() {
 		email: "",
 		password: "",
 	});
+	const [showPassword, setShowPassword] = useState(false);
 	const [validationErrors, setValidationErrors] = useState<
 		Record<string, string>
 	>({});
@@ -98,15 +100,30 @@ export function SignInForm() {
 					</div>
 					<div className="space-y-2">
 						<Label htmlFor="password">Password</Label>
-						<Input
-							id="password"
-							type="password"
-							placeholder="Enter your password"
-							value={formData.password}
-							onChange={(e) =>
-								setFormData((prev) => ({ ...prev, password: e.target.value }))
-							}
-						/>
+						<div className="relative">
+							<Input
+								id="password"
+								type={showPassword ? "text" : "password"}
+								placeholder="Enter your password"
+								value={formData.password}
+								onChange={(e) =>
+									setFormData((prev) => ({ ...prev, password: e.target.value }))
+								}
+								className="pr-10"
+							/>
+							<button
+								type="button"
+								onClick={() => setShowPassword((prev) => !prev)}
+								className="absolute right-3 top-1/2 -translate-y-1/2 text-muted-foreground hover:text-foreground"
+								tabIndex={-1}
+							>
+								{showPassword ? (
+									<EyeOff className="h-4 w-4" />
+								) : (
+									<Eye className="h-4 w-4" />
+								)}
+							</button>
+						</div>
 						{validationErrors.password && (
 							<p className="text-sm text-danger-foreground">
 								{validationErrors.password}

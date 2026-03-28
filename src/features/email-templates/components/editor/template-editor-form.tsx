@@ -1,4 +1,4 @@
-import { forwardRef, useCallback, useImperativeHandle, useRef, useState } from "react";
+import { forwardRef, useCallback, useImperativeHandle, useRef, useState, useMemo } from "react";
 import type { Editor } from "@tiptap/react";
 import { Button } from "@/components/ui/button";
 import { Plus, Save, MessageSquareIcon, XIcon } from "lucide-react";
@@ -15,6 +15,7 @@ import { TemplateBodyEditor } from "./template-body-editor";
 import { TemplateAttachmentPanel } from "./template-attachment-panel";
 import Loader from "@/components/global/loader";
 import { useCurrentUser } from "@/hooks/use-current-user";
+import { useDebouncedAutoSave } from "@/hooks/use-debounced-auto-save";
 
 export interface TemplateEditorFormHandle {
 	save: () => void;
@@ -31,12 +32,17 @@ interface TemplateEditorFormProps {
 		category: TemplateCategory;
 		tiptapReference: string;
 	}) => void;
+	/** Called after 3s of no typing to persist bodyHtml/bodyJson to DB */
+	onAutoSave?: (data: {
+		bodyHtml: string;
+		bodyJson: Record<string, unknown>;
+	}) => void;
 	isSaving: boolean;
 	mode: "create" | "edit";
 }
 
 export const TemplateEditorForm = forwardRef<TemplateEditorFormHandle, TemplateEditorFormProps>(
-	function TemplateEditorForm({ initialData, onSave, isSaving, mode }, ref) {
+	function TemplateEditorForm({ initialData, onSave, onAutoSave, isSaving, mode }, ref) {
 		const [name, setName] = useState(initialData?.name ?? "");
 		const [subject, setSubject] = useState(initialData?.subject ?? "");
 		const [category, setCategory] = useState<TemplateCategory>(
@@ -60,12 +66,27 @@ export const TemplateEditorForm = forwardRef<TemplateEditorFormHandle, TemplateE
 			(editorInstance: Editor) => {
 				setEditor(editorInstance);
 				editorRef.current = editorInstance;
-				if (initialData?.bodyHtml && !contentSetRef.current) {
+				// Only set DB content when there is NO collab room.
+				// When tiptapReference exists, TipTap Cloud is the source of truth
+				// and calling setContent while Collaboration is active causes the
+				// CRDT to merge DB content with the cloud YDoc, duplicating everything.
+				if (initialData?.bodyHtml && !contentSetRef.current && !tiptapReference) {
 					editorInstance.commands.setContent(initialData.bodyHtml);
 					contentSetRef.current = true;
 				}
 			},
-			[initialData?.bodyHtml],
+			[initialData?.bodyHtml, tiptapReference],
+		);
+
+		// Debounced auto-save of body content to DB (edit mode only)
+		const autoSaveCallback = useMemo(
+			() => onAutoSave ?? (() => {}),
+			[onAutoSave],
+		);
+		const triggerAutoSave = useDebouncedAutoSave(
+			editor,
+			autoSaveCallback,
+			mode === "edit" && !!onAutoSave,
 		);
 
 		// Generate tiptapReference once on first content change for new templates
@@ -88,8 +109,9 @@ export const TemplateEditorForm = forwardRef<TemplateEditorFormHandle, TemplateE
 				) {
 					getOrCreateRoom();
 				}
+				triggerAutoSave();
 			},
-			[mode, generatedRoom, getOrCreateRoom],
+			[mode, generatedRoom, getOrCreateRoom, triggerAutoSave],
 		);
 
 		const handleSave = useCallback(() => {

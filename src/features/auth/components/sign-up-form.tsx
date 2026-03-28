@@ -1,5 +1,6 @@
 import { Link } from "@tanstack/react-router";
 import { useState } from "react";
+import { Eye, EyeOff } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import {
 	Card,
@@ -23,6 +24,8 @@ export function SignUpForm() {
 		password: "",
 		confirmPassword: "",
 	});
+	const [showPassword, setShowPassword] = useState(false);
+	const [showConfirmPassword, setShowConfirmPassword] = useState(false);
 	const [validationErrors, setValidationErrors] = useState<
 		Record<string, string>
 	>({});
@@ -123,15 +126,30 @@ export function SignUpForm() {
 					</div>
 					<div className="space-y-2">
 						<Label htmlFor="password">Password</Label>
-						<Input
-							id="password"
-							type="password"
-							placeholder="Create a password"
-							value={formData.password}
-							onChange={(e) =>
-								setFormData((prev) => ({ ...prev, password: e.target.value }))
-							}
-						/>
+						<div className="relative">
+							<Input
+								id="password"
+								type={showPassword ? "text" : "password"}
+								placeholder="Create a password"
+								value={formData.password}
+								onChange={(e) =>
+									setFormData((prev) => ({ ...prev, password: e.target.value }))
+								}
+								className="pr-10"
+							/>
+							<button
+								type="button"
+								onClick={() => setShowPassword((prev) => !prev)}
+								className="absolute right-3 top-1/2 -translate-y-1/2 text-muted-foreground hover:text-foreground"
+								tabIndex={-1}
+							>
+								{showPassword ? (
+									<EyeOff className="h-4 w-4" />
+								) : (
+									<Eye className="h-4 w-4" />
+								)}
+							</button>
+						</div>
 						{validationErrors.password && (
 							<p className="text-sm text-destructive">
 								{validationErrors.password}
@@ -140,18 +158,33 @@ export function SignUpForm() {
 					</div>
 					<div className="space-y-2">
 						<Label htmlFor="confirmPassword">Confirm Password</Label>
-						<Input
-							id="confirmPassword"
-							type="password"
-							placeholder="Confirm your password"
-							value={formData.confirmPassword}
-							onChange={(e) =>
-								setFormData((prev) => ({
-									...prev,
-									confirmPassword: e.target.value,
-								}))
-							}
-						/>
+						<div className="relative">
+							<Input
+								id="confirmPassword"
+								type={showConfirmPassword ? "text" : "password"}
+								placeholder="Confirm your password"
+								value={formData.confirmPassword}
+								onChange={(e) =>
+									setFormData((prev) => ({
+										...prev,
+										confirmPassword: e.target.value,
+									}))
+								}
+								className="pr-10"
+							/>
+							<button
+								type="button"
+								onClick={() => setShowConfirmPassword((prev) => !prev)}
+								className="absolute right-3 top-1/2 -translate-y-1/2 text-muted-foreground hover:text-foreground"
+								tabIndex={-1}
+							>
+								{showConfirmPassword ? (
+									<EyeOff className="h-4 w-4" />
+								) : (
+									<Eye className="h-4 w-4" />
+								)}
+							</button>
+						</div>
 						{validationErrors.confirmPassword && (
 							<p className="text-sm text-destructive">
 								{validationErrors.confirmPassword}

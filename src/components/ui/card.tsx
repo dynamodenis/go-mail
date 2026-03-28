@@ -44,7 +44,7 @@ function CardDescription({
 }
 
 function CardContent({ className, ...props }: HTMLAttributes<HTMLDivElement>) {
-	return <div className={cn("pl-6 pb-2 pr-2 pt-0", className)} {...props} />;
+	return <div className={cn("px-6 pb-2 pt-0", className)} {...props} />;
 }
 
 function CardFooter({ className, ...props }: HTMLAttributes<HTMLDivElement>) {

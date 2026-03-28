@@ -220,7 +220,7 @@ export const useEmailComposerStore = create<EmailComposerStoreType>()(
         recipientRooms: { ...state.recipientRooms, [email]: roomId },
       }));
       composerRefs.pendingRecipientContent[email] = resolvedContent as JSONContent;
-
+      
       if (composerRefs.templateHtml) {
         composerRefs.recipientBodyMap[email] = resolveTemplateHtml(
           composerRefs.templateHtml,

@@ -98,7 +98,7 @@ function CcBccSearchField({
       <div className="relative">
         <SearchIcon className="absolute left-2 top-1/2 -translate-y-1/2 size-3.5 text-muted-foreground" />
         <Input
-          placeholder={`Search contacts or type email...`}
+          placeholder="Search contacts or type email..."
           value={value}
           onChange={handleChange}
           onKeyDown={handleKeyDown}

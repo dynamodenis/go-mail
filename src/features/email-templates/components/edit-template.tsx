@@ -1,3 +1,4 @@
+import { useCallback } from "react";
 import { getRouteApi, useRouter } from "@tanstack/react-router";
 import { toast } from "sonner";
 import { PageHeader } from "@/components/shared/page-header";
@@ -15,6 +16,14 @@ export default function EditTemplate() {
 	const router = useRouter();
 	const { data, isLoading, isError, refetch } = useTemplate(templateId);
 	const updateMutation = useUpdateTemplate();
+	const autoSaveMutation = useUpdateTemplate();
+
+	const handleAutoSave = useCallback(
+		(body: { bodyHtml: string; bodyJson: Record<string, unknown> }) => {
+			autoSaveMutation.mutate({ id: templateId, ...body });
+		},
+		[templateId, autoSaveMutation],
+	);
 
 	if (isLoading) return <LoadingState message="Loading template..." />;
 	if (isError || !data?.data)
@@ -32,6 +41,7 @@ export default function EditTemplate() {
 				mode="edit"
 				initialData={template}
 				isSaving={updateMutation.isPending}
+				onAutoSave={handleAutoSave}
 				onSave={(formData) => {
 					updateMutation.mutate(
 						{ id: templateId, ...formData },

@@ -1,7 +1,9 @@
 import { useRouter } from "@tanstack/react-router";
+import { useQueryClient } from "@tanstack/react-query";
 import { useCurrentUser } from "@/hooks/use-current-user";
 import { LogOut, Mail, Moon, PanelLeft, PanelLeftClose, Sun } from "lucide-react";
 import { signOutFn } from "@/features/auth/api/auth-fns";
+import { authKeys } from "@/features/auth/api/queries";
 import { useMutation } from "@/hooks/use-mutation";
 import { APP_NAME } from "@/lib/constants";
 import { cn } from "@/lib/utils";
@@ -30,11 +32,14 @@ export function Sidebar({ isCollapsed, onToggle }: SidebarProps) {
 		setTheme(THEME_CYCLE[nextIndex]);
 	};
 
+	const queryClient = useQueryClient();
+
 	const signOutMutation = useMutation({
 		fn: signOutFn,
 		onSuccess: async () => {
+			queryClient.setQueryData(authKeys.user, null);
 			await router.invalidate();
-			router.navigate({ to: "/" });
+			router.navigate({ to: "/sign-in" });
 		},
 	});
 

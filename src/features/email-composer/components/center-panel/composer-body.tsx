@@ -1,4 +1,4 @@
-import { useCallback, useMemo } from "react";
+import { useCallback, useMemo, useState } from "react";
 import type { Editor, JSONContent } from "@tiptap/react";
 import { PencilIcon, UserIcon } from "lucide-react";
 import { Button } from "@/components/ui/button";
@@ -6,6 +6,7 @@ import { useEmailComposerStore } from "../../api/store";
 import { composerRefs } from "../../api/store";
 import { NotionEditor, MergeTag } from "@/features/tiptap-editor";
 import { useCurrentUser } from "@/hooks/use-current-user";
+import { useDebouncedAutoSave } from "@/hooks/use-debounced-auto-save";
 import { getRecipientEmail, getRecipientName } from "../../types";
 
 const MERGE_TAG_EXTENSIONS = [MergeTag];
@@ -21,6 +22,7 @@ export default function ComposerBody() {
   const recipientRoomInitialized = useEmailComposerStore((s) => s.recipientRoomInitialized);
   const recipientContentChanged = useEmailComposerStore((s) => s.recipientContentChanged);
   const currentUser = useCurrentUser();
+  const [editorInstance, setEditorInstance] = useState<Editor | null>(null);
 
   const editorUser = {
     id: currentUser?.id ?? "local",
@@ -36,6 +38,22 @@ export default function ComposerBody() {
     ? (recipientRooms[activeRecipientEmail] ?? null)
     : null;
   const roomId = activeRecipientRoomId || templateRoom;
+
+  // Debounced auto-save: updates Zustand store with bodyHtml/bodyJson
+  // after 3s of inactivity. Wire to a draft server function for DB persistence.
+  const triggerAutoSave = useDebouncedAutoSave(
+    editorInstance,
+    useCallback(
+      (data: { bodyHtml: string; bodyJson: Record<string, unknown> }) => {
+        if (!isRecipientMode) {
+          setBodyHtml(data.bodyHtml);
+        } else {
+          recipientContentChanged(data.bodyHtml);
+        }
+      },
+      [isRecipientMode, setBodyHtml, recipientContentChanged],
+    ),
+  );
 
   // Get initial content for recipient room (resolved merge tags)
   const recipientInitialContent: JSONContent | null = useMemo(() => {
@@ -57,9 +75,12 @@ export default function ComposerBody() {
     return recipient ? getRecipientName(recipient) : activeRecipientEmail;
   }, [activeRecipientEmail, toRecipients]);
 
+
+
   const handleEditorReady = useCallback(
     (editor: Editor) => {
       setEditorRef(editor);
+      setEditorInstance(editor);
 
       // For recipient rooms: seed with resolved content if room is empty
       if (activeRecipientRoomId && recipientInitialContent) {
@@ -71,8 +92,11 @@ export default function ComposerBody() {
           }
           recipientRoomInitialized(currentRoom);
         }, 100);
-      } else if (!isRecipientMode) {
-        // Template mode: restore body if available
+      } else if (!isRecipientMode && !roomId) {
+        // Free-form mode (no collab room): restore body from store.
+        // When a template with a tiptapReference is selected, TipTap Cloud
+        // loads the content via collab — calling setContent here would cause
+        // the CRDT to merge both copies, duplicating everything.
         const currentHtml = useEmailComposerStore.getState().bodyHtml;
         if (currentHtml && editor.isEmpty) {
           editor.commands.setContent(currentHtml);
@@ -83,18 +107,14 @@ export default function ComposerBody() {
         editor.commands.focus("start");
       });
     },
-    [activeRecipientRoomId, recipientInitialContent, isRecipientMode, setEditorRef, recipientRoomInitialized],
+    [activeRecipientRoomId, recipientInitialContent, isRecipientMode, roomId, setEditorRef, recipientRoomInitialized],
   );
 
   const handleChange = useCallback(
-    (html: string) => {
-      if (isRecipientMode) {
-        recipientContentChanged(html);
-        return;
-      }
-      setBodyHtml(html);
+    (_html: string) => {
+      triggerAutoSave();
     },
-    [isRecipientMode, setBodyHtml, recipientContentChanged],
+    [triggerAutoSave],
   );
 
   // Header bar showing which mode we're in
@@ -122,7 +142,7 @@ export default function ComposerBody() {
         {modeBar}
         <div className="border-t py-2 px-4">
           <div className="composer-body-editor relative min-h-[200px]">
-            <div className="h-full overflow-y-auto px-4 pb-4">
+            <div className="h-full overflow-y-auto pl-12 py-4">
               <NotionEditor
                 key={roomId}
                 room={roomId}
@@ -152,7 +172,7 @@ export default function ComposerBody() {
     <div className="flex flex-col h-full">
       {modeBar}
       <div className="composer-body-editor relative h-full min-h-[300px]">
-        <div className="h-full overflow-y-auto px-4">
+        <div className="h-full overflow-y-auto pl-12 py-4">
           <NotionEditor
             key={roomId}
             room={roomId}

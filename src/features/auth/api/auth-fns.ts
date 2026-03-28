@@ -2,11 +2,6 @@ import { createServerFn } from "@tanstack/react-start";
 import { getSupabaseServerClient } from "@/integrations/supabase/server";
 import type { User } from "../schemas/auth";
 import * as repository from "./repository";
-import {
-	generateTiptapCollabJwt,
-	generateTiptapAiJwt,
-} from "@/lib/tiptap-jwt";
-
 /**
  * Fetches the current authenticated user with profile data from PostgreSQL.
  * Falls back to upserting the User row if it doesn't exist (legacy users).
