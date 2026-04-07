@@ -1,11 +1,17 @@
 import { createServerFn } from "@tanstack/react-start";
 import { getSupabaseServerClient } from "@/integrations/supabase/server";
+import { isSupabaseUnavailableError } from "@/lib/auth-errors";
 import type { User } from "../schemas/auth";
 import * as repository from "./repository";
+
+/** Marker error code so the client can distinguish "no session" from "service down" */
+const AUTH_UNAVAILABLE_CODE = "AUTH_SERVICE_UNAVAILABLE";
+
 /**
  * Fetches the current authenticated user with profile data from PostgreSQL.
  * Falls back to upserting the User row if it doesn't exist (legacy users).
  * @returns User object or null if not authenticated
+ * @throws Error with AUTH_SERVICE_UNAVAILABLE code if Supabase is unreachable
  */
 export const fetchUser = createServerFn({ method: "GET" }).handler(
 	async (): Promise<User | null> => {
@@ -30,7 +36,11 @@ export const fetchUser = createServerFn({ method: "GET" }).handler(
 
 			// Safety net: upsert if the row doesn't exist (legacy Supabase user)
 			return repository.upsertUser(user);
-		} catch {
+		} catch (error) {
+			if (isSupabaseUnavailableError(error)) {
+				throw new Error(AUTH_UNAVAILABLE_CODE);
+			}
+			// Any other error (e.g. expired token) → treat as unauthenticated
 			return null;
 		}
 	},
@@ -64,10 +74,7 @@ export const signInFn = createServerFn({ method: "POST" })
 			return { success: true as const };
 		} catch (e) {
 			return {
-				error:
-					e instanceof Error && e.message.includes("Missing SUPABASE")
-						? e.message
-						: "Unable to connect to the authentication service. Please try again.",
+				error: getAuthErrorMessage(e),
 			};
 		}
 	});
@@ -113,13 +120,21 @@ export const signUpFn = createServerFn({ method: "POST" })
 			};
 		} catch (e) {
 			return {
-				error:
-					e instanceof Error && e.message.includes("Missing SUPABASE")
-						? e.message
-						: "Unable to connect to the authentication service. Please try again.",
+				error: getAuthErrorMessage(e),
 			};
 		}
 	});
+
+/** Maps caught errors to user-friendly auth error messages */
+function getAuthErrorMessage(e: unknown): string {
+	if (e instanceof Error && e.message.includes("Missing SUPABASE")) {
+		return e.message;
+	}
+	if (isSupabaseUnavailableError(e)) {
+		return "The authentication service is currently unavailable. This may be due to a temporary outage — please try again in a few minutes.";
+	}
+	return "Unable to connect to the authentication service. Please try again.";
+}
 
 /**
  * Signs out the current user via Supabase.

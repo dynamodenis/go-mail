@@ -2,7 +2,6 @@ import {
   SendHorizontalIcon,
   SendIcon,
   PaperclipIcon,
-  LoaderIcon,
   MessageSquareIcon,
   Trash2Icon,
   ClockIcon,
@@ -11,7 +10,7 @@ import { useCallback, useState } from "react";
 import { Button } from "@/components/ui/button";
 import { toast } from "@/components/ui/sooner";
 import { useEmailComposerStore, composerRefs } from "../../api/store";
-import { useCreateEmailSchedule } from "@/features/email-schedule/api/queries";
+import { useCreateEmailBatch } from "@/features/email-schedule/api/queries";
 import EmailScheduleModal, {
   type ScheduledEmailData,
 } from "./email-schedule-modal";
@@ -23,16 +22,19 @@ export default function ComposerFooter() {
   const toRecipients = useEmailComposerStore((s) => s.toRecipients);
   const ccRecipients = useEmailComposerStore((s) => s.ccRecipients);
   const bccRecipients = useEmailComposerStore((s) => s.bccRecipients);
-  const getAllToEmails = useEmailComposerStore((s) => s.getAllToEmails);
   const selectedTemplate = useEmailComposerStore((s) => s.selectedTemplate);
   const reset = useEmailComposerStore((s) => s.reset);
   const setOpen = useEmailComposerStore((s) => s.setOpen);
   const toggleRightSidebar = useEmailComposerStore((s) => s.toggleRightSidebar);
   const isRightSidebarOpen = useEmailComposerStore((s) => s.isRightSidebarOpen);
+  const getBatchSources = useEmailComposerStore((s) => s.getBatchSources);
+  const getEstimatedRecipientCount = useEmailComposerStore(
+    (s) => s.getEstimatedRecipientCount,
+  );
 
   const [isSending, setIsSending] = useState(false);
   const [scheduleOpen, setScheduleOpen] = useState(false);
-  const {mutate: createEmailSchedule, isPending} = useCreateEmailSchedule();
+  const { mutate: createEmailBatch, isPending } = useCreateEmailBatch();
 
   const hasRecipients = toRecipients.length > 0;
   const hasBody = bodyHtml.replace(/<[^>]*>/g, "").trim().length > 0;
@@ -40,30 +42,16 @@ export default function ComposerFooter() {
   const canSend = hasRecipients && hasBody && hasSubject && !isSending;
 
   const handleSend = async () => {
-    const toEmails = getAllToEmails();
-
-    if (toEmails.length === 0) {
-      toast.error("Add at least one recipient");
-      return;
-    }
-
-    if (!subject.trim()) {
-      toast.error("Subject is required");
-      return;
-    }
-
-    if (!hasBody) {
-      toast.error("Write a message before sending");
-      return;
-    }
+    if (!canSend) return;
 
     setIsSending(true);
 
     // TODO: Call the sendEmail server function when implemented
     try {
       await new Promise((resolve) => setTimeout(resolve, 1500));
+      const count = getEstimatedRecipientCount();
       toast.success("Email sent successfully", {
-        description: `Sent to ${toEmails.length} recipient${toEmails.length > 1 ? "s" : ""}`,
+        description: `Sent to ${count} recipient${count > 1 ? "s" : ""}`,
       });
       reset();
       setOpen(false);
@@ -76,8 +64,41 @@ export default function ComposerFooter() {
 
   const handleSendAll = async () => {
     if (!canSend) return;
-    // TODO: Send to all recipients (bulk send via campaign)
-    toast.info("Send All — coming soon");
+
+    const sources = getBatchSources();
+    if (sources.length === 0) {
+      toast.error("Add at least one recipient");
+      return;
+    }
+
+    createEmailBatch(
+      {
+        subject,
+        bodyHtml,
+        templateId: selectedTemplate?.id,
+        ccRecipients: ccRecipients.length > 0
+          ? ccRecipients.map((r) => r.email)
+          : undefined,
+        bccRecipients: bccRecipients.length > 0
+          ? bccRecipients.map((r) => r.email)
+          : undefined,
+        scheduledAt: null,
+        sources,
+      },
+      {
+        onSuccess: () => {
+          const count = getEstimatedRecipientCount();
+          toast.success("Emails queued for sending", {
+            description: `Sending to ${count.toLocaleString()} recipient${count !== 1 ? "s" : ""}`,
+          });
+          reset();
+          setOpen(false);
+        },
+        onError: () => {
+          toast.error("Failed to queue emails for sending");
+        },
+      },
+    );
   };
 
   const handleScheduleSend = () => {
@@ -87,20 +108,20 @@ export default function ComposerFooter() {
 
   const handleScheduleConfirm = useCallback(
     (data: ScheduledEmailData) => {
-      createEmailSchedule(
+      createEmailBatch(
         {
           subject: data.subject,
           bodyHtml: data.bodyHtml,
           templateId: data.templateId,
-          toRecipients: data.to,
           ccRecipients: data.cc.length > 0 ? data.cc : undefined,
           bccRecipients: data.bcc.length > 0 ? data.bcc : undefined,
           scheduledAt: data.scheduledAt.toISOString(),
+          sources: data.sources,
         },
         {
           onSuccess: () => {
             toast.success("Email scheduled", {
-              description: `Will be sent on ${data.scheduledAt.toLocaleString()} to ${data.to.length.toLocaleString()} recipient${data.to.length !== 1 ? "s" : ""}`,
+              description: `Will be sent on ${data.scheduledAt.toLocaleString()} to ${data.estimatedRecipientCount.toLocaleString()} recipient${data.estimatedRecipientCount !== 1 ? "s" : ""}`,
             });
             setScheduleOpen(false);
           },
@@ -110,7 +131,7 @@ export default function ComposerFooter() {
         },
       );
     },
-    [createEmailSchedule],
+    [createEmailBatch],
   );
 
   const handleDelete = () => {
@@ -118,12 +139,14 @@ export default function ComposerFooter() {
     toast.success("Draft discarded");
   };
 
+  const estimatedCount = getEstimatedRecipientCount();
+
   return (
     <div className="flex items-center justify-between border-t px-4 py-2">
       <div className="flex items-center gap-2 text-xs text-muted-foreground">
-        {toRecipients.length > 0 && (
+        {estimatedCount > 0 && (
           <span>
-            {toRecipients.length} recipient{toRecipients.length > 1 ? "s" : ""}
+            {estimatedCount.toLocaleString()} recipient{estimatedCount > 1 ? "s" : ""}
           </span>
         )}
         {ccRecipients.length > 0 && (
@@ -193,7 +216,7 @@ export default function ComposerFooter() {
           variant="outline"
           size="sm"
           className="h-6"
-          disabled={!canSend}
+          disabled={!canSend || isPending}
           onClick={handleSendAll}
         >
           <SendIcon className="size-3" />

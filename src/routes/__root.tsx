@@ -67,8 +67,16 @@ export const Route = createRootRouteWithContext<RouterContext>()({
 		],
 	}),
 	beforeLoad: async ({ context }) => {
-		const user = await context.queryClient.ensureQueryData(userQueryOptions);
-		return { user };
+		try {
+			const user =
+				await context.queryClient.ensureQueryData(userQueryOptions);
+			return { user };
+		} catch {
+			// If Supabase is unreachable (paused, DNS failure, network error),
+			// treat the user as unauthenticated so the app still renders
+			// instead of showing a blank crash screen.
+			return { user: null };
+		}
 	},
 	component: RootComponent,
 	shellComponent: RootDocument,

@@ -2,46 +2,20 @@ import { createServerFn } from "@tanstack/react-start";
 import { z } from "zod";
 import { requireUserId } from "@/lib/require-user";
 import {
-	createEmailScheduleSchema,
-	cancelEmailScheduleSchema,
-	emailScheduleFiltersSchema,
+	createEmailBatchSchema,
+	cancelEmailBatchSchema,
+	emailBatchFiltersSchema,
+	emailBatchRecipientsSchema,
 } from "../types";
 import * as service from "./service";
 
 /**
- * Get a paginated list of scheduled emails for the current user.
- * @auth Required
- */
-export const getEmailSchedules = createServerFn({ method: "GET" })
-	.inputValidator(
-		(data: { status?: string; page?: number; pageSize?: number }) =>
-			emailScheduleFiltersSchema.parse(data),
-	)
-	.handler(async ({ data }) => {
-		const userId = await requireUserId();
-		return { data: await service.listSchedules(userId, data) };
-	});
-
-/**
- * Get a single scheduled email by ID.
- * @auth Required
- * @throws SCHEDULE_NOT_FOUND
- */
-export const getEmailScheduleById = createServerFn({ method: "GET" })
-	.inputValidator((data: { id: string }) =>
-		z.object({ id: z.string().uuid() }).parse(data),
-	)
-	.handler(async ({ data }) => {
-		const userId = await requireUserId();
-		return { data: await service.getSchedule(userId, data.id) };
-	});
-
-/**
- * Create a new scheduled email with recipients, body, and send time.
+ * Create a new email batch (used by both "Schedule" and "Send All").
+ * scheduledAt = null means send immediately; a date means schedule for later.
  * @auth Required
  * @throws SCHEDULE_IN_PAST
  */
-export const createEmailSchedule = createServerFn({ method: "POST" })
+export const createEmailBatch = createServerFn({ method: "POST" })
 	.inputValidator(
 		(data: {
 			subject: string;
@@ -49,27 +23,77 @@ export const createEmailSchedule = createServerFn({ method: "POST" })
 			bodyJson?: Record<string, unknown>;
 			tiptapReference?: string;
 			templateId?: string;
-			toRecipients: string[];
 			ccRecipients?: string[];
 			bccRecipients?: string[];
-			scheduledAt: string;
-		}) => createEmailScheduleSchema.parse(data),
+			scheduledAt: string | null;
+			sources: Array<
+				| { type: "COLLECTION"; collectionId: string }
+				| { type: "INDIVIDUAL"; email: string; name?: string }
+			>;
+		}) => createEmailBatchSchema.parse(data),
 	)
 	.handler(async ({ data }) => {
 		const userId = await requireUserId();
-		return { data: await service.createSchedule(userId, data) };
+		return { data: await service.createBatch(userId, data) };
 	});
 
 /**
- * Cancel a pending scheduled email.
+ * Get a paginated list of email batches for the current user.
  * @auth Required
- * @throws SCHEDULE_NOT_FOUND_OR_NOT_PENDING
  */
-export const cancelEmailSchedule = createServerFn({ method: "POST" })
-	.inputValidator((data: { id: string }) =>
-		cancelEmailScheduleSchema.parse(data),
+export const getEmailBatches = createServerFn({ method: "GET" })
+	.inputValidator(
+		(data: { status?: string; page?: number; pageSize?: number }) =>
+			emailBatchFiltersSchema.parse(data),
 	)
 	.handler(async ({ data }) => {
 		const userId = await requireUserId();
-		return { data: await service.cancelSchedule(userId, data.id) };
+		return { data: await service.listBatches(userId, data) };
+	});
+
+/**
+ * Get a single email batch by ID with sources.
+ * @auth Required
+ * @throws BATCH_NOT_FOUND
+ */
+export const getEmailBatchById = createServerFn({ method: "GET" })
+	.inputValidator((data: { id: string }) =>
+		z.object({ id: z.string().uuid() }).parse(data),
+	)
+	.handler(async ({ data }) => {
+		const userId = await requireUserId();
+		return { data: await service.getBatch(userId, data.id) };
+	});
+
+/**
+ * Cancel a pending email batch and its unsent recipients.
+ * @auth Required
+ * @throws BATCH_NOT_FOUND_OR_NOT_PENDING
+ */
+export const cancelEmailBatch = createServerFn({ method: "POST" })
+	.inputValidator((data: { id: string }) =>
+		cancelEmailBatchSchema.parse(data),
+	)
+	.handler(async ({ data }) => {
+		const userId = await requireUserId();
+		return { data: await service.cancelBatch(userId, data.id) };
+	});
+
+/**
+ * Get paginated recipients for an email batch.
+ * @auth Required
+ * @throws BATCH_NOT_FOUND
+ */
+export const getEmailBatchRecipients = createServerFn({ method: "GET" })
+	.inputValidator(
+		(data: {
+			batchId: string;
+			status?: string;
+			page?: number;
+			pageSize?: number;
+		}) => emailBatchRecipientsSchema.parse(data),
+	)
+	.handler(async ({ data }) => {
+		const userId = await requireUserId();
+		return { data: await service.getBatchRecipients(userId, data) };
 	});

@@ -28,11 +28,12 @@ import {
 import { Calendar } from "@/components/ui/calendar";
 import { Button } from "@/components/ui/button";
 import type { Recipient } from "../../types";
-import { getRecipientEmail, getRecipientName } from "../../types";
+import { useEmailComposerStore } from "../../api/store";
+import type { BatchSource } from "@/features/email-schedule/types";
 import Loader from "@/components/global/loader";
 /** All data needed to send an email at a scheduled time */
 export interface ScheduledEmailData {
-	to: string[];
+	sources: BatchSource[];
 	cc: string[];
 	bcc: string[];
 	subject: string;
@@ -40,7 +41,7 @@ export interface ScheduledEmailData {
 	templateId?: string;
 	scheduledAt: Date;
 	attachmentCount: number;
-	recipientDetails: Array<{ email: string; name: string }>;
+	estimatedRecipientCount: number;
 }
 
 interface EmailScheduleModalProps {
@@ -149,24 +150,14 @@ export default function EmailScheduleModal({
 	const [selectedTime, setSelectedTime] = useState("08:00");
 	const [pendingDate, setPendingDate] = useState<Date | null>(null);
 	const presets = useMemo(() => getPresets(), []);
-
-	const recipientDetails = useMemo(
-		() =>
-			toRecipients.map((r) => ({
-				email: getRecipientEmail(r),
-				name: getRecipientName(r),
-			})),
-		[toRecipients],
-	);
-
-	const toEmails = useMemo(
-		() => recipientDetails.map((r) => r.email),
-		[recipientDetails],
+	const getBatchSources = useEmailComposerStore((s) => s.getBatchSources);
+	const getEstimatedRecipientCount = useEmailComposerStore(
+		(s) => s.getEstimatedRecipientCount,
 	);
 
 	function buildScheduleData(scheduledAt: Date): ScheduledEmailData {
 		return {
-			to: toEmails,
+			sources: getBatchSources(),
 			cc: ccEmails,
 			bcc: bccEmails,
 			subject,
@@ -174,7 +165,7 @@ export default function EmailScheduleModal({
 			templateId,
 			scheduledAt,
 			attachmentCount,
-			recipientDetails,
+			estimatedRecipientCount: getEstimatedRecipientCount(),
 		};
 	}
 
@@ -235,7 +226,7 @@ export default function EmailScheduleModal({
 		if (!pendingDate) return;
 		onSchedule(buildScheduleData(pendingDate));
 		handleOpenChange(false);
-	}, [pendingDate, toEmails, ccEmails, bccEmails, subject, bodyHtml, templateId, attachmentCount, recipientDetails, onSchedule, handleOpenChange]);
+	}, [pendingDate, ccEmails, bccEmails, subject, bodyHtml, templateId, attachmentCount, onSchedule, handleOpenChange]);
 
 	function formatParsedDate(date: Date): string {
 		if (isToday(date)) return format(date, "'Today at' h:mm a");
@@ -271,8 +262,8 @@ export default function EmailScheduleModal({
 				<div className="flex flex-wrap items-center gap-3 border-b bg-muted/30 px-4 py-2.5 text-xs text-muted-foreground">
 					<span className="flex items-center gap-1">
 						<UsersIcon className="size-3" />
-						{toRecipients.length} recipient
-						{toRecipients.length !== 1 ? "s" : ""}
+						{getEstimatedRecipientCount().toLocaleString()} recipient
+						{getEstimatedRecipientCount() !== 1 ? "s" : ""}
 					</span>
 					{subject && (
 						<span className="flex items-center gap-1 truncate max-w-[180px]">
@@ -424,8 +415,8 @@ export default function EmailScheduleModal({
 						<div className="mt-4 flex items-center gap-1.5 text-sm text-muted-foreground">
 							<UsersIcon className="size-3.5" />
 							<span>
-								{toRecipients.length.toLocaleString()} recipient
-								{toRecipients.length !== 1 ? "s" : ""}
+								{getEstimatedRecipientCount().toLocaleString()} recipient
+								{getEstimatedRecipientCount() !== 1 ? "s" : ""}
 							</span>
 							{(ccEmails.length > 0 || bccEmails.length > 0) && (
 								<span className="text-xs">

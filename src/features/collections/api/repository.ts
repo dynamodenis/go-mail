@@ -140,6 +140,23 @@ export async function getCollectionContactIds(
 	return rows.map((r) => r.contactId);
 }
 
+/** Fetch contact email/name details by IDs, chunked to avoid PG parameter limits. */
+export async function getContactEmailsByIds(contactIds: string[]) {
+	const CHUNK_SIZE = 1000;
+	const results: { id: string; email: string; firstName: string | null; lastName: string | null }[] = [];
+
+	for (let i = 0; i < contactIds.length; i += CHUNK_SIZE) {
+		const chunk = contactIds.slice(i, i + CHUNK_SIZE);
+		const rows = await prisma.contact.findMany({
+			where: { id: { in: chunk }, status: "ACTIVE" },
+			select: { id: true, email: true, firstName: true, lastName: true },
+		});
+		results.push(...rows);
+	}
+
+	return results;
+}
+
 export async function addContactsToCollections(
 	userId: string,
 	input: AddContactsToCollectionsInput,

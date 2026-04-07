@@ -8,7 +8,8 @@ import {
 } from "@/features/email-templates/utils/resolve-merge-tags";
 import { getContacts } from "@/features/contacts/api/server";
 import type { Recipient, ManualRecipient, ComposerMode } from "../types";
-import { getRecipientEmail } from "../types";
+import { getRecipientEmail, getRecipientName } from "../types";
+import type { BatchSource } from "@/features/email-schedule/types";
 
 /**
  * Email Composer UI store — manages all client-only state for the
@@ -110,6 +111,8 @@ interface EmailComposerActions {
   hasMoreCollectionRecipients: () => boolean;
 
   getAllToEmails: () => string[];
+  getBatchSources: () => BatchSource[];
+  getEstimatedRecipientCount: () => number;
   reset: () => void;
 }
 
@@ -462,6 +465,41 @@ export const useEmailComposerStore = create<EmailComposerStoreType>()(
 
       // Helpers
       getAllToEmails: () => get().toRecipients.map(getRecipientEmail),
+
+      getBatchSources: (): BatchSource[] => {
+        const { loadedCollectionId, toRecipients } = get();
+        const sources: BatchSource[] = [];
+
+        if (loadedCollectionId) {
+          sources.push({ type: "COLLECTION", collectionId: loadedCollectionId });
+        }
+
+        // Add individual recipients (manual ones, or contacts added outside collection)
+        for (const r of toRecipients) {
+          if (r.type === "manual") {
+            sources.push({ type: "INDIVIDUAL", email: r.email, name: r.name });
+          } else if (!loadedCollectionId) {
+            // If no collection loaded, treat all contacts as individual sources
+            sources.push({
+              type: "INDIVIDUAL",
+              email: r.contact.email,
+              name: getRecipientName(r),
+            });
+          }
+        }
+
+        return sources;
+      },
+
+      getEstimatedRecipientCount: () => {
+        const { loadedCollectionId, collectionTotal, toRecipients } = get();
+        if (loadedCollectionId) {
+          // Count collection total + any manually added recipients not from the collection
+          const manualCount = toRecipients.filter((r) => r.type === "manual").length;
+          return collectionTotal + manualCount;
+        }
+        return toRecipients.length;
+      },
 
       // Reset
       reset: () => {
