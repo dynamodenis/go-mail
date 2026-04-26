@@ -226,6 +226,40 @@ export async function findBatchRecipients(
 	return { recipients, total };
 }
 
+/** System-context lookup used by the Inngest sender — returns the schedule
+ *  row plus its mergeData. Auth is enforced by the event payload upstream. */
+export async function findScheduleById(id: string) {
+	return prisma.emailSchedule.findUnique({
+		where: { id },
+		select: {
+			id: true,
+			batchId: true,
+			userId: true,
+			recipientEmail: true,
+			recipientName: true,
+			mergeData: true,
+			status: true,
+		},
+	});
+}
+
+/** Returns just the IDs of every PENDING recipient in a batch. Used by the
+ *  Inngest dispatcher to fan out send events. */
+export async function findPendingRecipientIdsByBatchId(batchId: string) {
+	const rows = await prisma.emailSchedule.findMany({
+		where: { batchId, status: "PENDING" },
+		select: { id: true },
+	});
+	return rows.map((r) => r.id);
+}
+
+/** Used by the sender to decide when the batch is fully terminal. */
+export async function countPendingRecipientsByBatchId(batchId: string) {
+	return prisma.emailSchedule.count({
+		where: { batchId, status: "PENDING" },
+	});
+}
+
 export async function markRecipientSent(id: string) {
 	return prisma.emailSchedule.update({
 		where: { id },

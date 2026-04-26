@@ -19,6 +19,12 @@ vi.mock("@/features/collections/api/repository", () => ({
 	getContactEmailsByIds: vi.fn(),
 }));
 
+// Mock the Inngest client — service.expandBatch dispatches an event after
+// recipients are created. We don't want real network calls in tests.
+vi.mock("@/lib/inngest", () => ({
+	inngest: { send: vi.fn().mockResolvedValue({ ids: [] }) },
+}));
+
 import * as service from "../api/service";
 import * as repo from "../api/repository";
 import * as collectionsRepo from "@/features/collections/api/repository";

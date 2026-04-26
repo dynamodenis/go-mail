@@ -1,4 +1,5 @@
 import { AppError } from "@/lib/errors";
+import { inngest } from "@/lib/inngest";
 import * as repo from "./repository";
 import * as collectionsRepo from "@/features/collections/api/repository";
 import type {
@@ -114,6 +115,13 @@ async function expandBatch(
 		const batch = await repo.findBatchById(userId, batchId);
 		const nextStatus = batch?.scheduledAt ? "PENDING" : "SENDING";
 		await repo.updateBatchStatus(batchId, nextStatus);
+
+		// Hand off to Inngest. The dispatcher function will sleep until
+		// `scheduledAt` if needed, then fan out one send event per recipient.
+		await inngest.send({
+			name: "email/batch.created",
+			data: { batchId, userId },
+		});
 	} catch (error) {
 		await repo.updateBatchStatus(batchId, "FAILED");
 		throw error;
