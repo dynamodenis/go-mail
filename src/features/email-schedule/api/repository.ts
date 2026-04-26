@@ -164,10 +164,16 @@ export async function getBatchSources(batchId: string) {
 
 const RECIPIENT_CHUNK_SIZE = 1000;
 
+export interface RecipientRow {
+	email: string;
+	name?: string | null;
+	mergeData?: Record<string, string | null>;
+}
+
 export async function createRecipientRows(
 	batchId: string,
 	userId: string,
-	recipients: Array<{ email: string; name?: string | null }>,
+	recipients: Array<RecipientRow>,
 ) {
 	let created = 0;
 
@@ -179,6 +185,7 @@ export async function createRecipientRows(
 				userId,
 				recipientEmail: r.email,
 				recipientName: r.name ?? null,
+				mergeData: (r.mergeData ?? {}) as Prisma.InputJsonValue,
 			})),
 		});
 		created += result.count;

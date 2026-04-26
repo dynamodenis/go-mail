@@ -38,6 +38,12 @@ export async function createBatch(
 	return { id: batch.id, status: batch.status };
 }
 
+interface ExpandedRecipient {
+	email: string;
+	name: string | null;
+	mergeData: Record<string, string | null>;
+}
+
 async function expandBatch(
 	batchId: string,
 	userId: string,
@@ -46,7 +52,7 @@ async function expandBatch(
 	await repo.updateBatchStatus(batchId, "EXPANDING");
 
 	try {
-		const recipientMap = new Map<string, { email: string; name: string | null }>();
+		const recipientMap = new Map<string, ExpandedRecipient>();
 
 		for (const source of sources) {
 			if (source.type === "COLLECTION") {
@@ -62,15 +68,33 @@ async function expandBatch(
 							const name = [c.firstName, c.lastName]
 								.filter(Boolean)
 								.join(" ") || null;
-							recipientMap.set(c.email, { email: c.email, name });
+							recipientMap.set(c.email, {
+								email: c.email,
+								name,
+								mergeData: {
+									firstName: c.firstName,
+									lastName: c.lastName,
+									name,
+									email: c.email,
+									company: c.company,
+								},
+							});
 						}
 					}
 				}
 			} else {
 				if (!recipientMap.has(source.email)) {
+					const name = source.name ?? null;
 					recipientMap.set(source.email, {
 						email: source.email,
-						name: source.name ?? null,
+						name,
+						mergeData: {
+							firstName: null,
+							lastName: null,
+							name,
+							email: source.email,
+							company: null,
+						},
 					});
 				}
 			}

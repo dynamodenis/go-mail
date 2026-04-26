@@ -66,39 +66,40 @@ export default function ComposerFooter() {
     if (!canSend) return;
 
     const sources = getBatchSources();
+    console.log("Sources ", sources)
     if (sources.length === 0) {
       toast.error("Add at least one recipient");
       return;
     }
 
-    createEmailBatch(
-      {
-        subject,
-        bodyHtml,
-        templateId: selectedTemplate?.id,
-        ccRecipients: ccRecipients.length > 0
-          ? ccRecipients.map((r) => r.email)
-          : undefined,
-        bccRecipients: bccRecipients.length > 0
-          ? bccRecipients.map((r) => r.email)
-          : undefined,
-        scheduledAt: null,
-        sources,
-      },
-      {
-        onSuccess: () => {
-          const count = getEstimatedRecipientCount();
-          toast.success("Emails queued for sending", {
-            description: `Sending to ${count.toLocaleString()} recipient${count !== 1 ? "s" : ""}`,
-          });
-          reset();
-          setOpen(false);
-        },
-        onError: () => {
-          toast.error("Failed to queue emails for sending");
-        },
-      },
-    );
+    // createEmailBatch(
+    //   {
+    //     subject,
+    //     bodyHtml,
+    //     templateId: selectedTemplate?.id,
+    //     ccRecipients: ccRecipients.length > 0
+    //       ? ccRecipients.map((r) => r.email)
+    //       : undefined,
+    //     bccRecipients: bccRecipients.length > 0
+    //       ? bccRecipients.map((r) => r.email)
+    //       : undefined,
+    //     scheduledAt: null,
+    //     sources,
+    //   },
+    //   {
+    //     onSuccess: () => {
+    //       const count = getEstimatedRecipientCount();
+    //       toast.success("Emails queued for sending", {
+    //         description: `Sending to ${count.toLocaleString()} recipient${count !== 1 ? "s" : ""}`,
+    //       });
+    //       reset();
+    //       setOpen(false);
+    //     },
+    //     onError: () => {
+    //       toast.error("Failed to queue emails for sending");
+    //     },
+    //   },
+    // );
   };
 
   const handleScheduleSend = () => {

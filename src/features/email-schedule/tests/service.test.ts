@@ -72,8 +72,28 @@ describe("service.createBatch", () => {
 			BATCH_ID,
 			USER_ID,
 			expect.arrayContaining([
-				{ email: "alice@example.com", name: "Alice" },
-				{ email: "bob@example.com", name: null },
+				{
+					email: "alice@example.com",
+					name: "Alice",
+					mergeData: {
+						firstName: null,
+						lastName: null,
+						name: "Alice",
+						email: "alice@example.com",
+						company: null,
+					},
+				},
+				{
+					email: "bob@example.com",
+					name: null,
+					mergeData: {
+						firstName: null,
+						lastName: null,
+						name: null,
+						email: "bob@example.com",
+						company: null,
+					},
+				},
 			]),
 		);
 		// Immediate send (scheduledAt=null) → SENDING
@@ -136,9 +156,9 @@ describe("service.createBatch", () => {
 			"c3",
 		]);
 		mockCollectionsRepo.getContactEmailsByIds.mockResolvedValue([
-			{ id: "c1", email: "a@test.com", firstName: "Alice", lastName: "A" },
-			{ id: "c2", email: "b@test.com", firstName: "Bob", lastName: null },
-			{ id: "c3", email: "c@test.com", firstName: null, lastName: null },
+			{ id: "c1", email: "a@test.com", firstName: "Alice", lastName: "A", company: "Acme" },
+			{ id: "c2", email: "b@test.com", firstName: "Bob", lastName: null, company: null },
+			{ id: "c3", email: "c@test.com", firstName: null, lastName: null, company: null },
 		]);
 
 		await service.createBatch(USER_ID, {
@@ -161,9 +181,39 @@ describe("service.createBatch", () => {
 			BATCH_ID,
 			USER_ID,
 			expect.arrayContaining([
-				{ email: "a@test.com", name: "Alice A" },
-				{ email: "b@test.com", name: "Bob" },
-				{ email: "c@test.com", name: null },
+				{
+					email: "a@test.com",
+					name: "Alice A",
+					mergeData: {
+						firstName: "Alice",
+						lastName: "A",
+						name: "Alice A",
+						email: "a@test.com",
+						company: "Acme",
+					},
+				},
+				{
+					email: "b@test.com",
+					name: "Bob",
+					mergeData: {
+						firstName: "Bob",
+						lastName: null,
+						name: "Bob",
+						email: "b@test.com",
+						company: null,
+					},
+				},
+				{
+					email: "c@test.com",
+					name: null,
+					mergeData: {
+						firstName: null,
+						lastName: null,
+						name: null,
+						email: "c@test.com",
+						company: null,
+					},
+				},
 			]),
 		);
 	});
@@ -177,7 +227,7 @@ describe("service.createBatch", () => {
 
 		mockCollectionsRepo.getCollectionContactIds.mockResolvedValue(["c1"]);
 		mockCollectionsRepo.getContactEmailsByIds.mockResolvedValue([
-			{ id: "c1", email: "dupe@test.com", firstName: "From", lastName: "Collection" },
+			{ id: "c1", email: "dupe@test.com", firstName: "From", lastName: "Collection", company: null },
 		]);
 
 		await service.createBatch(USER_ID, {

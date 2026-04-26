@@ -290,6 +290,7 @@ model EmailSchedule {
   userId         String
   recipientEmail String
   recipientName  String?
+  mergeData      Json                  @default("{}")
   status         EmailRecipientStatus  @default(PENDING)
   sentAt         DateTime?
   failedAt       DateTime?
