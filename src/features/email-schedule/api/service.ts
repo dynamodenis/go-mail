@@ -1,5 +1,6 @@
 import { AppError } from "@/lib/errors";
 import { inngest } from "@/lib/inngest";
+import { currentPeriodStart, quotaFor } from "@/lib/quota";
 import * as repo from "./repository";
 import * as collectionsRepo from "@/features/collections/api/repository";
 import type {
@@ -111,6 +112,26 @@ async function expandBatch(
 		const created = await repo.createRecipientRows(batchId, userId, recipients);
 		await repo.updateBatchTotalRecipients(batchId, created);
 
+		// Enforce the monthly send quota for the user's current billing cycle
+		// before publishing the dispatch event. We check here (rather than at
+		// the API edge) because we now know the exact recipient count after
+		// dedup. A failed quota gate marks the batch FAILED so it shows up in
+		// the UI with the right status — recipient rows are kept for audit.
+		const user = await repo.findUserPlanAndAnchor(userId);
+		if (!user) {
+			throw new AppError("USER_NOT_FOUND", "User account not found");
+		}
+		const periodStart = currentPeriodStart(user.subscriptionStartedAt);
+		const used = await repo.sumLedgerSince(userId, periodStart);
+		const cap = quotaFor(user.plan);
+		if (used + created > cap) {
+			await repo.updateBatchStatus(batchId, "FAILED");
+			throw new AppError(
+				"QUOTA_EXCEEDED",
+				`You've used ${used} of ${cap} emails this cycle. This batch needs ${created}. Upgrade your plan to continue.`,
+			);
+		}
+
 		// PENDING = waiting for scheduledAt, SENDING = ready for immediate send
 		const batch = await repo.findBatchById(userId, batchId);
 		const nextStatus = batch?.scheduledAt ? "PENDING" : "SENDING";
@@ -118,9 +139,11 @@ async function expandBatch(
 
 		// Hand off to Inngest. The dispatcher function will sleep until
 		// `scheduledAt` if needed, then fan out one send event per recipient.
+		// `tier` rides the event so throttle/priority expressions can branch
+		// without re-querying the DB.
 		await inngest.send({
 			name: "email/batch.created",
-			data: { batchId, userId },
+			data: { batchId, userId, tier: user.plan },
 		});
 	} catch (error) {
 		await repo.updateBatchStatus(batchId, "FAILED");

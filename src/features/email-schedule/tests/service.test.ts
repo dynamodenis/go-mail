@@ -11,6 +11,9 @@ vi.mock("../api/repository", () => ({
 	createRecipientRows: vi.fn(),
 	updateBatchTotalRecipients: vi.fn(),
 	findBatchRecipients: vi.fn(),
+	findUserPlanAndAnchor: vi.fn(),
+	sumLedgerSince: vi.fn(),
+	appendLedgerRow: vi.fn(),
 }));
 
 // Mock the collections repository
@@ -38,6 +41,9 @@ const mockRepo = repo as unknown as {
 	createRecipientRows: ReturnType<typeof vi.fn>;
 	updateBatchTotalRecipients: ReturnType<typeof vi.fn>;
 	findBatchRecipients: ReturnType<typeof vi.fn>;
+	findUserPlanAndAnchor: ReturnType<typeof vi.fn>;
+	sumLedgerSince: ReturnType<typeof vi.fn>;
+	appendLedgerRow: ReturnType<typeof vi.fn>;
 };
 
 const mockCollectionsRepo = collectionsRepo as unknown as {
@@ -52,6 +58,13 @@ const COLLECTION_ID = "col-789";
 describe("service.createBatch", () => {
 	beforeEach(() => {
 		vi.clearAllMocks();
+		// Default to a FREE-plan user well under quota — individual tests can
+		// override these mocks to exercise the QUOTA_EXCEEDED path.
+		mockRepo.findUserPlanAndAnchor.mockResolvedValue({
+			plan: "FREE",
+			subscriptionStartedAt: new Date("2026-01-01"),
+		});
+		mockRepo.sumLedgerSince.mockResolvedValue(0);
 	});
 
 	it("creates a batch with individual sources and expands recipients", async () => {
@@ -270,6 +283,30 @@ describe("service.createBatch", () => {
 
 		expect(mockRepo.updateBatchStatus).toHaveBeenCalledWith(BATCH_ID, "FAILED");
 		expect(mockRepo.createRecipientRows).not.toHaveBeenCalled();
+	});
+
+	it("throws QUOTA_EXCEEDED and marks batch FAILED when used + requested exceeds plan cap", async () => {
+		mockRepo.createBatch.mockResolvedValue({ id: BATCH_ID, status: "PENDING" });
+		mockRepo.updateBatchStatus.mockResolvedValue({});
+		mockRepo.createRecipientRows.mockResolvedValue(50);
+		mockRepo.updateBatchTotalRecipients.mockResolvedValue({});
+		// FREE plan cap is 100; user has already used 80, batch wants 50 → over.
+		mockRepo.findUserPlanAndAnchor.mockResolvedValue({
+			plan: "FREE",
+			subscriptionStartedAt: new Date("2026-01-01"),
+		});
+		mockRepo.sumLedgerSince.mockResolvedValue(80);
+
+		await expect(
+			service.createBatch(USER_ID, {
+				subject: "Over quota",
+				bodyHtml: "<p>Too many</p>",
+				scheduledAt: null,
+				sources: [{ type: "INDIVIDUAL", email: "x@test.com" }],
+			}),
+		).rejects.toThrow("Upgrade your plan");
+
+		expect(mockRepo.updateBatchStatus).toHaveBeenCalledWith(BATCH_ID, "FAILED");
 	});
 
 	it("sets batch to FAILED when expansion throws an error", async () => {

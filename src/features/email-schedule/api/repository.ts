@@ -287,3 +287,40 @@ export async function incrementBatchCounters(
 		},
 	});
 }
+
+/** Fetches the fields needed for quota enforcement and event tagging. Returns
+ *  null only if the user row was deleted between auth and now. */
+export async function findUserPlanAndAnchor(userId: string) {
+	return prisma.user.findUnique({
+		where: { id: userId },
+		select: { plan: true, subscriptionStartedAt: true },
+	});
+}
+
+/** SUMs successful sends since `since` for a single user. Returns 0 when the
+ *  user has no rows in the period. */
+export async function sumLedgerSince(userId: string, since: Date) {
+	const result = await prisma.emailSendLedger.aggregate({
+		where: { userId, createdAt: { gte: since } },
+		_sum: { count: true },
+	});
+	return result._sum.count ?? 0;
+}
+
+/** Append-only — one row per successful send. Called from the `mark-sent`
+ *  step in the Inngest sender. */
+export async function appendLedgerRow(args: {
+	userId: string;
+	batchId: string;
+	recipientId: string;
+	count?: number;
+}) {
+	return prisma.emailSendLedger.create({
+		data: {
+			userId: args.userId,
+			batchId: args.batchId,
+			recipientId: args.recipientId,
+			count: args.count ?? 1,
+		},
+	});
+}

@@ -31,7 +31,6 @@ export async function upsertUser(supabaseUser: {
 	email?: string;
 	user_metadata?: Record<string, unknown>;
 }) {
-	console.log("upsertUser", supabaseUser);
 	const [collabJwt, aiJwt] = await Promise.all([
 		generateTiptapCollabJwt(supabaseUser.id),
 		generateTiptapAiJwt(supabaseUser.id),

@@ -30,7 +30,7 @@ export const dispatchBatch = inngest.createFunction(
 		triggers: [{ event: "email/batch.created" }],
 	},
 	async ({ event, step }) => {
-		const { batchId, userId } = event.data as BatchCreatedData;
+		const { batchId, userId, tier } = event.data as BatchCreatedData;
 
 		const batch = await step.run("load-batch", () =>
 			repo.findBatchById(userId, batchId),
@@ -62,7 +62,12 @@ export const dispatchBatch = inngest.createFunction(
 			"fan-out",
 			recipientIds.map((recipientId: string) => ({
 				name: "email/recipient.send" as const,
-				data: { batchId, recipientId, userId } satisfies RecipientSendData,
+				data: {
+					batchId,
+					recipientId,
+					userId,
+					tier,
+				} satisfies RecipientSendData,
 			})),
 		);
 
@@ -73,7 +78,17 @@ export const dispatchBatch = inngest.createFunction(
 /**
  * Sends a single recipient's email via Resend.
  *
- * - Throttled per user to 5 requests/second (Resend free-tier shared limit).
+ * Multi-tenant scaling controls (all driven by tier on the event payload):
+ * - **Throttle key** uses a shared `tier:FREE` bucket so all free users together
+ *   are capped at RESEND_RPS/sec, while each paid user gets their own bucket
+ *   (`user:<id>`) at RESEND_RPS/sec — paid users don't share rate budget with
+ *   the free pool, free users can't starve them.
+ * - **Concurrency** — a global cap protects the Resend API from total parallel
+ *   blast, plus a per-user cap prevents one user's batch from dominating workers.
+ * - **Priority.run** schedules paid events ahead of free events whenever there's
+ *   any contention, so a paid user queued behind a free batch jumps the line.
+ *
+ * Reliability:
  * - Retries up to 3 times on transient errors. After exhausting retries,
  *   `onFailure` marks the recipient FAILED so the batch can finalize.
  * - Idempotent: if a recipient is no longer PENDING (already sent / cancelled),
@@ -86,7 +101,19 @@ export const sendEmailToRecipient = inngest.createFunction(
 		throttle: {
 			limit: RESEND_RPS,
 			period: "1s",
-			key: "event.data.userId",
+			// Free users share one bucket; paid users get individual buckets.
+			key: "event.data.tier == 'FREE' ? 'tier:FREE' : 'user:' + event.data.userId",
+		},
+		concurrency: [
+			// Global parallel cap across all sends — keep below your Resend
+			// concurrency budget. Adjust as you scale.
+			{ limit: 50, scope: "fn" },
+			// Per-user fairness cap on parallel sends.
+			{ limit: 10, scope: "fn", key: "event.data.userId" },
+		],
+		priority: {
+			// Higher = scheduled sooner. Paid events leapfrog free.
+			run: "event.data.tier == 'FREE' ? 0 : 100",
 		},
 		retries: 3,
 		onFailure: async ({ event, error }) => {
@@ -159,6 +186,9 @@ export const sendEmailToRecipient = inngest.createFunction(
 		await step.run("mark-sent", async () => {
 			await repo.markRecipientSent(recipientId);
 			await repo.incrementBatchCounters(batchId, 1, 0);
+			// Append to the usage ledger — this is what the next quota check
+			// will SUM against to decide whether the user can send more.
+			await repo.appendLedgerRow({ userId, batchId, recipientId });
 		});
 
 		await step.run("maybe-finalize", () => maybeFinalizeBatch(batchId));

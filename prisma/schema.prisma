@@ -7,31 +7,35 @@ datasource db {
 }
 
 model User {
-  id                  String               @id
-  email               String               @unique
-  fullName            String?
-  avatarUrl           String?
-  companyName         String?
-  role                UserRole             @default(OWNER)
-  plan                Plan                 @default(FREE)
-  onboardingCompleted Boolean              @default(false)
-  tiptapCollabJwt     String?
-  tiptapAiJwt         String?
-  timezone            String               @default("Africa/Nairobi")
-  dailySendLimit      Int                  @default(1000)
-  lastLoginAt         DateTime?
-  createdAt           DateTime             @default(now())
-  updatedAt           DateTime             @updatedAt
-  auditLogs           AuditLog[]
-  campaigns           Campaign[]
-  collections         Collection[]
-  contacts            Contact[]
-  templates           Template[]
-  templateAttachments TemplateAttachment[]
-  templateMergeTags   TemplateMergeTag[]
-  emailBatches        EmailBatch[]
-  emailSchedules      EmailSchedule[]
-  settings            UserSettings?
+  id                    String               @id
+  email                 String               @unique
+  fullName              String?
+  avatarUrl             String?
+  companyName           String?
+  role                  UserRole             @default(OWNER)
+  plan                  Plan                 @default(FREE)
+  // Anchor for monthly send-quota cycles. Defaults to signup time; once Stripe
+  // is wired up, the subscription webhook will overwrite this on plan change.
+  subscriptionStartedAt DateTime             @default(now())
+  onboardingCompleted   Boolean              @default(false)
+  tiptapCollabJwt       String?
+  tiptapAiJwt           String?
+  timezone              String               @default("Africa/Nairobi")
+  dailySendLimit        Int                  @default(1000)
+  lastLoginAt           DateTime?
+  createdAt             DateTime             @default(now())
+  updatedAt             DateTime             @updatedAt
+  auditLogs             AuditLog[]
+  campaigns             Campaign[]
+  collections           Collection[]
+  contacts              Contact[]
+  templates             Template[]
+  templateAttachments   TemplateAttachment[]
+  templateMergeTags     TemplateMergeTag[]
+  emailBatches          EmailBatch[]
+  emailSchedules        EmailSchedule[]
+  emailSendLedger       EmailSendLedger[]
+  settings              UserSettings?
 
   @@index([email])
   @@index([plan])
@@ -305,6 +309,23 @@ model EmailSchedule {
   @@index([status])
   @@index([recipientEmail])
   @@index([createdAt])
+}
+
+/// Append-only ledger of successful email sends. The current monthly usage is
+/// computed by summing `count` for rows where `createdAt >= currentPeriodStart`.
+/// No reset job is needed — the period boundary moves forward with the user's
+/// `subscriptionStartedAt` anniversary.
+model EmailSendLedger {
+  id          String   @id @default(uuid())
+  userId      String
+  batchId     String
+  recipientId String
+  count       Int      @default(1)
+  createdAt   DateTime @default(now())
+  user        User     @relation(fields: [userId], references: [id], onDelete: Cascade)
+
+  @@index([userId, createdAt])
+  @@index([batchId])
 }
 
 enum EmailBatchStatus {
