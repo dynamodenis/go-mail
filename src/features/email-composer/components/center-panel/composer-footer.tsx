@@ -72,34 +72,34 @@ export default function ComposerFooter() {
       return;
     }
 
-    // createEmailBatch(
-    //   {
-    //     subject,
-    //     bodyHtml,
-    //     templateId: selectedTemplate?.id,
-    //     ccRecipients: ccRecipients.length > 0
-    //       ? ccRecipients.map((r) => r.email)
-    //       : undefined,
-    //     bccRecipients: bccRecipients.length > 0
-    //       ? bccRecipients.map((r) => r.email)
-    //       : undefined,
-    //     scheduledAt: null,
-    //     sources,
-    //   },
-    //   {
-    //     onSuccess: () => {
-    //       const count = getEstimatedRecipientCount();
-    //       toast.success("Emails queued for sending", {
-    //         description: `Sending to ${count.toLocaleString()} recipient${count !== 1 ? "s" : ""}`,
-    //       });
-    //       reset();
-    //       setOpen(false);
-    //     },
-    //     onError: () => {
-    //       toast.error("Failed to queue emails for sending");
-    //     },
-    //   },
-    // );
+    createEmailBatch(
+      {
+        subject,
+        bodyHtml,
+        templateId: selectedTemplate?.id,
+        ccRecipients: ccRecipients.length > 0
+          ? ccRecipients.map((r) => r.email)
+          : undefined,
+        bccRecipients: bccRecipients.length > 0
+          ? bccRecipients.map((r) => r.email)
+          : undefined,
+        scheduledAt: null,
+        sources,
+      },
+      {
+        onSuccess: () => {
+          const count = getEstimatedRecipientCount();
+          toast.success("Emails queued for sending", {
+            description: `Sending to ${count.toLocaleString()} recipient${count !== 1 ? "s" : ""}`,
+          });
+          reset();
+          setOpen(false);
+        },
+        onError: () => {
+          toast.error("Failed to queue emails for sending");
+        },
+      },
+    );
   };
 
   const handleScheduleSend = () => {
