@@ -12,8 +12,11 @@ vi.mock("../api/repository", () => ({
 	updateBatchTotalRecipients: vi.fn(),
 	findBatchRecipients: vi.fn(),
 	findUserPlanAndAnchor: vi.fn(),
-	sumLedgerSince: vi.fn(),
 	appendLedgerRow: vi.fn(),
+	ensureUsageRow: vi.fn(),
+	reserveQuota: vi.fn(),
+	releaseQuota: vi.fn(),
+	settleQuota: vi.fn(),
 }));
 
 // Mock the collections repository
@@ -31,6 +34,7 @@ vi.mock("@/lib/inngest", () => ({
 import * as service from "../api/service";
 import * as repo from "../api/repository";
 import * as collectionsRepo from "@/features/collections/api/repository";
+import { inngest } from "@/lib/inngest";
 
 const mockRepo = repo as unknown as {
 	createBatch: ReturnType<typeof vi.fn>;
@@ -42,8 +46,11 @@ const mockRepo = repo as unknown as {
 	updateBatchTotalRecipients: ReturnType<typeof vi.fn>;
 	findBatchRecipients: ReturnType<typeof vi.fn>;
 	findUserPlanAndAnchor: ReturnType<typeof vi.fn>;
-	sumLedgerSince: ReturnType<typeof vi.fn>;
 	appendLedgerRow: ReturnType<typeof vi.fn>;
+	ensureUsageRow: ReturnType<typeof vi.fn>;
+	reserveQuota: ReturnType<typeof vi.fn>;
+	releaseQuota: ReturnType<typeof vi.fn>;
+	settleQuota: ReturnType<typeof vi.fn>;
 };
 
 const mockCollectionsRepo = collectionsRepo as unknown as {
@@ -64,7 +71,10 @@ describe("service.createBatch", () => {
 			plan: "FREE",
 			subscriptionStartedAt: new Date("2026-01-01"),
 		});
-		mockRepo.sumLedgerSince.mockResolvedValue(0);
+		// Default: the atomic reservation succeeds. Tests that exercise the
+		// over-cap path override this to resolve false.
+		mockRepo.ensureUsageRow.mockResolvedValue(undefined);
+		mockRepo.reserveQuota.mockResolvedValue(true);
 	});
 
 	it("creates a batch with individual sources and expands recipients", async () => {
@@ -285,17 +295,13 @@ describe("service.createBatch", () => {
 		expect(mockRepo.createRecipientRows).not.toHaveBeenCalled();
 	});
 
-	it("throws QUOTA_EXCEEDED and marks batch FAILED when used + requested exceeds plan cap", async () => {
+	it("throws QUOTA_EXCEEDED and marks batch FAILED when the reservation is rejected", async () => {
 		mockRepo.createBatch.mockResolvedValue({ id: BATCH_ID, status: "PENDING" });
 		mockRepo.updateBatchStatus.mockResolvedValue({});
 		mockRepo.createRecipientRows.mockResolvedValue(50);
 		mockRepo.updateBatchTotalRecipients.mockResolvedValue({});
-		// FREE plan cap is 100; user has already used 80, batch wants 50 → over.
-		mockRepo.findUserPlanAndAnchor.mockResolvedValue({
-			plan: "FREE",
-			subscriptionStartedAt: new Date("2026-01-01"),
-		});
-		mockRepo.sumLedgerSince.mockResolvedValue(80);
+		// The atomic reserve rejects (would exceed the cap) → 0 rows updated.
+		mockRepo.reserveQuota.mockResolvedValue(false);
 
 		await expect(
 			service.createBatch(USER_ID, {
@@ -307,6 +313,99 @@ describe("service.createBatch", () => {
 		).rejects.toThrow("Upgrade your plan");
 
 		expect(mockRepo.updateBatchStatus).toHaveBeenCalledWith(BATCH_ID, "FAILED");
+		// A rejected reservation reserves nothing, so there's nothing to release.
+		expect(mockRepo.releaseQuota).not.toHaveBeenCalled();
+	});
+
+	it("reserves the exact recipient count after dedup and passes the plan cap", async () => {
+		mockRepo.createBatch.mockResolvedValue({ id: BATCH_ID, status: "PENDING" });
+		mockRepo.updateBatchStatus.mockResolvedValue({});
+		mockRepo.createRecipientRows.mockResolvedValue(2);
+		mockRepo.updateBatchTotalRecipients.mockResolvedValue({});
+		mockRepo.findBatchById.mockResolvedValue({ scheduledAt: null });
+
+		await service.createBatch(USER_ID, {
+			subject: "Under quota",
+			bodyHtml: "<p>Hi</p>",
+			scheduledAt: null,
+			sources: [
+				{ type: "INDIVIDUAL", email: "a@test.com" },
+				{ type: "INDIVIDUAL", email: "b@test.com" },
+			],
+		});
+
+		// FREE cap is 100; reserve is called with the deduped count and the cap.
+		expect(mockRepo.ensureUsageRow).toHaveBeenCalledOnce();
+		expect(mockRepo.reserveQuota).toHaveBeenCalledWith(
+			USER_ID,
+			expect.any(Date),
+			2,
+			100,
+		);
+	});
+
+	it("releases the reservation when dispatch fails after reserving", async () => {
+		mockRepo.createBatch.mockResolvedValue({ id: BATCH_ID, status: "PENDING" });
+		mockRepo.updateBatchStatus.mockResolvedValue({});
+		mockRepo.createRecipientRows.mockResolvedValue(3);
+		mockRepo.updateBatchTotalRecipients.mockResolvedValue({});
+		mockRepo.findBatchById.mockResolvedValue({ scheduledAt: null });
+		// Reservation succeeds, then the Inngest dispatch throws — the reserved
+		// slots must be handed back since nothing was sent.
+		(inngest.send as ReturnType<typeof vi.fn>).mockRejectedValueOnce(
+			new Error("inngest down"),
+		);
+
+		await expect(
+			service.createBatch(USER_ID, {
+				subject: "Dispatch fails",
+				bodyHtml: "<p>Boom</p>",
+				scheduledAt: null,
+				sources: [
+					{ type: "INDIVIDUAL", email: "a@test.com" },
+					{ type: "INDIVIDUAL", email: "b@test.com" },
+					{ type: "INDIVIDUAL", email: "c@test.com" },
+				],
+			}),
+		).rejects.toThrow("inngest down");
+
+		expect(mockRepo.releaseQuota).toHaveBeenCalledWith(
+			USER_ID,
+			expect.any(Date),
+			3,
+		);
+		expect(mockRepo.updateBatchStatus).toHaveBeenCalledWith(BATCH_ID, "FAILED");
+	});
+
+	it("serializes concurrent expansions — second batch is rejected at the cap", async () => {
+		// Two batches expand against the same user. The atomic reserve grants the
+		// first and rejects the second (the row lock means the second sees the
+		// first's committed reservation, not a stale read). This is the TOCTOU
+		// fix: without it, both would pass and overshoot the cap.
+		mockRepo.createBatch.mockResolvedValue({ id: BATCH_ID, status: "PENDING" });
+		mockRepo.updateBatchStatus.mockResolvedValue({});
+		mockRepo.createRecipientRows.mockResolvedValue(60);
+		mockRepo.updateBatchTotalRecipients.mockResolvedValue({});
+		mockRepo.findBatchById.mockResolvedValue({ scheduledAt: null });
+		mockRepo.reserveQuota
+			.mockResolvedValueOnce(true) // batch A: 0 + 60 <= 100
+			.mockResolvedValueOnce(false); // batch B: 60 + 60 > 100
+
+		const makeBatch = () =>
+			service.createBatch(USER_ID, {
+				subject: "Concurrent",
+				bodyHtml: "<p>Hi</p>",
+				scheduledAt: null,
+				sources: [{ type: "INDIVIDUAL", email: "x@test.com" }],
+			});
+
+		const [a, b] = await Promise.allSettled([makeBatch(), makeBatch()]);
+
+		expect(a.status).toBe("fulfilled");
+		expect(b.status).toBe("rejected");
+		if (b.status === "rejected") {
+			expect(b.reason.message).toContain("Upgrade your plan");
+		}
 	});
 
 	it("sets batch to FAILED when expansion throws an error", async () => {

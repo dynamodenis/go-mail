@@ -298,7 +298,10 @@ export async function findUserPlanAndAnchor(userId: string) {
 }
 
 /** SUMs successful sends since `since` for a single user. Returns 0 when the
- *  user has no rows in the period. */
+ *  user has no rows in the period. NOTE: this is the audit/history view of
+ *  usage — it is NOT the quota gate. The cap is enforced atomically via
+ *  `reserveQuota` against the `EmailUserUsage` counter; summing the append-only
+ *  ledger at check time is what caused the old TOCTOU overshoot. */
 export async function sumLedgerSince(userId: string, since: Date) {
 	const result = await prisma.emailSendLedger.aggregate({
 		where: { userId, createdAt: { gte: since } },
@@ -323,4 +326,67 @@ export async function appendLedgerRow(args: {
 			count: args.count ?? 1,
 		},
 	});
+}
+
+/** Ensures the usage counter row for a user+period exists before we reserve
+ *  against it. `ON CONFLICT DO NOTHING` makes this idempotent and safe under
+ *  concurrent expansions — exactly one insert wins, the rest no-op. */
+export async function ensureUsageRow(userId: string, periodStart: Date) {
+	await prisma.$executeRaw`
+		INSERT INTO "EmailUserUsage" ("userId", "periodStart", "reserved", "settled", "updatedAt")
+		VALUES (${userId}, ${periodStart}, 0, 0, NOW())
+		ON CONFLICT ("userId", "periodStart") DO NOTHING
+	`;
+}
+
+/** Atomically reserves `amount` against the user's `cap` for the period. The
+ *  cap check (`reserved + amount <= cap`) and the debit (`reserved += amount`)
+ *  happen in ONE statement, so Postgres serializes concurrent expansions on the
+ *  row lock — two batches can't both pass a stale read and overshoot the cap.
+ *  This is the fix for the TOCTOU race the SUM-then-act gate had. Returns true
+ *  if the reservation was granted, false if it would exceed the cap (0 rows
+ *  updated). Call `ensureUsageRow` first so the row is guaranteed to exist. */
+export async function reserveQuota(
+	userId: string,
+	periodStart: Date,
+	amount: number,
+	cap: number,
+): Promise<boolean> {
+	const updated = await prisma.$executeRaw`
+		UPDATE "EmailUserUsage"
+		SET "reserved" = "reserved" + ${amount}, "updatedAt" = NOW()
+		WHERE "userId" = ${userId}
+		  AND "periodStart" = ${periodStart}
+		  AND "reserved" + ${amount} <= ${cap}
+	`;
+	return updated > 0;
+}
+
+/** Releases a previously reserved `amount` (a failed send, or a batch that never
+ *  dispatched). `GREATEST(..., 0)` clamps at zero so a double-release can never
+ *  drive the counter negative. */
+export async function releaseQuota(
+	userId: string,
+	periodStart: Date,
+	amount: number,
+) {
+	await prisma.$executeRaw`
+		UPDATE "EmailUserUsage"
+		SET "reserved" = GREATEST("reserved" - ${amount}, 0), "updatedAt" = NOW()
+		WHERE "userId" = ${userId} AND "periodStart" = ${periodStart}
+	`;
+}
+
+/** Records `amount` confirmed sends. `settled` is the number billing reads —
+ *  reservations only gate the cap, settled is what actually left. */
+export async function settleQuota(
+	userId: string,
+	periodStart: Date,
+	amount: number,
+) {
+	await prisma.$executeRaw`
+		UPDATE "EmailUserUsage"
+		SET "settled" = "settled" + ${amount}, "updatedAt" = NOW()
+		WHERE "userId" = ${userId} AND "periodStart" = ${periodStart}
+	`;
 }

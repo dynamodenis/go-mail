@@ -30,7 +30,8 @@ export const dispatchBatch = inngest.createFunction(
 		triggers: [{ event: "email/batch.created" }],
 	},
 	async ({ event, step }) => {
-		const { batchId, userId, tier } = event.data as BatchCreatedData;
+		const { batchId, userId, tier, periodStart } =
+			event.data as BatchCreatedData;
 
 		const batch = await step.run("load-batch", () =>
 			repo.findBatchById(userId, batchId),
@@ -67,6 +68,7 @@ export const dispatchBatch = inngest.createFunction(
 					recipientId,
 					userId,
 					tier,
+					periodStart,
 				} satisfies RecipientSendData,
 			})),
 		);
@@ -122,18 +124,23 @@ export const sendEmailToRecipient = inngest.createFunction(
 			const original = (
 				event.data as { event: { data: RecipientSendData } }
 			).event;
-			const { batchId, recipientId } = original.data;
+			const { batchId, recipientId, userId, periodStart } = original.data;
 
 			await repo.markRecipientFailed(
 				recipientId,
 				error.message.slice(0, 500),
 			);
 			await repo.incrementBatchCounters(batchId, 0, 1);
+			// Release the reserved slot — this email never went out, so it must
+			// not count against the cap or be billed. Releasing frees the slot
+			// for another send this period.
+			await repo.releaseQuota(userId, new Date(periodStart), 1);
 			await maybeFinalizeBatch(batchId);
 		},
 	},
 	async ({ event, step }) => {
-		const { batchId, recipientId, userId } = event.data as RecipientSendData;
+		const { batchId, recipientId, userId, periodStart } =
+			event.data as RecipientSendData;
 
 		const recipient = await step.run("load-recipient", () =>
 			repo.findScheduleById(recipientId),
@@ -186,9 +193,12 @@ export const sendEmailToRecipient = inngest.createFunction(
 		await step.run("mark-sent", async () => {
 			await repo.markRecipientSent(recipientId);
 			await repo.incrementBatchCounters(batchId, 1, 0);
-			// Append to the usage ledger — this is what the next quota check
-			// will SUM against to decide whether the user can send more.
+			// Append to the usage ledger (kept for per-send audit/history).
 			await repo.appendLedgerRow({ userId, batchId, recipientId });
+			// Settle the reservation: this confirmed send is now billable. The
+			// slot was already reserved at expand time, so settling never
+			// changes the cap — it just records what actually went out.
+			await repo.settleQuota(userId, new Date(periodStart), 1);
 		});
 
 		await step.run("maybe-finalize", () => maybeFinalizeBatch(batchId));

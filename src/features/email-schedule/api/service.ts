@@ -53,6 +53,11 @@ async function expandBatch(
 ) {
 	await repo.updateBatchStatus(batchId, "EXPANDING");
 
+	// Track the quota we reserve so the catch can hand it back if the batch
+	// fails before any email is actually sent. Set once the reservation lands.
+	let reservedAmount = 0;
+	let periodStart: Date | null = null;
+
 	try {
 		const recipientMap = new Map<string, ExpandedRecipient>();
 
@@ -121,16 +126,24 @@ async function expandBatch(
 		if (!user) {
 			throw new AppError("USER_NOT_FOUND", "User account not found");
 		}
-		const periodStart = currentPeriodStart(user.subscriptionStartedAt);
-		const used = await repo.sumLedgerSince(userId, periodStart);
+		periodStart = currentPeriodStart(user.subscriptionStartedAt);
 		const cap = quotaFor(user.plan);
-		if (used + created > cap) {
+
+		// Reserve atomically: the cap check and the debit are a single DB
+		// statement, so two batches expanding at once serialize on the row lock
+		// instead of both passing a stale read and overshooting the cap. The
+		// reservation (not the send) is what guards real cost — money isn't
+		// spent on a send we already know exceeds the plan.
+		await repo.ensureUsageRow(userId, periodStart);
+		const reserved = await repo.reserveQuota(userId, periodStart, created, cap);
+		if (!reserved) {
 			await repo.updateBatchStatus(batchId, "FAILED");
 			throw new AppError(
 				"QUOTA_EXCEEDED",
-				`You've used ${used} of ${cap} emails this cycle. This batch needs ${created}. Upgrade your plan to continue.`,
+				`This batch needs ${created} emails but would exceed your ${cap} monthly cap. Upgrade your plan to continue.`,
 			);
 		}
+		reservedAmount = created;
 
 		// PENDING = waiting for scheduledAt, SENDING = ready for immediate send
 		const batch = await repo.findBatchById(userId, batchId);
@@ -143,9 +156,22 @@ async function expandBatch(
 		// without re-querying the DB.
 		await inngest.send({
 			name: "email/batch.created",
-			data: { batchId, userId, tier: user.plan },
+			data: {
+				batchId,
+				userId,
+				tier: user.plan,
+				// Carry the exact period the reservation was made against so the
+				// sender settles/releases the same EmailUserUsage row — no recompute drift if a send crosses the billing anniversary.
+				periodStart: periodStart.toISOString(),
+			},
 		});
 	} catch (error) {
+		// Hand back any quota we reserved — at this point nothing has been sent
+		// (dispatch is the last step), so the reservation is pure overhead.
+		// Per-recipient failures release their own slot later in the sender.
+		if (reservedAmount > 0 && periodStart) {
+			await repo.releaseQuota(userId, periodStart, reservedAmount);
+		}
 		await repo.updateBatchStatus(batchId, "FAILED");
 		throw error;
 	}

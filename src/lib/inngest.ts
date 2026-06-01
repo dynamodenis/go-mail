@@ -18,6 +18,9 @@ export interface BatchCreatedData {
 	batchId: string;
 	userId: string;
 	tier: Tier;
+	/** ISO string of the billing period the batch's quota was reserved against.
+	 *  Carried so the sender settles/releases the exact same EmailUserUsage row. */
+	periodStart: string;
 }
 
 export interface RecipientSendData {
@@ -25,4 +28,7 @@ export interface RecipientSendData {
 	recipientId: string;
 	userId: string;
 	tier: Tier;
+	/** ISO string of the billing period this send's quota was reserved against
+	 *  (inherited from the parent batch). */
+	periodStart: string;
 }

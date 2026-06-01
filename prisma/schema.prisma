@@ -35,6 +35,7 @@ model User {
   emailBatches          EmailBatch[]
   emailSchedules        EmailSchedule[]
   emailSendLedger       EmailSendLedger[]
+  emailUsage            EmailUserUsage[]
   settings              UserSettings?
 
   @@index([email])
@@ -326,6 +327,25 @@ model EmailSendLedger {
 
   @@index([userId, createdAt])
   @@index([batchId])
+}
+
+/// Per-user, per-period quota counter. The quota gate reserves against this row
+/// ATOMICALLY at batch-expand time (a single conditional UPDATE under a row
+/// lock), so concurrent expansions serialize and can never both pass a stale
+/// read — closing the TOCTOU race that the append-only ledger alone allowed.
+/// `reserved` holds in-flight + sent emails and is what the cap is checked
+/// against; `settled` counts confirmed sends and is what billing reads.
+/// One row per (userId, periodStart); the period boundary moves with the user's
+/// `subscriptionStartedAt` anniversary, so no reset job is needed.
+model EmailUserUsage {
+  userId      String
+  periodStart DateTime
+  reserved    Int      @default(0)
+  settled     Int      @default(0)
+  updatedAt   DateTime @updatedAt
+  user        User     @relation(fields: [userId], references: [id], onDelete: Cascade)
+
+  @@id([userId, periodStart])
 }
 
 enum EmailBatchStatus {
