@@ -8,6 +8,7 @@ understand a subsystem before changing it.
 | Doc | What it covers |
 |-----|----------------|
 | [email-sending-flow.md](./email-sending-flow.md) | End-to-end life of an email batch: from a user hitting **Send** (individual recipients or collections) → expansion & dedup → quota reservation → Inngest dispatch → Resend delivery → settlement. Includes every status transition, the retry/fallback paths, and the quota accounting model. |
+| [inngest.md](./inngest.md) | Running Inngest in **development** (local dev server, two-terminal workflow) and **production** (Inngest Cloud sync, required env vars, proxy gotchas). Dev-vs-prod comparison at a glance. |
 
 ## Conventions
 
