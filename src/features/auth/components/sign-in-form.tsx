@@ -1,4 +1,5 @@
 import { Link, useRouter } from "@tanstack/react-router";
+import { useQueryClient } from "@tanstack/react-query";
 import { useState, useCallback } from "react";
 import { Eye, EyeOff } from "lucide-react";
 import { Button } from "@/components/ui/button";
@@ -15,6 +16,7 @@ import { Label } from "@/components/ui/label";
 import { useMutation } from "@/hooks/use-mutation";
 import { APP_NAME } from "@/lib/constants";
 import { signInFn } from "../api/auth-fns";
+import { authKeys } from "../api/queries";
 import { type SignInInput, signInSchema } from "../schemas/auth";
 
 export function SignInForm() {
@@ -28,13 +30,19 @@ export function SignInForm() {
 	>({});
 
 	const router = useRouter();
+	const queryClient = useQueryClient();
 
 	const signInMutation = useMutation({
 		fn: signInFn,
 		onSuccess: async ({ data }) => {
 			if (data && "success" in data) {
+				// The logged-out user query is cached as `null`. router.invalidate()
+				// re-runs the route guard but ensureQueryData returns that cached
+				// null, so we'd bounce back to /sign-in. Remove it first so the
+				// guard refetches and picks up the new session.
+				queryClient.removeQueries({ queryKey: authKeys.user });
 				await router.invalidate();
-				router.navigate({ to: "/dashboard" });
+				await router.navigate({ to: "/dashboard" });
 			}
 		},
 	});
