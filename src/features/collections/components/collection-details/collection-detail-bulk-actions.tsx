@@ -43,7 +43,6 @@ export function CollectionDetailBulkActions({
 						`${count} contact${count > 1 ? "s" : ""} removed from collection`,
 					);
 				},
-				onError: () => toast.error("Failed to remove contacts"),
 			},
 		);
 	};
@@ -55,7 +54,6 @@ export function CollectionDetailBulkActions({
 				onClearSelection();
 				toast.success(`${count} contact${count > 1 ? "s" : ""} deleted`);
 			},
-			onError: () => toast.error("Failed to delete contacts"),
 		});
 	};
 

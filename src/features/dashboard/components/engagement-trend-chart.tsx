@@ -33,16 +33,16 @@ export function EngagementTrendChart() {
 						onRetry={() => refetch()}
 					/>
 				)}
-				{data?.data && data.data.length === 0 && (
+				{data && data.length === 0 && (
 					<EmptyState
 						icon={MousePointerClick}
 						title="No engagement data"
 						description="Engagement trends will appear after your first campaign."
 					/>
 				)}
-				{data?.data && data.data.length > 0 && (
+				{data && data.length > 0 && (
 					<ResponsiveContainer width="100%" height={280}>
-						<LineChart data={data.data}>
+						<LineChart data={data}>
 							<CartesianGrid strokeDasharray="3 3" className="stroke-border" />
 							<XAxis dataKey="date" tick={{ fontSize: 12 }} />
 							<YAxis

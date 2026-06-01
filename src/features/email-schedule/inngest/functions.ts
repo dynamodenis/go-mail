@@ -174,6 +174,13 @@ export const sendEmailToRecipient = inngest.createFunction(
 		const bcc = (batch.bccRecipients as string[] | undefined) ?? [];
 
 		await step.run("send-via-resend", async () => {
+			// Dry run: set EMAIL_DRY_RUN=true in .env to skip the real Resend
+			// call during local testing so send credits aren't spent. The step
+			// still runs (visible in the Inngest dashboard) and downstream
+			// mark-sent / settle proceed as if the send succeeded.
+			if (process.env.EMAIL_DRY_RUN === "true") {
+				return { dryRun: true, to: recipient.recipientEmail };
+			}
 			if (!RESEND_FROM_EMAIL) {
 				throw new NonRetriableError("RESEND_FROM_EMAIL is not configured");
 			}

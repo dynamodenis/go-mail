@@ -62,6 +62,9 @@ export const signInFn = createServerFn({ method: "POST" })
 					password: data.password,
 				});
 
+			console.log("Response ", response)
+			console.log("sign up error ", error)
+
 			if (error) {
 				return { error: error.message };
 			}

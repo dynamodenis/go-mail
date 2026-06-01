@@ -21,7 +21,7 @@ export function CampaignPerformanceChart() {
 	const { data, isLoading, isError, refetch } =
 		useCampaignPerformance(range);
 
-	const items = data?.data ?? [];
+	const items = data ?? [];
 
 	return (
 		<Card>

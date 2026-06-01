@@ -1,6 +1,7 @@
 import { createServerFn } from "@tanstack/react-start";
 import { z } from "zod";
 import { requireUserId } from "@/lib/require-user";
+import { handleServerError } from "@/lib/errors";
 import {
 	createEmailBatchSchema,
 	cancelEmailBatchSchema,
@@ -33,8 +34,12 @@ export const createEmailBatch = createServerFn({ method: "POST" })
 		}) => createEmailBatchSchema.parse(data),
 	)
 	.handler(async ({ data }) => {
-		const userId = await requireUserId();
-		return { data: await service.createBatch(userId, data) };
+		try {
+			const userId = await requireUserId();
+			return { data: await service.createBatch(userId, data) };
+		} catch (error) {
+			return handleServerError(error);
+		}
 	});
 
 /**
@@ -47,8 +52,12 @@ export const getEmailBatches = createServerFn({ method: "GET" })
 			emailBatchFiltersSchema.parse(data),
 	)
 	.handler(async ({ data }) => {
-		const userId = await requireUserId();
-		return { data: await service.listBatches(userId, data) };
+		try {
+			const userId = await requireUserId();
+			return { data: await service.listBatches(userId, data) };
+		} catch (error) {
+			return handleServerError(error);
+		}
 	});
 
 /**
@@ -61,8 +70,12 @@ export const getEmailBatchById = createServerFn({ method: "GET" })
 		z.object({ id: z.string().uuid() }).parse(data),
 	)
 	.handler(async ({ data }) => {
-		const userId = await requireUserId();
-		return { data: await service.getBatch(userId, data.id) };
+		try {
+			const userId = await requireUserId();
+			return { data: await service.getBatch(userId, data.id) };
+		} catch (error) {
+			return handleServerError(error);
+		}
 	});
 
 /**
@@ -75,8 +88,12 @@ export const cancelEmailBatch = createServerFn({ method: "POST" })
 		cancelEmailBatchSchema.parse(data),
 	)
 	.handler(async ({ data }) => {
-		const userId = await requireUserId();
-		return { data: await service.cancelBatch(userId, data.id) };
+		try {
+			const userId = await requireUserId();
+			return { data: await service.cancelBatch(userId, data.id) };
+		} catch (error) {
+			return handleServerError(error);
+		}
 	});
 
 /**
@@ -94,6 +111,10 @@ export const getEmailBatchRecipients = createServerFn({ method: "GET" })
 		}) => emailBatchRecipientsSchema.parse(data),
 	)
 	.handler(async ({ data }) => {
-		const userId = await requireUserId();
-		return { data: await service.getBatchRecipients(userId, data) };
+		try {
+			const userId = await requireUserId();
+			return { data: await service.getBatchRecipients(userId, data) };
+		} catch (error) {
+			return handleServerError(error);
+		}
 	});

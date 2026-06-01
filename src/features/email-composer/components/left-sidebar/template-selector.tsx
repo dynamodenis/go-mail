@@ -26,11 +26,7 @@ export default function TemplateSelector() {
 
   const { data: templatesResult } = useTemplates({ page: 1, pageSize: 50 });
 
-  const templates: Template[] = (() => {
-    if (!templatesResult) return [];
-    if ("error" in templatesResult) return [];
-    return templatesResult.data?.data ?? [];
-  })();
+  const templates: Template[] = templatesResult?.data ?? [];
 
   const [dropdownOpen, setDropdownOpen] = useState(false);
 

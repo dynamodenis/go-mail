@@ -25,7 +25,7 @@ const COLORS = [
 export function DomainBreakdownChart() {
 	const { data, isLoading, isError, refetch } = useDomainBreakdown();
 
-	const items = data?.data ?? [];
+	const items = data ?? [];
 
 	return (
 		<Card>

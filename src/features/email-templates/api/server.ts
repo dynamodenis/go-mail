@@ -1,6 +1,8 @@
 import { createServerFn } from "@tanstack/react-start";
 import { z } from "zod";
 import { requireUserId } from "@/lib/require-user";
+import { handleServerError } from "@/lib/errors";
+import type { ServerResult } from "@/lib/server-result";
 import {
 	templateFiltersSchema,
 	createTemplateSchema,
@@ -30,15 +32,16 @@ export const getTemplates = createServerFn({ method: "GET" })
 			pageSize?: number;
 		}) => templateFiltersSchema.parse(data),
 	)
-	.handler(async ({ data }): Promise<{ data: TemplateListResponse }> => {
-		try {
-			const userId = await requireUserId();
-			return { data: await service.listTemplates(userId, data) };
-		} catch (error) {
-			console.error("getTemplates error:", error);
-			throw error;
-		}
-	});
+	.handler(
+		async ({ data }): Promise<ServerResult<TemplateListResponse>> => {
+			try {
+				const userId = await requireUserId();
+				return { data: await service.listTemplates(userId, data) };
+			} catch (error) {
+				return handleServerError(error);
+			}
+		},
+	);
 
 /**
  * Get a single template by ID.
@@ -49,9 +52,13 @@ export const getTemplateById = createServerFn({ method: "GET" })
 	.inputValidator((data: { id: string }) =>
 		z.object({ id: z.string().uuid() }).parse(data),
 	)
-	.handler(async ({ data }): Promise<{ data: Template }> => {
-		const userId = await requireUserId();
-		return { data: await service.getTemplate(userId, data.id) };
+	.handler(async ({ data }): Promise<ServerResult<Template>> => {
+		try {
+			const userId = await requireUserId();
+			return { data: await service.getTemplate(userId, data.id) };
+		} catch (error) {
+			return handleServerError(error);
+		}
 	});
 
 /**
@@ -71,9 +78,13 @@ export const createTemplate = createServerFn({ method: "POST" })
 			mergeTags?: { label: string; value: string }[];
 		}) => createTemplateSchema.parse(data),
 	)
-	.handler(async ({ data }): Promise<{ data: Template }> => {
-		const userId = await requireUserId();
-		return { data: await service.createTemplate(userId, data) };
+	.handler(async ({ data }): Promise<ServerResult<Template>> => {
+		try {
+			const userId = await requireUserId();
+			return { data: await service.createTemplate(userId, data) };
+		} catch (error) {
+			return handleServerError(error);
+		}
 	});
 
 /**
@@ -92,9 +103,13 @@ export const updateTemplate = createServerFn({ method: "POST" })
 			category?: string;
 		}) => updateTemplateSchema.parse(data),
 	)
-	.handler(async ({ data }): Promise<{ data: Template }> => {
-		const userId = await requireUserId();
-		return { data: await service.updateTemplate(userId, data) };
+	.handler(async ({ data }): Promise<ServerResult<Template>> => {
+		try {
+			const userId = await requireUserId();
+			return { data: await service.updateTemplate(userId, data) };
+		} catch (error) {
+			return handleServerError(error);
+		}
 	});
 
 /**
@@ -106,10 +121,14 @@ export const deleteTemplate = createServerFn({ method: "POST" })
 	.inputValidator((data: { id: string }) =>
 		z.object({ id: z.string().uuid() }).parse(data),
 	)
-	.handler(async ({ data }): Promise<{ data: { success: boolean } }> => {
-		const userId = await requireUserId();
-		await service.deleteTemplate(userId, data.id);
-		return { data: { success: true } };
+	.handler(async ({ data }): Promise<ServerResult<{ success: boolean }>> => {
+		try {
+			const userId = await requireUserId();
+			await service.deleteTemplate(userId, data.id);
+			return { data: { success: true } };
+		} catch (error) {
+			return handleServerError(error);
+		}
 	});
 
 /**
@@ -127,9 +146,13 @@ export const addTemplateAttachment = createServerFn({ method: "POST" })
 			mimeType: string;
 		}) => addAttachmentSchema.parse(data),
 	)
-	.handler(async ({ data }): Promise<{ data: TemplateAttachment }> => {
-		const userId = await requireUserId();
-		return { data: await service.addAttachment(userId, data) };
+	.handler(async ({ data }): Promise<ServerResult<TemplateAttachment>> => {
+		try {
+			const userId = await requireUserId();
+			return { data: await service.addAttachment(userId, data) };
+		} catch (error) {
+			return handleServerError(error);
+		}
 	});
 
 /**
@@ -141,10 +164,14 @@ export const removeTemplateAttachment = createServerFn({ method: "POST" })
 	.inputValidator((data: { attachmentId: string }) =>
 		removeAttachmentSchema.parse(data),
 	)
-	.handler(async ({ data }): Promise<{ data: { success: boolean } }> => {
-		const userId = await requireUserId();
-		await service.removeAttachment(userId, data.attachmentId);
-		return { data: { success: true } };
+	.handler(async ({ data }): Promise<ServerResult<{ success: boolean }>> => {
+		try {
+			const userId = await requireUserId();
+			await service.removeAttachment(userId, data.attachmentId);
+			return { data: { success: true } };
+		} catch (error) {
+			return handleServerError(error);
+		}
 	});
 
 /**
@@ -157,14 +184,18 @@ export const addTemplateMergeTag = createServerFn({ method: "POST" })
 		(data: { templateId: string; label: string; value: string }) =>
 			createMergeTagSchema.parse(data),
 	)
-	.handler(async ({ data }): Promise<{ data: TemplateMergeTag }> => {
-		const userId = await requireUserId();
-		return {
-			data: await service.addMergeTag(userId, data.templateId, {
-				label: data.label,
-				value: data.value,
-			}),
-		};
+	.handler(async ({ data }): Promise<ServerResult<TemplateMergeTag>> => {
+		try {
+			const userId = await requireUserId();
+			return {
+				data: await service.addMergeTag(userId, data.templateId, {
+					label: data.label,
+					value: data.value,
+				}),
+			};
+		} catch (error) {
+			return handleServerError(error);
+		}
 	});
 
 /**
@@ -176,8 +207,12 @@ export const removeTemplateMergeTag = createServerFn({ method: "POST" })
 	.inputValidator((data: { tagId: string }) =>
 		removeMergeTagSchema.parse(data),
 	)
-	.handler(async ({ data }): Promise<{ data: { success: boolean } }> => {
-		const userId = await requireUserId();
-		await service.removeMergeTag(userId, data.tagId);
-		return { data: { success: true } };
+	.handler(async ({ data }): Promise<ServerResult<{ success: boolean }>> => {
+		try {
+			const userId = await requireUserId();
+			await service.removeMergeTag(userId, data.tagId);
+			return { data: { success: true } };
+		} catch (error) {
+			return handleServerError(error);
+		}
 	});

@@ -35,7 +35,6 @@ export function ContactsBulkActions({
 				onClearSelection();
 				toast.success(`${count} contact${count > 1 ? "s" : ""} deleted`);
 			},
-			onError: () => toast.error("Failed to delete contacts"),
 		});
 	};
 

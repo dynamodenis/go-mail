@@ -33,16 +33,16 @@ export function SendsVolumeChart() {
 						onRetry={() => refetch()}
 					/>
 				)}
-				{data?.data && data.data.length === 0 && (
+				{data && data.length === 0 && (
 					<EmptyState
 						icon={Send}
 						title="No sends yet"
 						description="Send your first campaign to see volume data."
 					/>
 				)}
-				{data?.data && data.data.length > 0 && (
+				{data && data.length > 0 && (
 					<ResponsiveContainer width="100%" height={280}>
-						<LineChart data={data.data}>
+						<LineChart data={data}>
 							<CartesianGrid strokeDasharray="3 3" className="stroke-border" />
 							<XAxis dataKey="date" tick={{ fontSize: 12 }} />
 							<YAxis tick={{ fontSize: 12 }} />

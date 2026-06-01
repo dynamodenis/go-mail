@@ -26,7 +26,6 @@ export function DeleteCollectionDialog() {
 				closeDeleteDialog();
 				toast.success("Collection deleted");
 			},
-			onError: () => toast.error("Failed to delete collection"),
 		});
 	};
 

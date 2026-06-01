@@ -3,6 +3,7 @@ import {
 	type QueryClient,
 	type UseQueryOptions,
 } from "@tanstack/react-query";
+import { unwrap } from "@/lib/server-result";
 import type { DateRange } from "../types";
 import * as server from "./server";
 
@@ -40,7 +41,8 @@ export function useDashboardKpis(
 	return useQuery(
 		{
 			queryKey: dashboardKeys.kpis(range),
-			queryFn: () => server.getDashboardKpis({ data: { dateRange: range } }),
+			queryFn: async () =>
+				unwrap(await server.getDashboardKpis({ data: { dateRange: range } })),
 			staleTime: STALE_1_MIN,
 		} satisfies UseQueryOptions,
 		queryClient,
@@ -54,8 +56,8 @@ export function useSendsOverTime(
 	return useQuery(
 		{
 			queryKey: dashboardKeys.sendsOverTime(range),
-			queryFn: () =>
-				server.getSendsOverTime({ data: { dateRange: range } }),
+			queryFn: async () =>
+				unwrap(await server.getSendsOverTime({ data: { dateRange: range } })),
 			staleTime: STALE_1_MIN,
 		} satisfies UseQueryOptions,
 		queryClient,
@@ -69,8 +71,8 @@ export function useEngagementTrend(
 	return useQuery(
 		{
 			queryKey: dashboardKeys.engagementTrend(range),
-			queryFn: () =>
-				server.getEngagementTrend({ data: { dateRange: range } }),
+			queryFn: async () =>
+				unwrap(await server.getEngagementTrend({ data: { dateRange: range } })),
 			staleTime: STALE_1_MIN,
 		} satisfies UseQueryOptions,
 		queryClient,
@@ -84,8 +86,10 @@ export function useSendTimeDistribution(
 	return useQuery(
 		{
 			queryKey: dashboardKeys.sendTimeDistribution(range),
-			queryFn: () =>
-				server.getSendTimeDistribution({ data: { dateRange: range } }),
+			queryFn: async () =>
+				unwrap(
+					await server.getSendTimeDistribution({ data: { dateRange: range } }),
+				),
 			staleTime: STALE_1_MIN,
 		} satisfies UseQueryOptions,
 		queryClient,
@@ -99,8 +103,10 @@ export function useCampaignPerformance(
 	return useQuery(
 		{
 			queryKey: dashboardKeys.campaignPerformance(range),
-			queryFn: () =>
-				server.getCampaignPerformance({ data: { dateRange: range } }),
+			queryFn: async () =>
+				unwrap(
+					await server.getCampaignPerformance({ data: { dateRange: range } }),
+				),
 			staleTime: STALE_1_MIN,
 		} satisfies UseQueryOptions,
 		queryClient,
@@ -114,8 +120,8 @@ export function useAudienceGrowth(
 	return useQuery(
 		{
 			queryKey: dashboardKeys.audienceGrowth(range),
-			queryFn: () =>
-				server.getAudienceGrowth({ data: { dateRange: range } }),
+			queryFn: async () =>
+				unwrap(await server.getAudienceGrowth({ data: { dateRange: range } })),
 			staleTime: STALE_1_MIN,
 		} satisfies UseQueryOptions,
 		queryClient,
@@ -126,7 +132,7 @@ export function useDomainBreakdown(queryClient?: QueryClient) {
 	return useQuery(
 		{
 			queryKey: dashboardKeys.domainBreakdown(),
-			queryFn: () => server.getDomainBreakdown(),
+			queryFn: async () => unwrap(await server.getDomainBreakdown()),
 			staleTime: STALE_5_MIN,
 		} satisfies UseQueryOptions,
 		queryClient,
@@ -140,8 +146,8 @@ export function useBounceBreakdown(
 	return useQuery(
 		{
 			queryKey: dashboardKeys.bounceBreakdown(range),
-			queryFn: () =>
-				server.getBounceBreakdown({ data: { dateRange: range } }),
+			queryFn: async () =>
+				unwrap(await server.getBounceBreakdown({ data: { dateRange: range } })),
 			staleTime: STALE_1_MIN,
 		} satisfies UseQueryOptions,
 		queryClient,
@@ -152,7 +158,7 @@ export function useRecentCampaigns(queryClient?: QueryClient) {
 	return useQuery(
 		{
 			queryKey: dashboardKeys.recentCampaigns(),
-			queryFn: () => server.getRecentCampaigns(),
+			queryFn: async () => unwrap(await server.getRecentCampaigns()),
 			staleTime: STALE_1_MIN,
 		} satisfies UseQueryOptions,
 		queryClient,

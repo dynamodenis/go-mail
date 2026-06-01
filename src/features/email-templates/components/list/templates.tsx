@@ -41,9 +41,6 @@ function Templates() {
 				toast.success("Template deleted");
 				setDeleteConfirmId(null);
 			},
-			onError: () => {
-				toast.error("Failed to delete template");
-			},
 		});
 	};
 
@@ -70,7 +67,7 @@ function Templates() {
 						onRetry={refetch}
 					/>
 				)}
-				{!isLoading && !isError && data?.data?.data.length === 0 && (
+				{!isLoading && !isError && data?.data.length === 0 && (
 					<EmptyState
 						icon={FileText}
 						title="No templates yet"
@@ -79,16 +76,16 @@ function Templates() {
 						onAction={() => setCreateModalOpen(true)}
 					/>
 				)}
-				{!isLoading && !isError && data?.data && data.data.data.length > 0 && (
+				{!isLoading && !isError && data?.data && data.data.length > 0 && (
 					<>
 						<TemplateGrid
-							templates={data.data.data}
+							templates={data.data}
 							onDelete={setDeleteConfirmId}
 						/>
 						<TemplatePagination
-							page={data.data.page}
-							pageSize={data.data.pageSize}
-							total={data.data.total}
+							page={data.page}
+							pageSize={data.pageSize}
+							total={data.total}
 							onPageChange={setCurrentPage}
 						/>
 					</>

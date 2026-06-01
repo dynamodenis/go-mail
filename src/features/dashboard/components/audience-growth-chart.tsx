@@ -21,7 +21,7 @@ export function AudienceGrowthChart() {
 	const range = useDashboardUIStore((s) => s.selectedDateRange);
 	const { data, isLoading, isError, refetch } = useAudienceGrowth(range);
 
-	const items = data?.data ?? [];
+	const items = data ?? [];
 
 	return (
 		<Card>

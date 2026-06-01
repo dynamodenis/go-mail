@@ -24,7 +24,6 @@ export function DeleteContactDialog() {
 				closeDeleteDialog();
 				toast.success("Contact deleted");
 			},
-			onError: () => toast.error("Failed to delete contact"),
 		});
 	};
 

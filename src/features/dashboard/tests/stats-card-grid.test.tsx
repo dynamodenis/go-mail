@@ -81,7 +81,7 @@ describe("StatsCardGrid", () => {
 
 	it("renders all 6 KPI cards", () => {
 		mockUseDashboardKpis.mockReturnValue({
-			data: { data: mockKpis },
+			data: mockKpis,
 			isLoading: false,
 			isError: false,
 			refetch: vi.fn(),

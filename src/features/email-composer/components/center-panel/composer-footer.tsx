@@ -126,9 +126,6 @@ export default function ComposerFooter() {
             });
             setScheduleOpen(false);
           },
-          onError: () => {
-            toast.error("Failed to schedule email");
-          },
         },
       );
     },

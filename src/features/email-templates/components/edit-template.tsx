@@ -26,10 +26,10 @@ export default function EditTemplate() {
 	);
 
 	if (isLoading) return <LoadingState message="Loading template..." />;
-	if (isError || !data?.data)
+	if (isError || !data)
 		return <ErrorState message="Template not found." onRetry={refetch} />;
 
-	const template = data.data;
+	const template = data;
 
 	return (
 		<div>
@@ -49,9 +49,6 @@ export default function EditTemplate() {
 							onSuccess: () => {
 								toast.success("Template updated");
 								router.navigate({ to: "/outreach-composer/email-templates" });
-							},
-							onError: () => {
-								toast.error("Failed to update template");
 							},
 						},
 					);

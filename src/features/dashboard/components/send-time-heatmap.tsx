@@ -23,7 +23,7 @@ export function SendTimeHeatmap() {
 	const { data, isLoading, isError, refetch } =
 		useSendTimeDistribution(range);
 
-	const cells = data?.data ?? [];
+	const cells = data ?? [];
 	const maxCount = cells.length > 0 ? Math.max(...cells.map((c) => c.count)) : 0;
 
 	const grid = new Map<string, number>();

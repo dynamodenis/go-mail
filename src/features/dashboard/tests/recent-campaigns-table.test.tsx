@@ -77,7 +77,7 @@ describe("RecentCampaignsTable", () => {
 
 	it("renders empty state when no campaigns", () => {
 		mockUseRecentCampaigns.mockReturnValue({
-			data: { data: [] },
+			data: [],
 			isLoading: false,
 			isError: false,
 			refetch: vi.fn(),
@@ -89,7 +89,7 @@ describe("RecentCampaignsTable", () => {
 
 	it("renders campaign rows with status badges", () => {
 		mockUseRecentCampaigns.mockReturnValue({
-			data: { data: mockCampaigns },
+			data: mockCampaigns,
 			isLoading: false,
 			isError: false,
 			refetch: vi.fn(),

@@ -99,7 +99,6 @@ export function CreateContactDialog() {
 						closeDialog();
 						toast.success("Contact updated");
 					},
-					onError: () => toast.error("Failed to update contact"),
 				},
 			);
 		} else {
@@ -108,7 +107,6 @@ export function CreateContactDialog() {
 					closeDialog();
 					toast.success("Contact created");
 				},
-				onError: () => toast.error("Failed to save contact"),
 			});
 		}
 	};

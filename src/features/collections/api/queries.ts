@@ -11,6 +11,7 @@ import {
 	deleteCollections,
 } from "@/features/collections/api/server";
 import { getContacts } from "@/features/contacts/api/server";
+import { unwrap } from "@/lib/server-result";
 import type {
 	AddContactsToCollectionsInput,
 	CollectionFilters,
@@ -34,14 +35,10 @@ export const collectionsKeys = {
 export function useCollections(filters: CollectionFilters) {
 	return useQuery({
 		queryKey: collectionsKeys.list(filters),
-		queryFn: () => getCollections({ data: filters }),
+		queryFn: async () => unwrap(await getCollections({ data: filters })),
 		staleTime: STALE_TIME,
 		placeholderData: keepPreviousData,
 		retry: 2,
-		select: (res) =>
-			"error" in res
-				? { data: [], total: 0, page: 1, pageSize: 25 }
-				: res.data,
 	});
 }
 
@@ -50,11 +47,14 @@ export function useCollections(filters: CollectionFilters) {
 export function useCollectionContactIds(collectionId: string | null) {
 	return useQuery({
 		queryKey: collectionsKeys.detail(collectionId ?? ""),
-		queryFn: () =>
-			getCollectionContactIds({ data: { collectionId: collectionId! } }),
+		queryFn: async () =>
+			unwrap(
+				await getCollectionContactIds({
+					data: { collectionId: collectionId! },
+				}),
+			),
 		enabled: !!collectionId,
 		staleTime: STALE_TIME,
-		select: (res) => ("error" in res ? [] : res.data),
 	});
 }
 
@@ -62,9 +62,9 @@ export function useCollectionContactIds(collectionId: string | null) {
 export function useCollectionDetail(collectionId: string) {
 	return useQuery({
 		queryKey: collectionsKeys.detail(collectionId),
-		queryFn: () => getCollectionById({ data: { id: collectionId } }),
+		queryFn: async () =>
+			unwrap(await getCollectionById({ data: { id: collectionId } })),
 		staleTime: STALE_TIME,
-		select: (res) => ("error" in res ? null : res.data),
 	});
 }
 
@@ -72,12 +72,11 @@ export function useCollectionDetail(collectionId: string) {
 export function useCollectionContacts(filters: ContactFilters) {
 	return useQuery({
 		queryKey: [...collectionsKeys.detail(filters.collectionId!), "contacts", filters] as const,
-		queryFn: () => getContacts({ data: filters }),
+		queryFn: async () => unwrap(await getContacts({ data: filters })),
 		staleTime: STALE_TIME,
 		placeholderData: keepPreviousData,
 		retry: 2,
 		enabled: !!filters.collectionId,
-		select: (res) => ("error" in res ? { data: [], total: 0, page: 1, pageSize: 25 } : res.data),
 	});
 }
 
@@ -86,8 +85,8 @@ export function useRemoveContactsFromCollection() {
 	const queryClient = useQueryClient();
 
 	return useMutation({
-		mutationFn: (input: RemoveContactsFromCollectionInput) =>
-			removeContactsFromCollection({ data: input }),
+		mutationFn: async (input: RemoveContactsFromCollectionInput) =>
+			unwrap(await removeContactsFromCollection({ data: input })),
 		onSettled: () => {
 			queryClient.invalidateQueries({ queryKey: collectionsKeys.all });
 		},
@@ -98,8 +97,8 @@ export function useCreateCollection() {
 	const queryClient = useQueryClient();
 
 	return useMutation({
-		mutationFn: (input: CreateCollectionInput) =>
-			createCollection({ data: input }),
+		mutationFn: async (input: CreateCollectionInput) =>
+			unwrap(await createCollection({ data: input })),
 		onSettled: () => {
 			queryClient.invalidateQueries({ queryKey: collectionsKeys.lists() });
 		},
@@ -110,8 +109,8 @@ export function useUpdateCollection() {
 	const queryClient = useQueryClient();
 
 	return useMutation({
-		mutationFn: (input: UpdateCollectionInput) =>
-			updateCollection({ data: input }),
+		mutationFn: async (input: UpdateCollectionInput) =>
+			unwrap(await updateCollection({ data: input })),
 		onSettled: () => {
 			queryClient.invalidateQueries({ queryKey: collectionsKeys.all });
 		},
@@ -122,7 +121,8 @@ export function useDeleteCollection() {
 	const queryClient = useQueryClient();
 
 	return useMutation({
-		mutationFn: (id: string) => deleteCollection({ data: { id } }),
+		mutationFn: async (id: string) =>
+			unwrap(await deleteCollection({ data: { id } })),
 		onSettled: () => {
 			queryClient.invalidateQueries({ queryKey: collectionsKeys.lists() });
 		},
@@ -133,7 +133,8 @@ export function useDeleteCollections() {
 	const queryClient = useQueryClient();
 
 	return useMutation({
-		mutationFn: (ids: string[]) => deleteCollections({ data: { ids } }),
+		mutationFn: async (ids: string[]) =>
+			unwrap(await deleteCollections({ data: { ids } })),
 		onSettled: () => {
 			queryClient.invalidateQueries({ queryKey: collectionsKeys.lists() });
 		},
@@ -147,27 +148,24 @@ const SEARCH_PAGE_SIZE = 20;
 export function useSearchContacts(search: string) {
 	return useInfiniteQuery({
 		queryKey: ["contacts", "search", search] as const,
-		queryFn: ({ pageParam = 1 }) =>
-			getContacts({
-				data: {
-					search: search || undefined,
-					page: pageParam,
-					pageSize: SEARCH_PAGE_SIZE,
-				},
-			}),
+		queryFn: async ({ pageParam = 1 }) =>
+			unwrap(
+				await getContacts({
+					data: {
+						search: search || undefined,
+						page: pageParam,
+						pageSize: SEARCH_PAGE_SIZE,
+					},
+				}),
+			),
 		initialPageParam: 1,
 		getNextPageParam: (lastPage) => {
-			if ("error" in lastPage) return undefined;
-			const { page, pageSize, total } = lastPage.data;
+			const { page, pageSize, total } = lastPage;
 			return page * pageSize < total ? page + 1 : undefined;
 		},
 		select: (data) => ({
-			contacts: data.pages.flatMap((page) =>
-				"error" in page ? [] : page.data.data,
-			),
-			total: data.pages[0] && !("error" in data.pages[0])
-				? data.pages[0].data.total
-				: 0,
+			contacts: data.pages.flatMap((page) => page.data),
+			total: data.pages[0]?.total ?? 0,
 		}),
 		staleTime: STALE_TIME,
 		enabled: true,
@@ -178,28 +176,24 @@ export function useSearchContacts(search: string) {
 export function useSearchCollections(search: string) {
 	return useInfiniteQuery({
 		queryKey: [...collectionsKeys.lists(), "search", search] as const,
-		queryFn: ({ pageParam = 1 }) =>
-			getCollections({
-				data: {
-					search: search || undefined,
-					page: pageParam,
-					pageSize: SEARCH_PAGE_SIZE,
-				},
-			}),
+		queryFn: async ({ pageParam = 1 }) =>
+			unwrap(
+				await getCollections({
+					data: {
+						search: search || undefined,
+						page: pageParam,
+						pageSize: SEARCH_PAGE_SIZE,
+					},
+				}),
+			),
 		initialPageParam: 1,
 		getNextPageParam: (lastPage) => {
-			if ("error" in lastPage) return undefined;
-			const { page, pageSize, total } = lastPage.data;
+			const { page, pageSize, total } = lastPage;
 			return page * pageSize < total ? page + 1 : undefined;
 		},
 		select: (data) => ({
-			collections: data.pages.flatMap((page) =>
-				"error" in page ? [] : page.data.data,
-			),
-			total:
-				data.pages[0] && !("error" in data.pages[0])
-					? data.pages[0].data.total
-					: 0,
+			collections: data.pages.flatMap((page) => page.data),
+			total: data.pages[0]?.total ?? 0,
 		}),
 		staleTime: STALE_TIME,
 	});
@@ -210,8 +204,8 @@ export function useAddContactsToCollections() {
 	const queryClient = useQueryClient();
 
 	return useMutation({
-		mutationFn: (input: AddContactsToCollectionsInput) =>
-			addContactsToCollections({ data: input }),
+		mutationFn: async (input: AddContactsToCollectionsInput) =>
+			unwrap(await addContactsToCollections({ data: input })),
 		onSettled: () => {
 			queryClient.invalidateQueries({ queryKey: collectionsKeys.all });
 		},

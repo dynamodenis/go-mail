@@ -23,7 +23,7 @@ export function BounceBreakdownChart() {
 	const range = useDashboardUIStore((s) => s.selectedDateRange);
 	const { data, isLoading, isError, refetch } = useBounceBreakdown(range);
 
-	const items = data?.data ?? [];
+	const items = data ?? [];
 
 	return (
 		<Card>

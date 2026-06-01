@@ -23,9 +23,6 @@ export default function CreateTemplate() {
 							toast.success("Template created");
 							router.navigate({ to: "/outreach-composer/email-templates" });
 						},
-						onError: () => {
-							toast.error("Failed to create template");
-						},
 					});
 				}}
 			/>

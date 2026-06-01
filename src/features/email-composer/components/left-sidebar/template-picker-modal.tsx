@@ -38,11 +38,7 @@ export default function TemplatePickerModal({
 		pageSize: 50,
 	});
 
-	const templates: Template[] = (() => {
-		if (!templatesResult) return [];
-		if ("error" in templatesResult) return [];
-		return templatesResult.data?.data ?? [];
-	})();
+	const templates: Template[] = templatesResult?.data ?? [];
 
 	return (
 		<>

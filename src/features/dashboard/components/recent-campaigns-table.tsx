@@ -28,7 +28,7 @@ function StatusBadge({ status }: { status: string }) {
 export function RecentCampaignsTable() {
 	const { data, isLoading, isError, refetch } = useRecentCampaigns();
 
-	const campaigns = data?.data ?? [];
+	const campaigns = data ?? [];
 
 	return (
 		<Card>

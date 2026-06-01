@@ -32,7 +32,7 @@ export function StatsCardGrid() {
 		);
 	}
 
-	const kpis = data?.data;
+	const kpis = data;
 	if (!kpis) return null;
 
 	return (

@@ -33,7 +33,6 @@ export function CollectionsBulkActions({
 				onClearSelection();
 				toast.success(`${count} collection${count > 1 ? "s" : ""} deleted`);
 			},
-			onError: () => toast.error("Failed to delete collections"),
 		});
 	};
 

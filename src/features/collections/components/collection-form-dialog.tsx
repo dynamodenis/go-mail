@@ -112,7 +112,6 @@ export function CollectionFormDialog() {
 						closeDialog();
 						toast.success("Collection updated");
 					},
-					onError: () => toast.error("Failed to update collection"),
 				},
 			);
 		} else {
@@ -126,7 +125,6 @@ export function CollectionFormDialog() {
 						closeDialog();
 						toast.success("Collection created");
 					},
-					onError: () => toast.error("Failed to create collection"),
 				},
 			);
 		}

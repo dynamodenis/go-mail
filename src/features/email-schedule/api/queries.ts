@@ -5,6 +5,7 @@ import {
 	type QueryClient,
 	type UseQueryOptions,
 } from "@tanstack/react-query";
+import { unwrap } from "@/lib/server-result";
 import type { EmailBatchFilters, EmailBatchRecipientsFilters } from "../types";
 import * as server from "./server";
 
@@ -30,7 +31,8 @@ export function useEmailBatches(
 	return useQuery(
 		{
 			queryKey: emailBatchKeys.list(filters),
-			queryFn: () => server.getEmailBatches({ data: filters ?? {} }),
+			queryFn: async () =>
+				unwrap(await server.getEmailBatches({ data: filters ?? {} })),
 			staleTime: STALE_1_MIN,
 		} satisfies UseQueryOptions,
 		queryClient,
@@ -41,7 +43,8 @@ export function useEmailBatch(id: string, queryClient?: QueryClient) {
 	return useQuery(
 		{
 			queryKey: emailBatchKeys.detail(id),
-			queryFn: () => server.getEmailBatchById({ data: { id } }),
+			queryFn: async () =>
+				unwrap(await server.getEmailBatchById({ data: { id } })),
 			staleTime: STALE_1_MIN,
 			enabled: !!id,
 		} satisfies UseQueryOptions,
@@ -60,7 +63,8 @@ export function useEmailBatchRecipients(
 				page: filters.page,
 				pageSize: filters.pageSize,
 			}),
-			queryFn: () => server.getEmailBatchRecipients({ data: filters }),
+			queryFn: async () =>
+				unwrap(await server.getEmailBatchRecipients({ data: filters })),
 			staleTime: STALE_1_MIN,
 			enabled: !!filters.batchId,
 		} satisfies UseQueryOptions,
@@ -72,9 +76,9 @@ export function useCreateEmailBatch(queryClient?: QueryClient) {
 	const qc = queryClient ?? useQueryClient();
 	return useMutation(
 		{
-			mutationFn: (
+			mutationFn: async (
 				input: Parameters<typeof server.createEmailBatch>[0]["data"],
-			) => server.createEmailBatch({ data: input }),
+			) => unwrap(await server.createEmailBatch({ data: input })),
 			onSuccess: () => {
 				qc.invalidateQueries({ queryKey: emailBatchKeys.lists() });
 			},
@@ -87,8 +91,8 @@ export function useCancelEmailBatch(queryClient?: QueryClient) {
 	const qc = queryClient ?? useQueryClient();
 	return useMutation(
 		{
-			mutationFn: (id: string) =>
-				server.cancelEmailBatch({ data: { id } }),
+			mutationFn: async (id: string) =>
+				unwrap(await server.cancelEmailBatch({ data: { id } })),
 			onSuccess: () => {
 				qc.invalidateQueries({ queryKey: emailBatchKeys.all });
 			},

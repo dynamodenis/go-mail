@@ -128,19 +128,10 @@ export const ImportContactModal = ({
 			},
 			{
 				onSuccess: (res) => {
-					if ("error" in res) {
-						toast.error("Import failed", { description: res.error.message });
-						return;
-					}
 					toast.success("Contacts imported", {
-						description: `${res.data.importedCount} contacts imported successfully.`,
+						description: `${res.importedCount} contacts imported successfully.`,
 					});
 					handleClose();
-				},
-				onError: () => {
-					toast.error("Import failed", {
-						description: "An unexpected error occurred.",
-					});
 				},
 			},
 		);

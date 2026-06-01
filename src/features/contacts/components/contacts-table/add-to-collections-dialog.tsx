@@ -92,12 +92,7 @@ export function AddToCollectionsDialog({
 		addToCollections(
 			{ contactIds, collectionIds: selectedIds },
 			{
-				onSuccess: (res) => {
-					if ("error" in res) {
-						toast.error("Failed to add contacts to collections");
-						return;
-					}
-					const added = res.data.addedCount;
+				onSuccess: () => {
 					toast.success(
 						`Added ${contactCount} contact${contactCount > 1 ? "s" : ""} to ${selectedIds.length} collection${selectedIds.length > 1 ? "s" : ""}`,
 					);
@@ -106,8 +101,6 @@ export function AddToCollectionsDialog({
 					onOpenChange(false);
 					onSuccess();
 				},
-				onError: () =>
-					toast.error("Failed to add contacts to collections"),
 			},
 		);
 	};

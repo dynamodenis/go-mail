@@ -65,9 +65,6 @@ export function CreateTemplateModal() {
 												toast.success("Template created");
 												handleClose();
 											},
-											onError: () => {
-												toast.error("Failed to create template");
-											},
 										},
 									);
 								}}
