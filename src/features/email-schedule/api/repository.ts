@@ -288,6 +288,88 @@ export async function incrementBatchCounters(
 	});
 }
 
+/** Atomically records a confirmed send: flips the recipient PENDING→SENT,
+ *  increments the batch's sentCount, appends the ledger row, and settles 1 unit
+ *  of reserved quota — all in ONE transaction.
+ *
+ *  Idempotent across Inngest step retries: the PENDING→SENT transition is the
+ *  gate. If a prior attempt already committed (so the row is no longer PENDING),
+ *  the conditional update matches 0 rows and we skip every side effect, so a
+ *  retry can't double-count sentCount, duplicate the ledger, or double-settle.
+ *  Returns `{ applied }` — false means the work was already done. */
+export async function recordSuccessfulSend(args: {
+	recipientId: string;
+	batchId: string;
+	userId: string;
+	periodStart: Date;
+}) {
+	return prisma.$transaction(async (tx) => {
+		const transition = await tx.emailSchedule.updateMany({
+			where: { id: args.recipientId, status: "PENDING" },
+			data: { status: "SENT", sentAt: new Date() },
+		});
+		if (transition.count === 0) return { applied: false };
+
+		await tx.emailBatch.update({
+			where: { id: args.batchId },
+			data: { sentCount: { increment: 1 } },
+		});
+		await tx.emailSendLedger.create({
+			data: {
+				userId: args.userId,
+				batchId: args.batchId,
+				recipientId: args.recipientId,
+				count: 1,
+			},
+		});
+		await tx.$executeRaw`
+			UPDATE "EmailUserUsage"
+			SET "settled" = "settled" + 1, "updatedAt" = NOW()
+			WHERE "userId" = ${args.userId} AND "periodStart" = ${args.periodStart}
+		`;
+		return { applied: true };
+	});
+}
+
+/** Atomically records a failed send: flips the recipient PENDING→FAILED,
+ *  increments the batch's failedCount, and releases 1 unit of reserved quota
+ *  (the email never went out, so it must not count against the cap or be
+ *  billed) — all in ONE transaction.
+ *
+ *  Idempotent for the same reason as `recordSuccessfulSend`: the PENDING→FAILED
+ *  transition gates the counter and quota writes, so a retried `onFailure`
+ *  handler can't double-release or inflate failedCount. */
+export async function recordFailedSend(args: {
+	recipientId: string;
+	batchId: string;
+	userId: string;
+	periodStart: Date;
+	reason: string;
+}) {
+	return prisma.$transaction(async (tx) => {
+		const transition = await tx.emailSchedule.updateMany({
+			where: { id: args.recipientId, status: "PENDING" },
+			data: {
+				status: "FAILED",
+				failedAt: new Date(),
+				failureReason: args.reason,
+			},
+		});
+		if (transition.count === 0) return { applied: false };
+
+		await tx.emailBatch.update({
+			where: { id: args.batchId },
+			data: { failedCount: { increment: 1 } },
+		});
+		await tx.$executeRaw`
+			UPDATE "EmailUserUsage"
+			SET "reserved" = GREATEST("reserved" - 1, 0), "updatedAt" = NOW()
+			WHERE "userId" = ${args.userId} AND "periodStart" = ${args.periodStart}
+		`;
+		return { applied: true };
+	});
+}
+
 /** Fetches the fields needed for quota enforcement and event tagging. Returns
  *  null only if the user row was deleted between auth and now. */
 export async function findUserPlanAndAnchor(userId: string) {

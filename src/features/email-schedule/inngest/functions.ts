@@ -8,6 +8,11 @@ import { resend, RESEND_FROM_EMAIL, RESEND_RPS } from "@/lib/resend";
 import { resolveTemplateHtml } from "@/features/email-templates/utils/resolve-merge-tags";
 import * as repo from "../api/repository";
 
+/** Max recipient events published per `step.sendEvent` call. Keeps each fan-out
+ *  request under Inngest's payload-size limit so a large batch dispatches across
+ *  several bounded sends instead of one oversized (and rejected) request. */
+const FAN_OUT_CHUNK_SIZE = 1000;
+
 /** Marks a batch COMPLETED once no PENDING recipients remain. Idempotent — if
  *  two recipients finish concurrently and both call this, the duplicate write
  *  is harmless. */
@@ -59,19 +64,26 @@ export const dispatchBatch = inngest.createFunction(
 			return { dispatched: 0 };
 		}
 
-		await step.sendEvent(
-			"fan-out",
-			recipientIds.map((recipientId: string) => ({
-				name: "email/recipient.send" as const,
-				data: {
-					batchId,
-					recipientId,
-					userId,
-					tier,
-					periodStart,
-				} satisfies RecipientSendData,
-			})),
-		);
+		// Fan out in chunks. A single `sendEvent` with tens of thousands of
+		// events would exceed Inngest's per-request payload limit and fail the
+		// whole dispatch, so we publish in bounded batches. Each chunk is its own
+		// memoized step — if dispatch is retried, already-sent chunks are skipped.
+		for (let i = 0; i < recipientIds.length; i += FAN_OUT_CHUNK_SIZE) {
+			const chunk = recipientIds.slice(i, i + FAN_OUT_CHUNK_SIZE);
+			await step.sendEvent(
+				`fan-out-${i}`,
+				chunk.map((recipientId: string) => ({
+					name: "email/recipient.send" as const,
+					data: {
+						batchId,
+						recipientId,
+						userId,
+						tier,
+						periodStart,
+					} satisfies RecipientSendData,
+				})),
+			);
+		}
 
 		return { dispatched: recipientIds.length };
 	},
@@ -126,15 +138,17 @@ export const sendEmailToRecipient = inngest.createFunction(
 			).event;
 			const { batchId, recipientId, userId, periodStart } = original.data;
 
-			await repo.markRecipientFailed(
+			// Single transaction: flip the recipient FAILED, bump failedCount, and
+			// release the reserved slot (this email never went out, so it must not
+			// count against the cap or be billed). Idempotent — a retried failure
+			// handler that finds the row already terminal is a no-op.
+			await repo.recordFailedSend({
 				recipientId,
-				error.message.slice(0, 500),
-			);
-			await repo.incrementBatchCounters(batchId, 0, 1);
-			// Release the reserved slot — this email never went out, so it must
-			// not count against the cap or be billed. Releasing frees the slot
-			// for another send this period.
-			await repo.releaseQuota(userId, new Date(periodStart), 1);
+				batchId,
+				userId,
+				periodStart: new Date(periodStart),
+				reason: error.message.slice(0, 500),
+			});
 			await maybeFinalizeBatch(batchId);
 		},
 	},
@@ -198,14 +212,18 @@ export const sendEmailToRecipient = inngest.createFunction(
 		});
 
 		await step.run("mark-sent", async () => {
-			await repo.markRecipientSent(recipientId);
-			await repo.incrementBatchCounters(batchId, 1, 0);
-			// Append to the usage ledger (kept for per-send audit/history).
-			await repo.appendLedgerRow({ userId, batchId, recipientId });
-			// Settle the reservation: this confirmed send is now billable. The
-			// slot was already reserved at expand time, so settling never
-			// changes the cap — it just records what actually went out.
-			await repo.settleQuota(userId, new Date(periodStart), 1);
+			// Single transaction gated on the PENDING→SENT transition: marks the
+			// recipient sent, bumps sentCount, appends the audit ledger row, and
+			// settles the reservation (already reserved at expand time, so this
+			// never changes the cap — it records what actually went out). Gating
+			// on the transition makes a retried step idempotent: no double count,
+			// no duplicate ledger row, no double settle.
+			await repo.recordSuccessfulSend({
+				recipientId,
+				batchId,
+				userId,
+				periodStart: new Date(periodStart),
+			});
 		});
 
 		await step.run("maybe-finalize", () => maybeFinalizeBatch(batchId));
