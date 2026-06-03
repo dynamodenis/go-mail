@@ -117,7 +117,15 @@
 		border-color: var(--color-border);
 	}
 
+	/* Global type/density scale: 1rem = 12px (75% of the 16px browser default).
+	   Because Tailwind's spacing and sizing are rem-based, this uniformly shrinks
+	   text AND padding/gaps/component sizes so the whole app reads at the compact
+	   12px baseline. Dial this single value to rescale everything (81.25% ≈ 13px,
+	   87.5% ≈ 14px).
+	   NOTE: Tailwind v4 breakpoints are rem-based, so they also scale — if any
+	   responsive layout trips at the wrong width, pin --breakpoint-* in @theme. */
 	html {
+		font-size: 75%;
 		color-scheme: light;
 	}
 

@@ -21,6 +21,7 @@ import { Route as AuthenticatedReportsIndexRouteImport } from './routes/_authent
 import { Route as AuthenticatedOutreachComposerIndexRouteImport } from './routes/_authenticated/outreach-composer/index'
 import { Route as AuthenticatedContactsIndexRouteImport } from './routes/_authenticated/contacts/index'
 import { Route as AuthenticatedCampaignsIndexRouteImport } from './routes/_authenticated/campaigns/index'
+import { Route as ApiNylasCallbackRouteImport } from './routes/api/nylas/callback'
 import { Route as AuthenticatedSettingsTeamRouteImport } from './routes/_authenticated/settings/team'
 import { Route as AuthenticatedSettingsLogsRouteImport } from './routes/_authenticated/settings/logs'
 import { Route as AuthenticatedSettingsIntegrationsRouteImport } from './routes/_authenticated/settings/integrations'
@@ -103,6 +104,11 @@ const AuthenticatedCampaignsIndexRoute =
     path: '/campaigns/',
     getParentRoute: () => AuthenticatedRoute,
   } as any)
+const ApiNylasCallbackRoute = ApiNylasCallbackRouteImport.update({
+  id: '/api/nylas/callback',
+  path: '/api/nylas/callback',
+  getParentRoute: () => rootRouteImport,
+} as any)
 const AuthenticatedSettingsTeamRoute =
   AuthenticatedSettingsTeamRouteImport.update({
     id: '/settings/team',
@@ -237,6 +243,7 @@ export interface FileRoutesByFullPath {
   '/settings/integrations': typeof AuthenticatedSettingsIntegrationsRoute
   '/settings/logs': typeof AuthenticatedSettingsLogsRoute
   '/settings/team': typeof AuthenticatedSettingsTeamRoute
+  '/api/nylas/callback': typeof ApiNylasCallbackRoute
   '/campaigns/': typeof AuthenticatedCampaignsIndexRoute
   '/contacts/': typeof AuthenticatedContactsIndexRoute
   '/outreach-composer/': typeof AuthenticatedOutreachComposerIndexRoute
@@ -268,6 +275,7 @@ export interface FileRoutesByTo {
   '/settings/integrations': typeof AuthenticatedSettingsIntegrationsRoute
   '/settings/logs': typeof AuthenticatedSettingsLogsRoute
   '/settings/team': typeof AuthenticatedSettingsTeamRoute
+  '/api/nylas/callback': typeof ApiNylasCallbackRoute
   '/campaigns': typeof AuthenticatedCampaignsIndexRoute
   '/contacts': typeof AuthenticatedContactsIndexRoute
   '/outreach-composer': typeof AuthenticatedOutreachComposerIndexRoute
@@ -302,6 +310,7 @@ export interface FileRoutesById {
   '/_authenticated/settings/integrations': typeof AuthenticatedSettingsIntegrationsRoute
   '/_authenticated/settings/logs': typeof AuthenticatedSettingsLogsRoute
   '/_authenticated/settings/team': typeof AuthenticatedSettingsTeamRoute
+  '/api/nylas/callback': typeof ApiNylasCallbackRoute
   '/_authenticated/campaigns/': typeof AuthenticatedCampaignsIndexRoute
   '/_authenticated/contacts/': typeof AuthenticatedContactsIndexRoute
   '/_authenticated/outreach-composer/': typeof AuthenticatedOutreachComposerIndexRoute
@@ -335,6 +344,7 @@ export interface FileRouteTypes {
     | '/settings/integrations'
     | '/settings/logs'
     | '/settings/team'
+    | '/api/nylas/callback'
     | '/campaigns/'
     | '/contacts/'
     | '/outreach-composer/'
@@ -366,6 +376,7 @@ export interface FileRouteTypes {
     | '/settings/integrations'
     | '/settings/logs'
     | '/settings/team'
+    | '/api/nylas/callback'
     | '/campaigns'
     | '/contacts'
     | '/outreach-composer'
@@ -399,6 +410,7 @@ export interface FileRouteTypes {
     | '/_authenticated/settings/integrations'
     | '/_authenticated/settings/logs'
     | '/_authenticated/settings/team'
+    | '/api/nylas/callback'
     | '/_authenticated/campaigns/'
     | '/_authenticated/contacts/'
     | '/_authenticated/outreach-composer/'
@@ -415,6 +427,7 @@ export interface RootRouteChildren {
   AuthRouteRoute: typeof AuthRouteRouteWithChildren
   AuthenticatedRoute: typeof AuthenticatedRouteWithChildren
   ApiInngestRoute: typeof ApiInngestRoute
+  ApiNylasCallbackRoute: typeof ApiNylasCallbackRoute
 }
 
 declare module '@tanstack/react-router' {
@@ -502,6 +515,13 @@ declare module '@tanstack/react-router' {
       fullPath: '/campaigns/'
       preLoaderRoute: typeof AuthenticatedCampaignsIndexRouteImport
       parentRoute: typeof AuthenticatedRoute
+    }
+    '/api/nylas/callback': {
+      id: '/api/nylas/callback'
+      path: '/api/nylas/callback'
+      fullPath: '/api/nylas/callback'
+      preLoaderRoute: typeof ApiNylasCallbackRouteImport
+      parentRoute: typeof rootRouteImport
     }
     '/_authenticated/settings/team': {
       id: '/_authenticated/settings/team'
@@ -726,6 +746,7 @@ const rootRouteChildren: RootRouteChildren = {
   AuthRouteRoute: AuthRouteRouteWithChildren,
   AuthenticatedRoute: AuthenticatedRouteWithChildren,
   ApiInngestRoute: ApiInngestRoute,
+  ApiNylasCallbackRoute: ApiNylasCallbackRoute,
 }
 export const routeTree = rootRouteImport
   ._addFileChildren(rootRouteChildren)

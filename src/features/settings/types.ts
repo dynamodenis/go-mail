@@ -45,6 +45,21 @@ export const connectNylasSchema = z.object({
 });
 export type ConnectNylasInput = z.infer<typeof connectNylasSchema>;
 
+/** Query params Nylas appends when redirecting back to our callback route. */
+export const nylasCallbackSchema = z.object({
+  code: z.string().min(1),
+  state: z.string().min(1),
+});
+export type NylasCallbackInput = z.infer<typeof nylasCallbackSchema>;
+
+/** Connection status surfaced to the Integrations UI. `configured` reflects the
+ *  server env; `connected` reflects whether this user has a stored grant. */
+export interface NylasConnection {
+  configured: boolean;
+  connected: boolean;
+  email: string | null;
+}
+
 export interface UserSettings {
   id: string;
   userId: string;

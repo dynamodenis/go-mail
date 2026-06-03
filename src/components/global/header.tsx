@@ -24,8 +24,8 @@ export function Header() {
 		<header className="border-b bg-background">
 			<div className="mx-auto flex h-16 max-w-7xl items-center justify-between px-4 sm:px-6 lg:px-8">
 				<Link to="/dashboard" className="flex items-center gap-2">
-					<Mail className="h-6 w-6" />
-					<span className="text-xl font-bold">{APP_NAME}</span>
+					<Mail className="h-4 w-4" />
+					<span className="text-sm font-bold">{APP_NAME}</span>
 				</Link>
 				<Button
 					variant="ghost"

@@ -18,6 +18,9 @@ interface SidebarNavItemProps {
 	children?: SubItem[];
 }
 
+// Standard Tailwind sizes — the global 75% root scale (app.css) shrinks these to
+// the compact baseline, so the sidebar scales with the rest of the app instead
+// of being shrunk a second time with text-xs/py-1.
 export function SidebarNavItem({
 	icon: Icon,
 	label,

@@ -58,8 +58,10 @@ export function Sidebar({ isCollapsed, onToggle }: SidebarProps) {
 				)}
 			</div>
 
-			{/* Navigation */}
-			<div className="flex-1 overflow-y-auto py-4">
+			{/* Navigation — min-h-0 lets this flex child shrink below its content
+			    height so overflow-y-auto actually scrolls instead of pushing the
+			    footer off-screen. */}
+			<div className="min-h-0 flex-1 overflow-y-auto py-4">
 				<SidebarNav isCollapsed={isCollapsed} />
 			</div>
 
