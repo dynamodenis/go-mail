@@ -83,7 +83,7 @@ export default function Campaigns() {
 				title="Campaigns"
 				description="Create, schedule, and track your email campaigns."
 				actions={
-					<Button onClick={() => navigate({ to: "/campaigns/new" })}>
+					<Button onClick={() => navigate({ to: "/campaigns/new" })} size={"sm"}>
 						<Plus className="mr-1 h-4 w-4" />
 						New Campaign
 					</Button>
@@ -102,6 +102,7 @@ export default function Campaigns() {
 				<LoadingState message="Loading campaigns..." />
 			) : isError ? (
 				<ErrorState
+				
 					message="Failed to load campaigns. Please try again."
 					onRetry={() => refetch()}
 				/>
