@@ -110,7 +110,7 @@ export default function RecipientSearch() {
 
   return (
     <div className="flex flex-col gap-1 px-3 py-1">
-      <span className="text-xs text-muted-foreground">Recipients</span>
+      <span className="text-sm text-muted-foreground">Recipients</span>
       <div className="relative">
         <SearchIcon className="absolute left-2 top-1/2 -translate-y-1/2 size-3.5 text-muted-foreground" />
         <Input
@@ -121,7 +121,7 @@ export default function RecipientSearch() {
           onBlur={handleBlur}
           onFocus={() => setIsFocused(true)}
           className={cn(
-            "pl-7 h-8 text-xs",
+            "pl-7 h-8 text-sm",
             error && "border-destructive text-destructive",
           )}
         />
@@ -132,14 +132,14 @@ export default function RecipientSearch() {
             {isSearching && !hasResults && (
               <div className="flex items-center justify-center gap-2 px-3 py-3">
                 <LoaderIcon className="size-3.5 animate-spin" />
-                <span className="text-xs text-muted-foreground">
+                <span className="text-sm text-muted-foreground">
                   Searching...
                 </span>
               </div>
             )}
 
             {!isSearching && !hasResults && (
-              <div className="px-3 py-3 text-xs text-muted-foreground">
+              <div className="px-3 py-3 text-sm text-muted-foreground">
                 No results. Press Enter to add as email.
               </div>
             )}
@@ -157,7 +157,7 @@ export default function RecipientSearch() {
                       key={contact.id}
                       type="button"
                       className={cn(
-                        "flex w-full items-center gap-2 px-3 py-1.5 text-left text-xs transition-colors",
+                        "flex w-full items-center gap-2 px-3 py-1.5 text-left text-sm transition-colors",
                         selected
                           ? "bg-primary/10 text-primary"
                           : "hover:bg-accent",
@@ -195,7 +195,7 @@ export default function RecipientSearch() {
                   <button
                     key={collection.id}
                     type="button"
-                    className="flex w-full items-center gap-2 px-3 py-1.5 text-left text-xs hover:bg-accent transition-colors"
+                    className="flex w-full items-center gap-2 px-3 py-1.5 text-left text-sm hover:bg-accent transition-colors"
                     onMouseDown={(e) => e.preventDefault()}
                     onClick={() => handleSelectCollection(collection)}
                     disabled={loadingCollectionId === collection.id}

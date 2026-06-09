@@ -211,7 +211,7 @@ export const TemplateEditorForm = forwardRef<TemplateEditorFormHandle, TemplateE
 							<div className="flex-1 overflow-y-auto p-4">
 								<div className="flex flex-col items-center justify-center h-full text-center">
 									<MessageSquareIcon className="size-8 text-muted-foreground/30 mb-3" />
-									<p className="text-xs text-muted-foreground">No comments yet</p>
+									<p className="text-sm text-muted-foreground">No comments yet</p>
 									<p className="text-[10px] text-muted-foreground/60 mt-1">
 										Leave comments to collaborate with your team on this template.
 									</p>
@@ -222,7 +222,7 @@ export const TemplateEditorForm = forwardRef<TemplateEditorFormHandle, TemplateE
 									<textarea
 										placeholder="Add a comment..."
 										rows={2}
-										className="flex-1 resize-none rounded-md border bg-transparent px-2.5 py-1.5 text-xs focus:outline-none focus:ring-1 focus:ring-primary"
+										className="flex-1 resize-none rounded-md border bg-transparent px-2.5 py-1.5 text-sm focus:outline-none focus:ring-1 focus:ring-primary"
 									/>
 									<Button size="sm" className="h-8 shrink-0">
 										Post

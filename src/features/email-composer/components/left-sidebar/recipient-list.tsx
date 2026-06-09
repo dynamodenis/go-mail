@@ -63,7 +63,7 @@ export default function RecipientList() {
                 <UserIcon className={`size-3 ${isSelected ? "text-primary" : "text-primary/70"}`} />
               </div>
               <div className="min-w-0 flex-1">
-                <span className={`block truncate text-xs ${isSelected ? "font-semibold text-foreground" : "font-medium"}`}>
+                <span className={`block truncate text-sm ${isSelected ? "font-semibold text-foreground" : "font-medium"}`}>
                   {name}
                 </span>
                 {isContact && name !== email && (

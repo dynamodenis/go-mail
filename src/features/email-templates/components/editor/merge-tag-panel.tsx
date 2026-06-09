@@ -84,7 +84,7 @@ export function MergeTagPanel({
 						key={tag.value}
 						variant="ghost"
 						size="sm"
-						className="justify-start font-mono text-xs"
+						className="justify-start font-mono text-sm"
 						disabled={!editor}
 						onClick={() => handleInsert(tag.label, tag.value)}
 					>
@@ -94,7 +94,7 @@ export function MergeTagPanel({
 
 				{customTags.length > 0 && (
 					<div className="mt-2 border-t pt-2">
-						<p className="mb-1 text-xs font-medium text-muted-foreground">
+						<p className="mb-1 text-sm font-medium text-muted-foreground">
 							Custom Tags
 						</p>
 						{customTags.map((tag) => (
@@ -102,7 +102,7 @@ export function MergeTagPanel({
 								<Button
 									variant="ghost"
 									size="sm"
-									className="flex-1 justify-start font-mono text-xs"
+									className="flex-1 justify-start font-mono text-sm"
 									disabled={!editor}
 									onClick={() => handleInsert(tag.label, tag.value)}
 								>
@@ -131,7 +131,7 @@ export function MergeTagPanel({
 					<Button
 						variant="outline"
 						size="sm"
-						className="mt-2 text-xs"
+						className="mt-2 text-sm"
 						onClick={() => setShowAddForm(true)}
 					>
 						<Plus className="mr-1 h-3 w-3" />

@@ -46,7 +46,7 @@ export function AddCustomMergeTag({
 	return (
 		<div className="flex flex-col gap-2 rounded-md border p-3">
 			<div className="space-y-1">
-				<Label className="text-xs">Tag Label</Label>
+				<Label className="text-sm">Tag Label</Label>
 				<Input
 					placeholder="e.g. Company Name"
 					value={label}
@@ -54,20 +54,20 @@ export function AddCustomMergeTag({
 						setLabel(e.target.value);
 						setError("");
 					}}
-					className="h-8 text-xs"
+					className="h-8 text-sm"
 				/>
 			</div>
 			{tagValue && (
-				<p className="font-mono text-xs text-muted-foreground">
+				<p className="font-mono text-sm text-muted-foreground">
 					Tag: {tagValue}
 				</p>
 			)}
-			{error && <p className="text-xs text-destructive">{error}</p>}
+			{error && <p className="text-sm text-destructive">{error}</p>}
 			<div className="flex gap-2">
-				<Button size="sm" variant="outline" onClick={onCancel} className="h-7 text-xs">
+				<Button size="sm" variant="outline" onClick={onCancel} className="h-7 text-sm">
 					Cancel
 				</Button>
-				<Button size="sm" onClick={handleSubmit} className="h-7 text-xs">
+				<Button size="sm" onClick={handleSubmit} className="h-7 text-sm">
 					Add Tag
 				</Button>
 			</div>

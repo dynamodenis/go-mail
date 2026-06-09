@@ -48,7 +48,7 @@ export default function RecipientPreviewSelector({
 
         <div className="flex items-center gap-1.5 min-w-0">
           <UserIcon className="size-3 shrink-0 text-muted-foreground" />
-          <span className="text-xs font-medium truncate">{name}</span>
+          <span className="text-sm font-medium truncate">{name}</span>
           {name !== email && (
             <span className="text-[10px] text-muted-foreground truncate">
               ({email})

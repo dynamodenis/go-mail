@@ -39,7 +39,7 @@ export function TemplateAttachmentPanel({
 					<CardTitle className="text-sm">Attachments</CardTitle>
 				</CardHeader>
 				<CardContent>
-					<p className="text-xs text-muted-foreground">
+					<p className="text-sm text-muted-foreground">
 						Save template first to add attachments.
 					</p>
 				</CardContent>
@@ -56,7 +56,7 @@ export function TemplateAttachmentPanel({
 			</CardHeader>
 			<CardContent className="flex flex-col gap-2">
 				{attachments.length === 0 ? (
-					<p className="text-xs text-muted-foreground">
+					<p className="text-sm text-muted-foreground">
 						No attachments yet.
 					</p>
 				) : (
@@ -68,10 +68,10 @@ export function TemplateAttachmentPanel({
 							<div className="flex items-center gap-2 overflow-hidden">
 								<Paperclip className="h-3.5 w-3.5 shrink-0 text-muted-foreground" />
 								<div className="overflow-hidden">
-									<p className="truncate text-xs font-medium">
+									<p className="truncate text-sm font-medium">
 										{att.fileName}
 									</p>
-									<p className="text-xs text-muted-foreground">
+									<p className="text-sm text-muted-foreground">
 										{formatFileSize(att.fileSize)}
 									</p>
 								</div>

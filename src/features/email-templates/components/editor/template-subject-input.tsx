@@ -20,7 +20,7 @@ export function TemplateSubjectInput({
 				onChange={(e) => onChange(e.target.value)}
 				maxLength={255}
 			/>
-			<p className="text-xs text-muted-foreground">
+			<p className="text-sm text-muted-foreground">
 				Use merge tags like {"{first_name}"} to personalize the subject.
 			</p>
 		</div>

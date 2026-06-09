@@ -259,7 +259,7 @@ export default function EmailScheduleModal({
 				</div>
 
 				{/* Summary strip */}
-				<div className="flex flex-wrap items-center gap-3 border-b bg-muted/30 px-4 py-2.5 text-xs text-muted-foreground">
+				<div className="flex flex-wrap items-center gap-3 border-b bg-muted/30 px-4 py-2.5 text-sm text-muted-foreground">
 					<span className="flex items-center gap-1">
 						<UsersIcon className="size-3" />
 						{getEstimatedRecipientCount().toLocaleString()} recipient
@@ -302,7 +302,7 @@ export default function EmailScheduleModal({
 									<span className="font-medium text-foreground">
 										{formatParsedDate(parsedDate)}
 									</span>
-									<span className="text-xs text-muted-foreground">
+									<span className="text-sm text-muted-foreground">
 										{format(parsedDate, "MMM d, h:mm a")}
 									</span>
 								</button>
@@ -322,7 +322,7 @@ export default function EmailScheduleModal({
 									<span className="flex-1 text-left font-medium text-foreground">
 										{preset.label}
 									</span>
-									<span className="text-xs text-muted-foreground">
+									<span className="text-sm text-muted-foreground">
 										{preset.description}
 									</span>
 								</button>
@@ -352,7 +352,7 @@ export default function EmailScheduleModal({
 							<button
 								type="button"
 								onClick={() => setView("presets")}
-								className="text-xs text-muted-foreground hover:text-foreground"
+								className="text-sm text-muted-foreground hover:text-foreground"
 							>
 								&larr; Back to presets
 							</button>
@@ -387,7 +387,7 @@ export default function EmailScheduleModal({
 						</div>
 
 						{selectedDate && (
-							<div className="border-t px-4 py-2 text-center text-xs text-muted-foreground">
+							<div className="border-t px-4 py-2 text-center text-sm text-muted-foreground">
 								{format(selectedDate, "EEEE, MMMM d, yyyy")} at{" "}
 								{selectedTime}
 							</div>
@@ -419,7 +419,7 @@ export default function EmailScheduleModal({
 								{getEstimatedRecipientCount() !== 1 ? "s" : ""}
 							</span>
 							{(ccEmails.length > 0 || bccEmails.length > 0) && (
-								<span className="text-xs">
+								<span className="text-sm">
 									({ccEmails.length > 0 ? `${ccEmails.length} cc` : ""}
 									{ccEmails.length > 0 && bccEmails.length > 0 ? ", " : ""}
 									{bccEmails.length > 0 ? `${bccEmails.length} bcc` : ""})
@@ -428,7 +428,7 @@ export default function EmailScheduleModal({
 						</div>
 
 						{attachmentCount > 0 && (
-							<div className="mt-1 flex items-center gap-1.5 text-xs text-muted-foreground">
+							<div className="mt-1 flex items-center gap-1.5 text-sm text-muted-foreground">
 								<PaperclipIcon className="size-3" />
 								{attachmentCount} attachment{attachmentCount !== 1 ? "s" : ""}
 							</div>

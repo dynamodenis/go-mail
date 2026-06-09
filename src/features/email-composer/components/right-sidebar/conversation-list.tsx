@@ -10,7 +10,7 @@ export default function ConversationList() {
   return (
     <div className="flex flex-col items-center justify-center h-full px-4 py-8">
       <MessageSquareIcon className="size-8 text-muted-foreground/30 mb-3" />
-      <p className="text-xs text-muted-foreground text-center">
+      <p className="text-sm text-muted-foreground text-center">
         No conversations yet
       </p>
       <p className="text-[10px] text-muted-foreground/60 text-center mt-1">

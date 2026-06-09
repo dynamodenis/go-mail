@@ -121,7 +121,7 @@ export default function ComposerBody() {
   const modeBar = isRecipientMode ? (
     <div className="flex items-center gap-2 border-b bg-primary/5 px-4 py-1.5">
       <UserIcon className="size-3.5 text-primary" />
-      <span className="text-xs text-muted-foreground">
+      <span className="text-sm text-muted-foreground">
         Editing for <span className="font-medium text-foreground">{activeRecipientName}</span>
       </span>
       <Button

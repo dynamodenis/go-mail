@@ -76,7 +76,7 @@ export default function TemplatePickerModal({
 								placeholder="Search templates..."
 								value={search}
 								onChange={(e) => setSearch(e.target.value)}
-								className="pl-8 h-8 text-xs"
+								className="pl-8 h-8 text-sm"
 							/>
 						</div>
 					</div>
@@ -84,11 +84,11 @@ export default function TemplatePickerModal({
 					{/* Template list */}
 					<div className="overflow-y-auto max-h-[50vh] px-2 pb-4">
 						{isLoading ? (
-							<div className="px-4 py-8 text-center text-xs text-muted-foreground">
+							<div className="px-4 py-8 text-center text-sm text-muted-foreground">
 								Loading templates...
 							</div>
 						) : templates.length === 0 ? (
-							<div className="px-4 py-8 text-center text-xs text-muted-foreground">
+							<div className="px-4 py-8 text-center text-sm text-muted-foreground">
 								{search ? "No templates match your search" : "No templates yet"}
 							</div>
 						) : (
@@ -110,7 +110,7 @@ export default function TemplatePickerModal({
 											<FileTextIcon className="size-4 shrink-0 mt-0.5 text-muted-foreground" />
 											<div className="flex-1 min-w-0">
 												<div className="flex items-center gap-2">
-													<span className="text-xs font-medium truncate">
+													<span className="text-sm font-medium truncate">
 														{template.name}
 													</span>
 													{isSelected && (

@@ -55,10 +55,7 @@ const NAV_ITEMS: NavItem[] = [
 	{
 		icon: Send,
 		label: "Campaigns",
-		children: [
-			{ icon: Send, label: "All Campaigns", href: "/campaigns" },
-			{ icon: PlusCircle, label: "Create New", href: "/campaigns/new" },
-		],
+		href: "/campaigns"
 	},
 	{
 		icon: FileText,

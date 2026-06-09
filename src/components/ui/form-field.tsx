@@ -12,13 +12,13 @@ interface FormFieldProps {
 
 export function FormField({ label, required, error, children, className }: FormFieldProps) {
 	return (
-		<div className={cn("space-y-1.5", className)}>
-			<Label className="text-xs">
+		<div className={cn("flex flex-col gap-1.5", className)}>
+			<Label className="text-sm">
 				{label}
 				{required && <span className="ml-1 text-destructive">*</span>}
 			</Label>
 			{children}
-			{error && <p className="text-xs text-destructive">{error}</p>}
+			{error && <p className="text-sm text-destructive">{error}</p>}
 		</div>
 	);
 }

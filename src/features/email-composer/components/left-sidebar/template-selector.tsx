@@ -32,7 +32,7 @@ export default function TemplateSelector() {
 
   return (
     <div className="flex flex-col gap-2 px-3 py-2">
-      <span className="text-xs text-muted-foreground">Template</span>
+      <span className="text-sm text-muted-foreground">Template</span>
 
       <div className="flex items-center gap-1">
         {/* Dropdown to select from recent templates */}
@@ -41,7 +41,7 @@ export default function TemplateSelector() {
             <Button
               variant="outline"
               size="sm"
-              className="flex-1 justify-between text-xs h-8"
+              className="flex-1 justify-between text-sm h-8"
             >
               <div className="flex items-center gap-1.5 min-w-0">
                 <FileTextIcon className="size-3.5 shrink-0" />
@@ -54,14 +54,14 @@ export default function TemplateSelector() {
           </DropdownMenuTrigger>
           <DropdownMenuContent align="start" className="w-[240px]">
             {templates.length === 0 ? (
-              <div className="px-2 py-3 text-center text-xs text-muted-foreground">
+              <div className="px-2 py-3 text-center text-sm text-muted-foreground">
                 No templates yet
               </div>
             ) : (
               templates.slice(0, 10).map((template) => (
                 <DropdownMenuItem
                   key={template.id}
-                  className="text-xs cursor-pointer"
+                  className="text-sm cursor-pointer"
                   onClick={() => {
                     setSelectedTemplate(template);
                     setDropdownOpen(false);

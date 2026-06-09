@@ -24,7 +24,7 @@ export default function AttachmentList() {
   return (
     <div className="flex flex-col gap-1 px-3 py-1">
       <div className="flex items-center justify-between">
-        <span className="text-xs text-muted-foreground">Attachments</span>
+        <span className="text-sm text-muted-foreground">Attachments</span>
         <Button
           variant="ghost"
           size="sm"
@@ -46,7 +46,7 @@ export default function AttachmentList() {
                 className="flex items-center gap-1.5 rounded-md bg-accent/50 px-2 py-1 group"
               >
                 <Icon className="size-3.5 shrink-0 text-muted-foreground" />
-                <span className="min-w-0 flex-1 truncate text-xs">
+                <span className="min-w-0 flex-1 truncate text-sm">
                   {file.name}
                 </span>
                 <span className="text-[10px] text-muted-foreground shrink-0">

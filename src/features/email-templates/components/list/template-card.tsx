@@ -23,7 +23,7 @@ export function TemplateCard({ template, onDelete }: TemplateCardProps) {
 		<Card className="flex flex-col">
 			<CardHeader className="pb-2">
 				<div className="flex items-start justify-between gap-2">
-					<span className="inline-flex rounded-full bg-muted px-2 py-0.5 text-xs font-medium text-muted-foreground">
+					<span className="inline-flex rounded-full bg-muted px-2 py-0.5 text-sm font-medium text-muted-foreground">
 						{categoryLabel}
 					</span>
 					<Button
@@ -41,11 +41,11 @@ export function TemplateCard({ template, onDelete }: TemplateCardProps) {
 				</h3>
 			</CardHeader>
 			<CardContent className="flex-1 pb-2">
-				<p className="line-clamp-2 text-xs text-muted-foreground">
+				<p className="line-clamp-2 text-sm text-muted-foreground">
 					{template.subject}
 				</p>
 			</CardContent>
-			<CardFooter className="flex items-center justify-between pt-0 text-xs text-muted-foreground">
+			<CardFooter className="flex items-center justify-between pt-0 text-sm text-muted-foreground">
 				<div className="flex items-center gap-2">
 					<span>Updated {updatedDate}</span>
 					{(template.attachmentCount ?? 0) > 0 && (
@@ -58,7 +58,7 @@ export function TemplateCard({ template, onDelete }: TemplateCardProps) {
 				<Link
 					to="/outreach-composer/email-templates/$templateId/edit"
 					params={{ templateId: template.id }}
-					className="inline-flex items-center gap-1 text-xs font-medium text-primary hover:underline"
+					className="inline-flex items-center gap-1 text-sm font-medium text-primary hover:underline"
 				>
 					<Pencil className="h-3 w-3" />
 					Edit

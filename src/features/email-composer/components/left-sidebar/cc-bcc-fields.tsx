@@ -105,7 +105,7 @@ function CcBccSearchField({
           onBlur={handleBlur}
           onFocus={() => setIsFocused(true)}
           className={cn(
-            "pl-7 h-7 text-xs",
+            "pl-7 h-7 text-sm",
             error && "border-destructive text-destructive",
           )}
         />
@@ -116,14 +116,14 @@ function CcBccSearchField({
             {isLoading && contacts.length === 0 && (
               <div className="flex items-center justify-center gap-2 px-3 py-2">
                 <LoaderIcon className="size-3 animate-spin" />
-                <span className="text-xs text-muted-foreground">
+                <span className="text-sm text-muted-foreground">
                   Searching...
                 </span>
               </div>
             )}
 
             {!isLoading && contacts.length === 0 && (
-              <div className="px-3 py-2 text-xs text-muted-foreground">
+              <div className="px-3 py-2 text-sm text-muted-foreground">
                 No results. Press Enter to add as email.
               </div>
             )}
@@ -139,7 +139,7 @@ function CcBccSearchField({
                   key={contact.id}
                   type="button"
                   className={cn(
-                    "flex w-full items-center gap-2 px-3 py-1.5 text-left text-xs transition-colors",
+                    "flex w-full items-center gap-2 px-3 py-1.5 text-left text-sm transition-colors",
                     added ? "bg-primary/10 text-primary" : "hover:bg-accent",
                   )}
                   onMouseDown={(e) => e.preventDefault()}
@@ -178,7 +178,7 @@ function CcBccSearchField({
                   <UserIcon className="size-3 text-primary/70" />
                 </div>
                 <div className="min-w-0 flex-1">
-                  <span className="block truncate text-xs font-medium">
+                  <span className="block truncate text-sm font-medium">
                     {entry.name || entry.email}
                   </span>
                   {hasName && (

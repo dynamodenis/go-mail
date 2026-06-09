@@ -141,7 +141,7 @@ export default function ComposerFooter() {
 
   return (
     <div className="flex items-center justify-between border-t px-4 py-2">
-      <div className="flex items-center gap-2 text-xs text-muted-foreground">
+      <div className="flex items-center gap-2 text-sm text-muted-foreground">
         {estimatedCount > 0 && (
           <span>
             {estimatedCount.toLocaleString()} recipient{estimatedCount > 1 ? "s" : ""}

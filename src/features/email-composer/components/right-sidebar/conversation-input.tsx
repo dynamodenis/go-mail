@@ -32,7 +32,7 @@ export default function ConversationInput() {
           onKeyDown={handleKeyDown}
           placeholder="Type a message..."
           rows={2}
-          className="flex-1 resize-none rounded-md border bg-transparent px-2.5 py-1.5 text-xs focus:outline-none focus:ring-1 focus:ring-primary"
+          className="flex-1 resize-none rounded-md border bg-transparent px-2.5 py-1.5 text-sm focus:outline-none focus:ring-1 focus:ring-primary"
         />
         <Button
           variant="ghost"
