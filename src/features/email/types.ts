@@ -60,3 +60,47 @@ export interface EmailAttachment {
   contentType: string;
   size: number;
 }
+
+// ── Inbox UI shapes (Superhuman-style list + reading pane) ──────────────────
+// Provider-agnostic shapes the inbox UI renders, so the Nylas integration can
+// map its payloads onto them without the components knowing about Nylas.
+
+/** A condensed thread for the list pane. */
+export interface EmailThread {
+  id: string;
+  subject: string;
+  snippet: string;
+  unread: boolean;
+  starred: boolean;
+  hasAttachments: boolean;
+  /** Participants shown as the avatar stack in the reading pane. */
+  participants: EmailParticipant[];
+  /** Name/email shown in the list row — latest sender, or the recipient for
+   *  the sent/drafts folders. */
+  preview: EmailParticipant;
+  date: string; // ISO
+  messageCount: number;
+}
+
+/** A single message within an opened thread (reading pane). */
+export interface EmailThreadMessage {
+  id: string;
+  from: EmailParticipant;
+  to: EmailParticipant[];
+  cc?: EmailParticipant[];
+  subject: string;
+  /** Skeleton renders this as plain text; once Nylas is wired this becomes
+   *  sanitized HTML (CLAUDE.md security rules — sanitize before render). */
+  body: string;
+  snippet: string;
+  date: string; // ISO
+  unread: boolean;
+}
+
+/** The fully-expanded thread for the reading pane. */
+export interface EmailThreadDetail {
+  id: string;
+  subject: string;
+  participants: EmailParticipant[];
+  messages: EmailThreadMessage[];
+}

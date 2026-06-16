@@ -1,8 +1,5 @@
+import { EmailView } from "./email-view";
+
 export default function Drafts() {
-  return (
-    <div>
-      <h1 className="text-2xl font-bold">Drafts</h1>
-      <p className="mt-2 text-muted-foreground">This page is under construction.</p>
-    </div>
-  );
+	return <EmailView folder="drafts" />;
 }
