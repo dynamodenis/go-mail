@@ -40,7 +40,9 @@ interface ThreadDetailPanelProps {
 }
 
 export function ThreadDetailPanel({ className }: ThreadDetailPanelProps) {
-	const activeThread = useEmailUIStore((s) => s.selectedThread);
+	const activeThread = useEmailUIStore(
+		(s) => s.previewThread ?? s.selectedThread,
+	);
 	const { data: detail, isLoading } = useEmailThreadDetail(
 		activeThread?.id ?? null,
 	);

@@ -13,17 +13,23 @@ interface EmailViewProps {
  *  / drafts), each of which renders this with a different `folder`. */
 export function EmailView({ folder }: EmailViewProps) {
 	const setSelectedThread = useEmailUIStore((s) => s.setSelectedThread);
+	const setPreviewThread = useEmailUIStore((s) => s.setPreviewThread);
 
 	// Switching folders clears the open thread so the reading pane never shows a
 	// message that doesn't belong to the folder now in view.
+	// biome-ignore lint/correctness/useExhaustiveDependencies: folder changes intentionally reset thread UI state.
 	useEffect(() => {
 		setSelectedThread(null);
-	}, [folder, setSelectedThread]);
+		setPreviewThread(null);
+	}, [folder, setSelectedThread, setPreviewThread]);
 
 	return (
-		<div className="flex h-full gap-4 overflow-hidden">
-			<ThreadListPanel folder={folder} className="w-[420px] shrink-0" />
-			<ThreadDetailPanel className="flex-1" />
+		<div className="flex h-full overflow-hidden md:gap-2">
+			<ThreadListPanel
+				folder={folder}
+				className="min-w-0 flex-1 md:flex-[3_1_0]"
+			/>
+			<ThreadDetailPanel className="hidden min-w-0 md:flex md:flex-[1_1_0]" />
 		</div>
 	);
 }

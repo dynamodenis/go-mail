@@ -1,23 +1,27 @@
 import { cn } from "@/lib/utils";
 import { Paperclip, Star } from "lucide-react";
-import { formatThreadDate, participantLabel } from "../../utils/email-format";
 import type { EmailThread } from "../../types";
+import { formatThreadDate, participantLabel } from "../../utils/email-format";
 
 interface ThreadListItemProps {
 	thread: EmailThread;
 	isActive: boolean;
 	onSelect: () => void;
+	onPreview: () => void;
 }
 
 export function ThreadListItem({
 	thread,
 	isActive,
 	onSelect,
+	onPreview,
 }: ThreadListItemProps) {
 	return (
 		<button
 			type="button"
 			onClick={onSelect}
+			onFocus={onPreview}
+			onMouseEnter={onPreview}
 			className={cn(
 				"flex w-full items-center gap-3 border-l-2 border-transparent px-4 py-2.5 text-left transition-colors hover:bg-muted/60",
 				isActive && "border-l-primary bg-muted",

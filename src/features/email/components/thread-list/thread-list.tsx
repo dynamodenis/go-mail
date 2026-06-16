@@ -55,6 +55,7 @@ export function ThreadList({ folder }: ThreadListProps) {
 	const search = useEmailUIStore((s) => s.searchQuery);
 	const selectedThread = useEmailUIStore((s) => s.selectedThread);
 	const setSelectedThread = useEmailUIStore((s) => s.setSelectedThread);
+	const setPreviewThread = useEmailUIStore((s) => s.setPreviewThread);
 
 	const deferredSearch = useDeferredValue(search);
 	const { data, isLoading, isError, refetch } = useEmailThreads(
@@ -75,13 +76,17 @@ export function ThreadList({ folder }: ThreadListProps) {
 	if (threads.length === 0) return <EmptyState searching={!!deferredSearch} />;
 
 	return (
-		<div className="flex h-full flex-col divide-y divide-border/60 overflow-y-auto">
+		<div
+			className="flex h-full flex-col divide-y divide-border/60 overflow-y-auto"
+			onMouseLeave={() => setPreviewThread(null)}
+		>
 			{threads.map((thread) => (
 				<ThreadListItem
 					key={thread.id}
 					thread={thread}
 					isActive={selectedThread?.id === thread.id}
 					onSelect={() => setSelectedThread(thread)}
+					onPreview={() => setPreviewThread(thread)}
 				/>
 			))}
 		</div>

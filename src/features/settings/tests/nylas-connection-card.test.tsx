@@ -1,5 +1,5 @@
-import { render, screen, fireEvent } from "@testing-library/react";
-import { describe, it, expect, vi } from "vitest";
+import { fireEvent, render, screen } from "@testing-library/react";
+import { describe, expect, it, vi } from "vitest";
 import { NylasConnectionCard } from "../components/nylas-connection-card";
 import type { NylasConnection } from "../types";
 
@@ -20,9 +20,11 @@ describe("NylasConnectionCard", () => {
 	it("shows a not-configured message and no Connect button when env is missing", () => {
 		renderCard({ configured: false, connected: false, email: null });
 
-		expect(screen.getByText(/isn't configured/i)).toBeInTheDocument();
 		expect(
-			screen.queryByRole("button", { name: /connect nylas/i }),
+			screen.getByText(/email connection isn't configured/i),
+		).toBeInTheDocument();
+		expect(
+			screen.queryByRole("button", { name: /connect email/i }),
 		).not.toBeInTheDocument();
 	});
 
@@ -33,7 +35,7 @@ describe("NylasConnectionCard", () => {
 			email: null,
 		});
 
-		const button = screen.getByRole("button", { name: /connect nylas/i });
+		const button = screen.getByRole("button", { name: /connect email/i });
 		fireEvent.click(button);
 		expect(onConnect).toHaveBeenCalledOnce();
 	});
@@ -48,6 +50,10 @@ describe("NylasConnectionCard", () => {
 		expect(screen.getByText("user@example.com")).toBeInTheDocument();
 		// Exact match targets the status badge, not the "Connected as …" line.
 		expect(screen.getByText("Connected")).toBeInTheDocument();
+		expect(screen.getByRole("link", { name: /open inbox/i })).toHaveAttribute(
+			"href",
+			"/email/inbox",
+		);
 
 		fireEvent.click(screen.getByRole("button", { name: /disconnect/i }));
 		expect(onDisconnect).toHaveBeenCalledOnce();

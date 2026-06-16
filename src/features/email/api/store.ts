@@ -7,20 +7,24 @@ import type { EmailThread } from "../types";
  *  derived from the route, so it is not stored here. */
 
 interface EmailUIState {
-  searchQuery: string;
-  selectedThread: EmailThread | null;
+	searchQuery: string;
+	selectedThread: EmailThread | null;
+	previewThread: EmailThread | null;
 }
 
 interface EmailUIActions {
-  setSearchQuery: (query: string) => void;
-  setSelectedThread: (thread: EmailThread | null) => void;
+	setSearchQuery: (query: string) => void;
+	setSelectedThread: (thread: EmailThread | null) => void;
+	setPreviewThread: (thread: EmailThread | null) => void;
 }
 
 export const useEmailUIStore = create<EmailUIState & EmailUIActions>()(
-  (set) => ({
-    searchQuery: "",
-    selectedThread: null,
-    setSearchQuery: (query) => set({ searchQuery: query }),
-    setSelectedThread: (thread) => set({ selectedThread: thread }),
-  }),
+	(set) => ({
+		searchQuery: "",
+		selectedThread: null,
+		previewThread: null,
+		setSearchQuery: (query) => set({ searchQuery: query }),
+		setSelectedThread: (thread) => set({ selectedThread: thread }),
+		setPreviewThread: (thread) => set({ previewThread: thread }),
+	}),
 );
