@@ -2,10 +2,10 @@ import type { EmailFolder } from "../types";
 import type { EmailThread, EmailThreadDetail } from "../types";
 
 // ─────────────────────────────────────────────────────────────────────────────
-// SKELETON MOCK DATA — placeholder content so the inbox UI is usable before the
-// Nylas integration is wired. Replace the getters below (and the query hooks in
-// api/queries.ts) with Nylas-backed server functions. Nothing else in the UI
-// needs to change — it only knows the EmailThread / EmailThreadDetail shapes.
+// TEST FIXTURES — the live inbox is now backed by Nylas (api/queries.ts →
+// api/server.ts). These provider-agnostic EmailThread / EmailThreadDetail
+// fixtures are retained only for component tests that render the UI without a
+// network call. Not imported by the app at runtime.
 // ─────────────────────────────────────────────────────────────────────────────
 
 // Relative ISO timestamps would drift across reloads/tests; use fixed dates so

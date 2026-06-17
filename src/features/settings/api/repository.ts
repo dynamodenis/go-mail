@@ -72,6 +72,27 @@ export async function deleteNylasAccount(userId: string, accountId: string) {
 	});
 }
 
+/** Returns the grant id of the user's primary mailbox, or null when nothing is
+ *  connected. `grantId` is a bearer-equivalent secret — this is the only place
+ *  it leaves the table, and only ever to server-side callers (never serialized
+ *  to the client). Falls back to the most recent account if, defensively, no
+ *  row is flagged primary. */
+export async function findPrimaryGrantId(
+	userId: string,
+): Promise<string | null> {
+	const account =
+		(await prisma.nylasAccount.findFirst({
+			where: { userId, isPrimary: true },
+			select: { grantId: true },
+		})) ??
+		(await prisma.nylasAccount.findFirst({
+			where: { userId },
+			select: { grantId: true },
+			orderBy: { createdAt: "desc" },
+		}));
+	return account?.grantId ?? null;
+}
+
 /** Returns the oldest remaining mailbox, used to promote a new primary after
  *  the current primary is disconnected. */
 export async function findOldestNylasAccount(userId: string) {

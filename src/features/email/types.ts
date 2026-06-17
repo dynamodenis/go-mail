@@ -3,6 +3,42 @@ import { z } from "zod";
 export const emailFolderSchema = z.enum(["inbox", "sent", "drafts"]);
 export type EmailFolder = z.infer<typeof emailFolderSchema>;
 
+/** Maps a UI folder to the IMAP special-use attribute Nylas tags the matching
+ *  system folder with. Resolving by attribute (not name) keeps folder lookup
+ *  working across Gmail/Microsoft/iCloud, which name their system folders
+ *  differently. */
+export const FOLDER_ATTRIBUTE: Record<EmailFolder, string> = {
+  inbox: "\\Inbox",
+  sent: "\\Sent",
+  drafts: "\\Drafts",
+};
+
+/** Error codes the email feature throws/returns. NOT_CONNECTED and
+ *  NOT_CONFIGURED are expected states the UI turns into a connect CTA rather
+ *  than a generic error. */
+export const EMAIL_ERROR = {
+  NOT_CONFIGURED: "NYLAS_NOT_CONFIGURED",
+  NOT_CONNECTED: "NYLAS_NOT_CONNECTED",
+  FETCH_FAILED: "EMAIL_FETCH_FAILED",
+} as const;
+
+/** Codes that represent "no mailbox to read", surfaced as a CTA, not an error. */
+export const EMAIL_CONNECT_CODES: ReadonlySet<string> = new Set([
+  EMAIL_ERROR.NOT_CONFIGURED,
+  EMAIL_ERROR.NOT_CONNECTED,
+]);
+
+export const emailThreadsQuerySchema = z.object({
+  folder: emailFolderSchema,
+  search: z.string().trim().max(255).optional(),
+});
+export type EmailThreadsQuery = z.infer<typeof emailThreadsQuerySchema>;
+
+export const emailThreadDetailQuerySchema = z.object({
+  threadId: z.string().min(1),
+});
+export type EmailThreadDetailQuery = z.infer<typeof emailThreadDetailQuerySchema>;
+
 export const emailFiltersSchema = z.object({
   folder: emailFolderSchema.default("inbox"),
   search: z.string().optional(),

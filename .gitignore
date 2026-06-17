@@ -14,3 +14,8 @@ node_modules
 
 /generated/prisma
 .mcp.json
+
+# Agent skills — installed locally via `npx skills add`, not tracked
+.agents/
+.claude/skills/
+skills-lock.json

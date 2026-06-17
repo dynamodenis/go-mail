@@ -1,10 +1,21 @@
 import { QueryClient, QueryClientProvider } from "@tanstack/react-query";
 import { render, screen } from "@testing-library/react";
 import type { ReactNode } from "react";
-import { beforeEach, describe, expect, it } from "vitest";
+import { beforeEach, describe, expect, it, vi } from "vitest";
 import { useEmailUIStore } from "../api/store";
 import { ThreadDetailPanel } from "../components/thread-detail/thread-detail-panel";
-import { getMockThreads } from "../data/mock-threads";
+import { getMockThreadDetail, getMockThreads } from "../data/mock-threads";
+
+// Mock the detail query so the panel renders fixture messages without hitting
+// the Nylas-backed server function.
+vi.mock("../api/queries", () => ({
+	useEmailThreadDetail: (threadId: string | null) => ({
+		data: threadId ? getMockThreadDetail(threadId) : undefined,
+		isLoading: false,
+		isError: false,
+		error: null,
+	}),
+}));
 
 const createClient = () =>
 	new QueryClient({ defaultOptions: { queries: { retry: false } } });

@@ -1,10 +1,12 @@
 import { ErrorState } from "@/components/shared/error-state";
 import { Skeleton } from "@/components/ui/skeleton";
+import { ServerError } from "@/lib/server-result";
 import { Inbox, Search } from "lucide-react";
 import { useDeferredValue } from "react";
 import { useEmailThreads } from "../../api/queries";
 import { useEmailUIStore } from "../../api/store";
-import type { EmailFolder } from "../../types";
+import { EMAIL_CONNECT_CODES, type EmailFolder } from "../../types";
+import { EmailNotConnected } from "../email-not-connected";
 import { ThreadListItem } from "./thread-list-item";
 
 function ThreadListSkeleton({ count = 8 }: { count?: number }) {
@@ -58,14 +60,19 @@ export function ThreadList({ folder }: ThreadListProps) {
 	const setPreviewThread = useEmailUIStore((s) => s.setPreviewThread);
 
 	const deferredSearch = useDeferredValue(search);
-	const { data, isLoading, isError, refetch } = useEmailThreads(
+	const { data, isLoading, isError, error, refetch } = useEmailThreads(
 		folder,
 		deferredSearch || undefined,
 	);
 	const threads = data ?? [];
+	console.log("Email threads ", threads)
 
 	if (isLoading) return <ThreadListSkeleton />;
 	if (isError) {
+		// "No mailbox connected" is an expected state, not a failure — show a CTA.
+		if (error instanceof ServerError && EMAIL_CONNECT_CODES.has(error.code)) {
+			return <EmailNotConnected />;
+		}
 		return (
 			<ErrorState
 				message="Failed to load emails. Please try again."

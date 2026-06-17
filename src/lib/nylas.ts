@@ -14,6 +14,8 @@
  *                         e.g. https://app.example.com/api/nylas/callback
  */
 
+import Nylas from "nylas";
+
 const DEFAULT_API_URI = "https://api.us.nylas.com";
 
 /** Name of the short-lived cookie holding the OAuth `state` CSRF token. Set when
@@ -46,6 +48,17 @@ export function buildNylasAuthUrl(state: string): string {
 	});
 	return `${NYLAS_API_URI}/v3/connect/auth?${params.toString()}`;
 }
+
+/** The central Nylas SDK client — one instance for the whole app, mirroring the
+ *  Prisma singleton. All grant-scoped data operations (messages, threads,
+ *  drafts, folders) go through this; feature repositories call it with the
+ *  user's grant id. The hosted-auth connect flow above stays fetch-based and is
+ *  unaffected. Constructs fine even when env is unset (`isNylasConfigured()`
+ *  gates real use); calls only fail when actually invoked without credentials. */
+export const nylas = new Nylas({
+	apiKey: NYLAS_API_KEY,
+	apiUri: NYLAS_API_URI,
+});
 
 export interface NylasGrant {
 	grantId: string;

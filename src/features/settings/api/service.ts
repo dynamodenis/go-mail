@@ -26,6 +26,15 @@ export async function getNylasConnection(
 	};
 }
 
+/** The current user's primary mailbox grant id, or null if nothing is
+ *  connected. Used by the email feature to make Nylas calls on the user's
+ *  behalf. The grant stays server-side — never return it to the client. */
+export async function getPrimaryGrantId(
+	userId: string,
+): Promise<string | null> {
+	return repo.findPrimaryGrantId(userId);
+}
+
 /** Completes the OAuth callback: exchanges the code for a grant and persists it
  *  as one of the user's mailboxes. Reconnecting an existing address refreshes
  *  its grant; the first mailbox a user connects becomes primary.
