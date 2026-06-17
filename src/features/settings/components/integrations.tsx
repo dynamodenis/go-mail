@@ -6,15 +6,18 @@ import {
 	useNylasConnection,
 	useStartNylasConnect,
 	useDisconnectNylas,
+	useSetPrimaryNylasAccount,
 } from "../api/queries";
 import { NylasConnectionCard } from "./nylas-connection-card";
 
 /** Settings > Integrations page. Orchestrates the Nylas connection card and the
- *  connect/disconnect actions; presentation lives in NylasConnectionCard. */
+ *  connect/disconnect/set-primary actions; presentation lives in
+ *  NylasConnectionCard. */
 export default function Integrations() {
 	const connection = useNylasConnection();
 	const startConnect = useStartNylasConnect();
 	const disconnect = useDisconnectNylas();
+	const setPrimary = useSetPrimaryNylasAccount();
 
 	useNylasCallbackToast();
 
@@ -28,9 +31,16 @@ export default function Integrations() {
 		});
 	}
 
-	function handleDisconnect() {
-		disconnect.mutate(undefined, {
-			onSuccess: () => toast.success("Nylas disconnected."),
+	function handleDisconnect(accountId: string) {
+		disconnect.mutate(accountId, {
+			onSuccess: () => toast.success("Email account disconnected."),
+			onError: (err) => toast.error(err.message),
+		});
+	}
+
+	function handleSetPrimary(accountId: string) {
+		setPrimary.mutate(accountId, {
+			onSuccess: () => toast.success("Primary account updated."),
 			onError: (err) => toast.error(err.message),
 		});
 	}
@@ -54,8 +64,14 @@ export default function Integrations() {
 					connection={connection.data}
 					onConnect={handleConnect}
 					onDisconnect={handleDisconnect}
+					onSetPrimary={handleSetPrimary}
 					isConnecting={startConnect.isPending}
-					isDisconnecting={disconnect.isPending}
+					disconnectingId={
+						disconnect.isPending ? (disconnect.variables ?? null) : null
+					}
+					settingPrimaryId={
+						setPrimary.isPending ? (setPrimary.variables ?? null) : null
+					}
 				/>
 			) : null}
 		</div>

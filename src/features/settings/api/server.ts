@@ -8,6 +8,7 @@ import {
 	NYLAS_STATE_COOKIE,
 } from "@/lib/nylas";
 import * as service from "./service";
+import { nylasAccountIdSchema, type NylasAccountIdInput } from "../types";
 
 /**
  * Get the current user's Nylas connection status.
@@ -59,16 +60,35 @@ export const startNylasConnect = createServerFn({ method: "POST" }).handler(
 );
 
 /**
- * Disconnect Nylas: removes the stored grant for the current user.
+ * Disconnect a single connected mailbox for the current user.
  * @auth Required
+ * @throws NYLAS_ACCOUNT_NOT_FOUND
  */
-export const disconnectNylas = createServerFn({ method: "POST" }).handler(
-	async () => {
+export const disconnectNylas = createServerFn({ method: "POST" })
+	.inputValidator((data: NylasAccountIdInput) => nylasAccountIdSchema.parse(data))
+	.handler(async ({ data }) => {
 		try {
 			const userId = await requireUserId();
-			return { data: await service.disconnectNylas(userId) };
+			return { data: await service.disconnectNylas(userId, data.accountId) };
 		} catch (error) {
 			return handleServerError(error);
 		}
-	},
-);
+	});
+
+/**
+ * Make one of the user's connected mailboxes their primary (default).
+ * @auth Required
+ * @throws NYLAS_ACCOUNT_NOT_FOUND
+ */
+export const setPrimaryNylasAccount = createServerFn({ method: "POST" })
+	.inputValidator((data: NylasAccountIdInput) => nylasAccountIdSchema.parse(data))
+	.handler(async ({ data }) => {
+		try {
+			const userId = await requireUserId();
+			return {
+				data: await service.setPrimaryNylasAccount(userId, data.accountId),
+			};
+		} catch (error) {
+			return handleServerError(error);
+		}
+	});

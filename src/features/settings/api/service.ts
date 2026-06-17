@@ -8,21 +8,27 @@ import type { NylasConnection } from "../types";
 
 /** Business logic for the settings feature. No HTTP or Prisma concerns. */
 
-/** Reports whether the current user has a connected Nylas grant, and whether the
- *  server is even configured to offer the connection. `configured: false` tells
- *  the UI to show a "set up Nylas" state rather than a dead Connect button. */
+/** Returns the current user's connected mailboxes plus whether the server is
+ *  configured to offer connections at all. `configured: false` tells the UI to
+ *  show a "set up Nylas" state rather than a dead Connect button. */
 export async function getNylasConnection(
 	userId: string,
 ): Promise<NylasConnection> {
-	const settings = await repo.findNylasSettings(userId);
+	const accounts = await repo.listNylasAccounts(userId);
 	return {
 		configured: isNylasConfigured(),
-		connected: Boolean(settings?.nylasGrantId),
-		email: settings?.nylasEmail ?? null,
+		accounts: accounts.map((a) => ({
+			id: a.id,
+			email: a.email,
+			isPrimary: a.isPrimary,
+			createdAt: a.createdAt.toISOString(),
+		})),
 	};
 }
 
-/** Completes the OAuth callback: exchanges the code for a grant and persists it.
+/** Completes the OAuth callback: exchanges the code for a grant and persists it
+ *  as one of the user's mailboxes. Reconnecting an existing address refreshes
+ *  its grant; the first mailbox a user connects becomes primary.
  *  Throws NYLAS_NOT_CONFIGURED if env is missing, or NYLAS_CONNECT_FAILED if the
  *  exchange fails — the callback route maps both to an error redirect.
  *  @throws NYLAS_NOT_CONFIGURED, NYLAS_CONNECT_FAILED */
@@ -47,19 +53,63 @@ export async function connectNylas(
 		);
 	}
 
-	await repo.upsertNylasGrant(userId, grant);
-	return { configured: true, connected: true, email: grant.email };
+	const existing = await repo.findNylasAccountByEmail(userId, grant.email);
+	if (existing) {
+		await repo.updateNylasAccountGrant(existing.id, grant.grantId);
+	} else {
+		// First mailbox a user connects becomes their primary by default.
+		const isPrimary = (await repo.countNylasAccounts(userId)) === 0;
+		await repo.createNylasAccount(userId, {
+			grantId: grant.grantId,
+			email: grant.email,
+			isPrimary,
+		});
+	}
+
+	return getNylasConnection(userId);
 }
 
-/** Removes the stored grant so the account is no longer connected. Idempotent —
- *  disconnecting an already-disconnected account is a no-op. */
+/** Disconnects one mailbox. If it was the primary and other mailboxes remain,
+ *  the oldest survivor is promoted so the user always has a primary.
+ *  @throws NYLAS_ACCOUNT_NOT_FOUND */
 export async function disconnectNylas(
 	userId: string,
+	accountId: string,
 ): Promise<NylasConnection> {
-	await repo.clearNylasGrant(userId);
-	return {
-		configured: isNylasConfigured(),
-		connected: false,
-		email: null,
-	};
+	const account = await repo.findNylasAccount(userId, accountId);
+	if (!account) {
+		throw new AppError(
+			"NYLAS_ACCOUNT_NOT_FOUND",
+			"That email account is no longer connected.",
+		);
+	}
+
+	await repo.deleteNylasAccount(userId, accountId);
+
+	if (account.isPrimary) {
+		const next = await repo.findOldestNylasAccount(userId);
+		if (next) {
+			await repo.setPrimaryNylasAccount(userId, next.id);
+		}
+	}
+
+	return getNylasConnection(userId);
+}
+
+/** Marks a mailbox as the user's primary (default for inbox/sending).
+ *  @throws NYLAS_ACCOUNT_NOT_FOUND */
+export async function setPrimaryNylasAccount(
+	userId: string,
+	accountId: string,
+): Promise<NylasConnection> {
+	const account = await repo.findNylasAccount(userId, accountId);
+	if (!account) {
+		throw new AppError(
+			"NYLAS_ACCOUNT_NOT_FOUND",
+			"That email account is no longer connected.",
+		);
+	}
+
+	await repo.setPrimaryNylasAccount(userId, accountId);
+	return getNylasConnection(userId);
 }

@@ -44,7 +44,22 @@ export function useDisconnectNylas(queryClient?: QueryClient) {
 	const qc = queryClient ?? useQueryClient();
 	return useMutation(
 		{
-			mutationFn: async () => unwrap(await server.disconnectNylas()),
+			mutationFn: async (accountId: string) =>
+				unwrap(await server.disconnectNylas({ data: { accountId } })),
+			onSuccess: () => {
+				qc.invalidateQueries({ queryKey: settingsKeys.nylasConnection() });
+			},
+		},
+		qc,
+	);
+}
+
+export function useSetPrimaryNylasAccount(queryClient?: QueryClient) {
+	const qc = queryClient ?? useQueryClient();
+	return useMutation(
+		{
+			mutationFn: async (accountId: string) =>
+				unwrap(await server.setPrimaryNylasAccount({ data: { accountId } })),
 			onSuccess: () => {
 				qc.invalidateQueries({ queryKey: settingsKeys.nylasConnection() });
 			},

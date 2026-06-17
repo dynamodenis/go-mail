@@ -45,6 +45,13 @@ export const connectNylasSchema = z.object({
 });
 export type ConnectNylasInput = z.infer<typeof connectNylasSchema>;
 
+/** Identifies one of the user's connected Nylas accounts for disconnect /
+ *  set-primary actions. */
+export const nylasAccountIdSchema = z.object({
+  accountId: z.string().min(1),
+});
+export type NylasAccountIdInput = z.infer<typeof nylasAccountIdSchema>;
+
 /** Query params Nylas appends when redirecting back to our callback route. */
 export const nylasCallbackSchema = z.object({
   code: z.string().min(1),
@@ -52,12 +59,20 @@ export const nylasCallbackSchema = z.object({
 });
 export type NylasCallbackInput = z.infer<typeof nylasCallbackSchema>;
 
+/** One connected mailbox. `isPrimary` marks the default used by inbox/sending. */
+export interface NylasAccount {
+  id: string;
+  email: string;
+  isPrimary: boolean;
+  createdAt: string;
+}
+
 /** Connection status surfaced to the Integrations UI. `configured` reflects the
- *  server env; `connected` reflects whether this user has a stored grant. */
+ *  server env; `accounts` is every mailbox this user has connected (empty when
+ *  none). */
 export interface NylasConnection {
   configured: boolean;
-  connected: boolean;
-  email: string | null;
+  accounts: NylasAccount[];
 }
 
 export interface UserSettings {
@@ -70,8 +85,6 @@ export interface UserSettings {
   defaultFromEmail: string | null;
   defaultReplyTo: string | null;
   sendingProvider: SendingProvider;
-  nylasGrantId: string | null;
-  nylasEmail: string | null;
   physicalAddress: string | null;
   unsubscribeUrl: string | null;
   includeUnsubscribeLink: boolean;

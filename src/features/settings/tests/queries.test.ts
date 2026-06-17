@@ -5,6 +5,7 @@ vi.mock("../api/server", () => ({
 	getNylasConnection: vi.fn(),
 	startNylasConnect: vi.fn(),
 	disconnectNylas: vi.fn(),
+	setPrimaryNylasAccount: vi.fn(),
 }));
 
 import { settingsKeys } from "../api/queries";
