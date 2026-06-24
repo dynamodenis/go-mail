@@ -1,6 +1,5 @@
 import { nylas } from "@/lib/nylas";
-import type { Message, Thread } from "nylas";
-import { FOLDER_ATTRIBUTE, type EmailFolder } from "../types";
+import type { Folder, Message, Thread } from "nylas";
 
 /** Pure data-access layer for email — every call goes through the central Nylas
  *  client scoped to a grant id. No auth, no business rules, no mapping; returns
@@ -10,21 +9,11 @@ import { FOLDER_ATTRIBUTE, type EmailFolder } from "../types";
 // (Nylas best-practices). 25 matches the app-wide default page size.
 const THREAD_PAGE_SIZE = 25;
 
-/** Resolves the provider's folder id for one of our UI folders by matching the
- *  IMAP special-use attribute, falling back to a name match. Returns null when
- *  the mailbox has no such folder. */
-export async function resolveFolderId(
-	grantId: string,
-	folder: EmailFolder,
-): Promise<string | null> {
-	const attribute = FOLDER_ATTRIBUTE[folder];
+/** Lists every folder/label on the mailbox. The service classifies, names, and
+ *  filters them for the sidebar. */
+export async function listFolders(grantId: string): Promise<Folder[]> {
 	const { data } = await nylas.folders.list({ identifier: grantId });
-
-	const byAttribute = data.find((f) => f.attributes?.includes(attribute));
-	if (byAttribute) return byAttribute.id;
-
-	const byName = data.find((f) => f.name?.toLowerCase() === folder);
-	return byName?.id ?? null;
+	return data;
 }
 
 /** Lists threads in a folder, optionally filtered by a provider-native search

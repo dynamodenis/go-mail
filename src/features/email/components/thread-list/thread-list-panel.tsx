@@ -1,14 +1,19 @@
 import { cn } from "@/lib/utils";
-import type { EmailFolder } from "../../types";
+import type { FolderRole } from "../../types";
 import { ThreadList } from "./thread-list";
 import { ThreadListSearch } from "./thread-list-search";
 
 interface ThreadListPanelProps {
-	folder: EmailFolder;
+	folderId: string;
+	folderRole: FolderRole;
 	className?: string;
 }
 
-export function ThreadListPanel({ folder, className }: ThreadListPanelProps) {
+export function ThreadListPanel({
+	folderId,
+	folderRole,
+	className,
+}: ThreadListPanelProps) {
 	return (
 		<div
 			className={cn(
@@ -20,7 +25,7 @@ export function ThreadListPanel({ folder, className }: ThreadListPanelProps) {
 				<ThreadListSearch />
 			</div>
 			<div className="min-h-0 flex-1">
-				<ThreadList folder={folder} />
+				<ThreadList folderId={folderId} folderRole={folderRole} />
 			</div>
 		</div>
 	);

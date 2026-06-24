@@ -2,12 +2,12 @@ import { cn } from "@/lib/utils";
 import DOMPurify from "isomorphic-dompurify";
 import { ChevronDown } from "lucide-react";
 import { useMemo, useState } from "react";
+import type { EmailThreadMessage } from "../../types";
 import {
 	emailInitials,
 	formatMessageDate,
 	participantLabel,
 } from "../../utils/email-format";
-import type { EmailThreadMessage } from "../../types";
 
 interface ThreadMessageItemProps {
 	message: EmailThreadMessage;
@@ -63,7 +63,7 @@ export function ThreadMessageItem({
 				)}
 			>
 				<div className="overflow-hidden">
-					<div className="border-t px-3 py-3">
+					<div className="min-w-0 border-t px-3 py-3">
 						<div className="mb-2 text-muted-foreground text-xs">
 							To: {message.to.map((t) => t.email).join(", ")}
 							{message.cc && message.cc.length > 0 && (
@@ -72,8 +72,11 @@ export function ThreadMessageItem({
 								</span>
 							)}
 						</div>
+						{/* Email HTML can be wider than the pane (fixed-width tables,
+						    large images). Let it scroll horizontally inside this box
+						    instead of breaking the whole layout. */}
 						<div
-							className="max-w-none break-words text-sm leading-relaxed [&_a]:text-primary [&_a]:underline [&_img]:max-w-full"
+							className="max-w-full overflow-x-auto text-sm leading-relaxed [&_a]:text-primary [&_a]:underline"
 							// Sanitized above with DOMPurify — safe to render as HTML.
 							// biome-ignore lint/security/noDangerouslySetInnerHtml: email body is sanitized with DOMPurify
 							dangerouslySetInnerHTML={{ __html: sanitizedBody }}

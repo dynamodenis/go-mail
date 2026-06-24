@@ -1,16 +1,16 @@
-import { describe, it, expect, vi, beforeEach } from "vitest";
 import { AppError } from "@/lib/errors";
+import { beforeEach, describe, expect, it, vi } from "vitest";
 
 // Mock the repository so the service is tested without the Nylas client.
 vi.mock("../api/repository", () => ({
-	resolveFolderId: vi.fn(),
+	listFolders: vi.fn(),
 	listThreads: vi.fn(),
 	findThread: vi.fn(),
 	listThreadMessages: vi.fn(),
 }));
 
-import * as service from "../api/service";
 import * as repo from "../api/repository";
+import * as service from "../api/service";
 
 const mockRepo = repo as unknown as Record<string, ReturnType<typeof vi.fn>>;
 const GRANT = "grant-1";
@@ -45,14 +45,85 @@ beforeEach(() => {
 	vi.clearAllMocks();
 });
 
+function folder(overrides = {}) {
+	return {
+		id: "f1",
+		name: "INBOX",
+		object: "folder",
+		grantId: GRANT,
+		attributes: ["\\Inbox"],
+		unreadCount: 3,
+		...overrides,
+	};
+}
+
+describe("service.getFolders", () => {
+	it("classifies and sorts every folder Gmail-style (system first, then labels)", async () => {
+		mockRepo.listFolders.mockResolvedValue([
+			// A user label (not a system folder) — goes to the labels group.
+			folder({ id: "work", name: "Work", attributes: [], systemFolder: false }),
+			folder({ id: "sent", name: "[Gmail]/Sent Mail", attributes: ["\\Sent"] }),
+			folder({ id: "inbox", name: "INBOX", attributes: ["\\Inbox"] }),
+			// A Gmail category label — system, with a prettified name.
+			folder({ id: "promos", name: "CATEGORY_PROMOTIONS", attributes: [] }),
+			folder({ id: "imp", name: "IMPORTANT", attributes: ["\\Important"] }),
+			folder({ id: "apex", name: "Apex", attributes: [], systemFolder: false }),
+		]);
+
+		const result = await service.getFolders(GRANT);
+
+		// System folders first in deliberate order (inbox, sent, important, then
+		// the category), then user labels alphabetically.
+		expect(result.map((f) => f.id)).toEqual([
+			"inbox",
+			"sent",
+			"imp",
+			"promos",
+			"apex",
+			"work",
+		]);
+		expect(result[0]).toEqual({
+			id: "inbox",
+			name: "Inbox",
+			role: "inbox",
+			system: true,
+			unreadCount: 3,
+		});
+		// \Important resolves to the important role with a friendly name.
+		expect(result.find((f) => f.id === "imp")).toMatchObject({
+			name: "Important",
+			role: "important",
+			system: true,
+		});
+		// Gmail's shouty category label is prettified but stays a system folder.
+		expect(result.find((f) => f.id === "promos")).toMatchObject({
+			name: "Promotions",
+			system: true,
+		});
+		// User labels keep their own name and are flagged as non-system.
+		expect(result.find((f) => f.id === "work")).toMatchObject({
+			name: "Work",
+			role: "custom",
+			system: false,
+		});
+	});
+
+	it("maps a provider error to EMAIL_FETCH_FAILED", async () => {
+		mockRepo.listFolders.mockRejectedValue(new Error("429"));
+
+		const err = await service.getFolders(GRANT).catch((e) => e);
+
+		expect(err).toBeInstanceOf(AppError);
+		expect(err.code).toBe("EMAIL_FETCH_FAILED");
+	});
+});
+
 describe("service.getThreads", () => {
-	it("resolves the folder and maps Nylas threads onto the UI shape", async () => {
-		mockRepo.resolveFolderId.mockResolvedValue("FOLDER_INBOX");
+	it("maps Nylas threads onto the UI shape", async () => {
 		mockRepo.listThreads.mockResolvedValue([thread()]);
 
-		const result = await service.getThreads(GRANT, "inbox");
+		const result = await service.getThreads(GRANT, "FOLDER_INBOX", "inbox");
 
-		expect(mockRepo.resolveFolderId).toHaveBeenCalledWith(GRANT, "inbox");
 		expect(mockRepo.listThreads).toHaveBeenCalledWith(
 			GRANT,
 			"FOLDER_INBOX",
@@ -77,28 +148,20 @@ describe("service.getThreads", () => {
 		]);
 	});
 
-	it("uses the recipient as the preview for the sent folder", async () => {
-		mockRepo.resolveFolderId.mockResolvedValue("FOLDER_SENT");
+	it("uses the recipient as the preview for the sent role", async () => {
 		mockRepo.listThreads.mockResolvedValue([thread()]);
 
-		const [mapped] = await service.getThreads(GRANT, "sent");
+		const [mapped] = await service.getThreads(GRANT, "FOLDER_SENT", "sent");
 
 		expect(mapped.preview).toEqual({ name: "Me", email: "me@gomail.app" });
 	});
 
-	it("returns an empty list when the mailbox has no such folder", async () => {
-		mockRepo.resolveFolderId.mockResolvedValue(null);
-
-		const result = await service.getThreads(GRANT, "drafts");
-
-		expect(result).toEqual([]);
-		expect(mockRepo.listThreads).not.toHaveBeenCalled();
-	});
-
 	it("maps a provider error to EMAIL_FETCH_FAILED", async () => {
-		mockRepo.resolveFolderId.mockRejectedValue(new Error("429"));
+		mockRepo.listThreads.mockRejectedValue(new Error("429"));
 
-		const err = await service.getThreads(GRANT, "inbox").catch((e) => e);
+		const err = await service
+			.getThreads(GRANT, "FOLDER_INBOX", "inbox")
+			.catch((e) => e);
 
 		expect(err).toBeInstanceOf(AppError);
 		expect(err.code).toBe("EMAIL_FETCH_FAILED");

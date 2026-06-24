@@ -110,7 +110,7 @@ export function NylasConnectionCard({
 								{isConnecting ? "Redirecting…" : "Connect another account"}
 							</Button>
 							<Button size="sm" asChild>
-								<a href="/email/inbox">
+								<a href="/email">
 									Open inbox
 									<ExternalLink className="h-4 w-4" aria-hidden="true" />
 								</a>

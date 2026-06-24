@@ -1,8 +1,8 @@
+import { ServerError } from "@/lib/server-result";
 import { QueryClient, QueryClientProvider } from "@tanstack/react-query";
 import { fireEvent, render, screen } from "@testing-library/react";
 import type { ReactNode } from "react";
 import { beforeEach, describe, expect, it, vi } from "vitest";
-import { ServerError } from "@/lib/server-result";
 import { useEmailUIStore } from "../api/store";
 import { ThreadList } from "../components/thread-list/thread-list";
 import { getMockThreads } from "../data/mock-threads";
@@ -54,19 +54,19 @@ describe("ThreadList", () => {
 	});
 
 	it("renders the folder's threads", () => {
-		render(withClient(<ThreadList folder="inbox" />));
+		render(withClient(<ThreadList folderId="inbox-f" folderRole="inbox" />));
 		expect(screen.getByText("Q3 roadmap review")).toBeInTheDocument();
 		expect(screen.getByText("Re: Contract renewal")).toBeInTheDocument();
 	});
 
 	it("selecting a thread stores it in the UI store", () => {
-		render(withClient(<ThreadList folder="inbox" />));
+		render(withClient(<ThreadList folderId="inbox-f" folderRole="inbox" />));
 		fireEvent.click(screen.getByText("Q3 roadmap review"));
 		expect(useEmailUIStore.getState().selectedThread?.id).toBe("t1");
 	});
 
 	it("hovering a thread previews it in the UI store", () => {
-		render(withClient(<ThreadList folder="inbox" />));
+		render(withClient(<ThreadList folderId="inbox-f" folderRole="inbox" />));
 		const button = screen.getByText("Re: Contract renewal").closest("button");
 		expect(button).not.toBeNull();
 		fireEvent.mouseEnter(button as HTMLButtonElement);
@@ -75,13 +75,15 @@ describe("ThreadList", () => {
 
 	it("shows the loading skeleton", () => {
 		Object.assign(threadsResult, { data: undefined, isLoading: true });
-		const { container } = render(withClient(<ThreadList folder="inbox" />));
+		const { container } = render(
+			withClient(<ThreadList folderId="inbox-f" folderRole="inbox" />),
+		);
 		expect(container.querySelector('[aria-hidden="true"]')).toBeInTheDocument();
 	});
 
 	it("shows the empty state when there are no threads", () => {
 		Object.assign(threadsResult, { data: [] });
-		render(withClient(<ThreadList folder="inbox" />));
+		render(withClient(<ThreadList folderId="inbox-f" folderRole="inbox" />));
 		expect(screen.getByText("Inbox zero")).toBeInTheDocument();
 	});
 
@@ -91,7 +93,7 @@ describe("ThreadList", () => {
 			isError: true,
 			error: new ServerError(EMAIL_ERROR.NOT_CONNECTED, "nope"),
 		});
-		render(withClient(<ThreadList folder="inbox" />));
+		render(withClient(<ThreadList folderId="inbox-f" folderRole="inbox" />));
 		expect(screen.getByText("No mailbox connected")).toBeInTheDocument();
 		expect(
 			screen.getByRole("link", { name: /connect a mailbox/i }),
@@ -104,7 +106,7 @@ describe("ThreadList", () => {
 			isError: true,
 			error: new ServerError(EMAIL_ERROR.FETCH_FAILED, "boom"),
 		});
-		render(withClient(<ThreadList folder="inbox" />));
+		render(withClient(<ThreadList folderId="inbox-f" folderRole="inbox" />));
 		expect(screen.getByText(/failed to load emails/i)).toBeInTheDocument();
 	});
 });

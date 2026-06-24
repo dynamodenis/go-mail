@@ -1,5 +1,4 @@
-import type { EmailFolder } from "../types";
-import type { EmailThread, EmailThreadDetail } from "../types";
+import type { EmailThread, EmailThreadDetail, FolderRole } from "../types";
 
 // ─────────────────────────────────────────────────────────────────────────────
 // TEST FIXTURES — the live inbox is now backed by Nylas (api/queries.ts →
@@ -12,12 +11,13 @@ import type { EmailThread, EmailThreadDetail } from "../types";
 // the skeleton renders identically every time.
 const D = (s: string) => new Date(s).toISOString();
 
-const THREADS: Record<EmailFolder, EmailThread[]> = {
+const THREADS: Partial<Record<FolderRole, EmailThread[]>> = {
 	inbox: [
 		{
 			id: "t1",
 			subject: "Q3 roadmap review",
-			snippet: "Sharing the deck ahead of Thursday — let me know your thoughts on the prioritization.",
+			snippet:
+				"Sharing the deck ahead of Thursday — let me know your thoughts on the prioritization.",
 			unread: true,
 			starred: false,
 			hasAttachments: true,
@@ -32,7 +32,8 @@ const THREADS: Record<EmailFolder, EmailThread[]> = {
 		{
 			id: "t2",
 			subject: "Re: Contract renewal",
-			snippet: "Thanks for the quick turnaround. We're good to proceed with the annual plan.",
+			snippet:
+				"Thanks for the quick turnaround. We're good to proceed with the annual plan.",
 			unread: true,
 			starred: true,
 			hasAttachments: false,
@@ -47,7 +48,8 @@ const THREADS: Record<EmailFolder, EmailThread[]> = {
 		{
 			id: "t3",
 			subject: "Design system handoff",
-			snippet: "Components are published to the shared library. Tokens doc is linked inside.",
+			snippet:
+				"Components are published to the shared library. Tokens doc is linked inside.",
 			unread: false,
 			starred: false,
 			hasAttachments: false,
@@ -73,7 +75,8 @@ const THREADS: Record<EmailFolder, EmailThread[]> = {
 		{
 			id: "s1",
 			subject: "Intro: Sarah <> Tom",
-			snippet: "Connecting you both — Sarah leads partnerships, Tom runs our API team.",
+			snippet:
+				"Connecting you both — Sarah leads partnerships, Tom runs our API team.",
 			unread: false,
 			starred: false,
 			hasAttachments: false,
@@ -99,7 +102,8 @@ const THREADS: Record<EmailFolder, EmailThread[]> = {
 		{
 			id: "d1",
 			subject: "Re: Pricing question",
-			snippet: "Hi — wanted to circle back on the volume discount we discussed…",
+			snippet:
+				"Hi — wanted to circle back on the volume discount we discussed…",
 			unread: false,
 			starred: false,
 			hasAttachments: false,
@@ -115,7 +119,7 @@ const DETAILS: Record<string, EmailThreadDetail> = {
 	t1: {
 		id: "t1",
 		subject: "Q3 roadmap review",
-		participants: THREADS.inbox[0].participants,
+		participants: THREADS.inbox?.[0]?.participants ?? [],
 		messages: [
 			{
 				id: "t1-m1",
@@ -162,7 +166,7 @@ function buildFallbackDetail(thread: EmailThread): EmailThreadDetail {
 }
 
 export function getMockThreads(
-	folder: EmailFolder,
+	folder: FolderRole,
 	search?: string,
 ): EmailThread[] {
 	const all = THREADS[folder] ?? [];

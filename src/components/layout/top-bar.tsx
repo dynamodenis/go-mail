@@ -1,10 +1,11 @@
 import { useRouterState } from "@tanstack/react-router";
+import { useEmailFolders } from "@/features/email/api/queries";
+import type { EmailFolderItem } from "@/features/email/types";
 import { useCurrentUser } from "@/hooks/use-current-user";
 import {
 	BarChart3,
 	Calendar,
 	FileText,
-	Inbox,
 	LayoutDashboard,
 	type LucideIcon,
 	Mail,
@@ -30,9 +31,7 @@ interface RouteInfo {
 
 const ROUTE_MAP: Record<string, RouteInfo> = {
 	"/dashboard": { title: "Dashboard", icon: LayoutDashboard },
-	"/email/inbox": { title: "Inbox", icon: Inbox },
-	"/email/sent": { title: "Sent", icon: Send },
-	"/email/drafts": { title: "Drafts", icon: FileText },
+	"/email": { title: "Email", icon: Mail },
 	"/calendar": { title: "Calendar", icon: Calendar },
 	"/campaigns": { title: "Campaigns", icon: Send },
 	"/campaigns/new": { title: "Create Campaign", icon: PlusCircle },
@@ -62,7 +61,20 @@ const SEGMENT_ICONS: Record<string, LucideIcon> = {
 	settings: Settings,
 };
 
-function getRouteInfo(pathname: string): RouteInfo {
+/** The opaque folder id in `/email/<id>` is meaningless to the user, so resolve
+ *  it to the folder's display name from the (globally prefetched) folder list. */
+function emailFolderName(
+	pathname: string,
+	folders?: EmailFolderItem[],
+): string | undefined {
+	const folderId = pathname.match(/^\/email\/([^/]+)$/)?.[1];
+	if (!folderId) return undefined;
+	return folders?.find((f) => f.id === folderId)?.name ?? "Folder";
+}
+
+function getRouteInfo(pathname: string, folders?: EmailFolderItem[]): RouteInfo {
+	const folderName = emailFolderName(pathname, folders);
+	if (folderName) return { title: folderName, icon: Mail };
 	return ROUTE_MAP[pathname] ?? { title: "Page", icon: LayoutDashboard };
 }
 
@@ -71,12 +83,22 @@ interface Breadcrumb {
 	icon?: LucideIcon;
 }
 
-function getBreadcrumbs(pathname: string): Breadcrumb[] {
+function getBreadcrumbs(
+	pathname: string,
+	folders?: EmailFolderItem[],
+): Breadcrumb[] {
+	const folderName = emailFolderName(pathname, folders);
 	const segments = pathname.split("/").filter(Boolean);
-	return segments.map((seg) => ({
-		label: seg.charAt(0).toUpperCase() + seg.slice(1).replace(/-/g, " "),
-		icon: SEGMENT_ICONS[seg],
-	}));
+	return segments.map((seg, i) => {
+		// Show the resolved folder name instead of the raw id for /email/<id>.
+		if (folderName && i === 1 && segments[0] === "email") {
+			return { label: folderName };
+		}
+		return {
+			label: seg.charAt(0).toUpperCase() + seg.slice(1).replace(/-/g, " "),
+			icon: SEGMENT_ICONS[seg],
+		};
+	});
 }
 
 interface TopBarProps {
@@ -86,8 +108,9 @@ interface TopBarProps {
 export function TopBar({ className }: TopBarProps) {
 	const pathname = useRouterState({ select: (s) => s.location.pathname });
 	const user = useCurrentUser();
-	const { title, icon: PageIcon } = getRouteInfo(pathname);
-	const breadcrumbs = getBreadcrumbs(pathname);
+	const { data: emailFolders } = useEmailFolders();
+	const { title, icon: PageIcon } = getRouteInfo(pathname, emailFolders);
+	const breadcrumbs = getBreadcrumbs(pathname, emailFolders);
 
 	const initial = user?.email?.charAt(0).toUpperCase() ?? "U";
 

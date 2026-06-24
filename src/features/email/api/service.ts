@@ -1,15 +1,20 @@
-import DOMPurify from "isomorphic-dompurify";
 import { AppError } from "@/lib/errors";
-import type { EmailName, Message, Thread } from "nylas";
-import * as repo from "./repository";
+import DOMPurify from "isomorphic-dompurify";
+import type { EmailName, Folder, Message, Thread } from "nylas";
 import {
+	ATTRIBUTE_ROLE,
 	EMAIL_ERROR,
-	type EmailFolder,
+	type EmailFolderItem,
 	type EmailParticipant,
 	type EmailThread,
 	type EmailThreadDetail,
 	type EmailThreadMessage,
+	FOLDER_NAME_OVERRIDES,
+	type FolderRole,
+	ROLE_LABEL,
+	SYSTEM_ROLE_ORDER,
 } from "../types";
+import * as repo from "./repository";
 
 /** Business logic for email. Maps untrusted Nylas payloads onto the
  *  provider-agnostic shapes the UI renders, sanitizes HTML bodies, and applies
@@ -41,16 +46,19 @@ function sanitizeBody(html?: string): string {
 	});
 }
 
-/** For inbox we show the latest sender; for sent/drafts we show the recipient. */
+/** In sender-oriented folders we show the latest sender; in sent/drafts we show
+ *  the recipient, since the user is the sender there. */
 function previewParticipant(
 	latest: Message | undefined,
-	folder: EmailFolder,
+	role: FolderRole,
 ): EmailParticipant {
-	if (folder === "inbox") return toParticipant(latest?.from?.[0]);
-	return toParticipant(latest?.to?.[0]);
+	if (role === "sent" || role === "drafts") {
+		return toParticipant(latest?.to?.[0]);
+	}
+	return toParticipant(latest?.from?.[0]);
 }
 
-function toThread(thread: Thread, folder: EmailFolder): EmailThread {
+function toThread(thread: Thread, role: FolderRole): EmailThread {
 	// latestDraftOrMessage may be a Draft or a Message; both carry from/to.
 	const latest = thread.latestDraftOrMessage as Message | undefined;
 	const date =
@@ -66,7 +74,7 @@ function toThread(thread: Thread, folder: EmailFolder): EmailThread {
 		starred: thread.starred ?? false,
 		hasAttachments: thread.hasAttachments ?? false,
 		participants: toParticipants(thread.participants),
-		preview: previewParticipant(latest, folder),
+		preview: previewParticipant(latest, role),
 		date: toIso(date),
 		messageCount: thread.messageIds?.length ?? 1,
 	};
@@ -86,21 +94,116 @@ function toThreadMessage(message: Message): EmailThreadMessage {
 	};
 }
 
+// ── Folder mapping ───────────────────────────────────────────────────────────
+
+/** Classifies a provider folder into one of our roles. Prefers the IMAP
+ *  special-use attribute Nylas normalizes across providers, falling back to a
+ *  name match for providers that omit attributes. */
+function detectRole(folder: Folder): FolderRole {
+	for (const attribute of folder.attributes ?? []) {
+		const role = ATTRIBUTE_ROLE[attribute];
+		if (role) return role;
+	}
+	switch (folder.name?.toUpperCase()) {
+		case "INBOX":
+			return "inbox";
+		case "SENT":
+			return "sent";
+		case "DRAFT":
+		case "DRAFTS":
+			return "drafts";
+		case "STARRED":
+			return "starred";
+		case "SNOOZED":
+			return "snoozed";
+		case "IMPORTANT":
+			return "important";
+		case "UNREAD":
+			return "unread";
+		case "SCHEDULED":
+			return "scheduled";
+		case "CHAT":
+		case "CHATS":
+			return "chats";
+		case "JUNK":
+		case "SPAM":
+			return "spam";
+		case "TRASH":
+			return "trash";
+		case "ALL MAIL":
+		case "ARCHIVE":
+			return "archive";
+		default:
+			return "custom";
+	}
+}
+
+/** Whether a folder is a provider system folder (vs the user's own label). Uses
+ *  Google's `systemFolder` flag when present; otherwise infers it from a known
+ *  role or a Gmail category name. User labels render in their own section. */
+function isSystemFolder(folder: Folder, role: FolderRole): boolean {
+	if (role !== "custom") return true;
+	if (folder.systemFolder) return true;
+	return (folder.name ?? "").toUpperCase().startsWith("CATEGORY_");
+}
+
+/** Display name for a folder: a friendly label for system roles, a prettified
+ *  name for Gmail's category labels, and the full provider path for the user's
+ *  own labels (the sidebar splits that path into a nested tree). */
+function folderName(folder: Folder, role: FolderRole): string {
+	if (role !== "custom") return ROLE_LABEL[role];
+	const raw = folder.name || "Untitled";
+	return FOLDER_NAME_OVERRIDES[raw.toUpperCase()] ?? raw;
+}
+
+function toFolderItem(folder: Folder, role: FolderRole): EmailFolderItem {
+	return {
+		id: folder.id,
+		name: folderName(folder, role),
+		role,
+		system: isSystemFolder(folder, role),
+		unreadCount: folder.unreadCount ?? 0,
+	};
+}
+
 // ── Operations ──────────────────────────────────────────────────────────────
 
-/** Threads for a folder, optionally filtered by a provider-native search query.
- *  Returns an empty list when the mailbox has no matching folder.
+/** Every folder on the mailbox for the sidebar. Sorted so the UI can lay it out
+ *  Gmail-style: system folders first in a deliberate order (Inbox, Starred,
+ *  Snoozed, Sent, Drafts, then the rest), the user's labels after, alphabetically.
+ *  Nothing is hidden — the sidebar pins the everyday folders, tucks the other
+ *  system ones under "More", and lists labels in their own (nested) section.
+ *  @throws EMAIL_FETCH_FAILED */
+export async function getFolders(grantId: string): Promise<EmailFolderItem[]> {
+	try {
+		const folders = await repo.listFolders(grantId);
+		return folders
+			.map((folder) => toFolderItem(folder, detectRole(folder)))
+			.sort((a, b) => {
+				// System folders before user labels.
+				if (a.system !== b.system) return a.system ? -1 : 1;
+				// Within system, the deliberate Gmail order; labels by name.
+				const byRole = SYSTEM_ROLE_ORDER[a.role] - SYSTEM_ROLE_ORDER[b.role];
+				return byRole !== 0 ? byRole : a.name.localeCompare(b.name);
+			});
+	} catch (error) {
+		if (error instanceof AppError) throw error;
+		throw new AppError(EMAIL_ERROR.FETCH_FAILED, "Couldn't load your folders.");
+	}
+}
+
+/** Threads in a folder, optionally filtered by a provider-native search query.
+ *  `role` only affects the list-row preview (sender vs recipient).
  *  @throws EMAIL_FETCH_FAILED */
 export async function getThreads(
 	grantId: string,
-	folder: EmailFolder,
+	folderId: string,
+	role: FolderRole,
 	search?: string,
 ): Promise<EmailThread[]> {
 	try {
-		const folderId = await repo.resolveFolderId(grantId, folder);
-		if (!folderId) return [];
 		const threads = await repo.listThreads(grantId, folderId, search);
-		return threads.map((t) => toThread(t, folder));
+		return threads.map((t) => toThread(t, role));
 	} catch (error) {
 		if (error instanceof AppError) throw error;
 		throw new AppError(EMAIL_ERROR.FETCH_FAILED, "Couldn't load your email.");

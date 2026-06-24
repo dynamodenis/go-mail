@@ -1,17 +1,18 @@
 import { useEffect } from "react";
 import { useEmailUIStore } from "../api/store";
-import type { EmailFolder } from "../types";
+import type { FolderRole } from "../types";
 import { ThreadDetailPanel } from "./thread-detail/thread-detail-panel";
 import { ThreadListPanel } from "./thread-list/thread-list-panel";
 
 interface EmailViewProps {
-	folder: EmailFolder;
+	folderId: string;
+	folderRole: FolderRole;
 }
 
 /** Superhuman-style two-pane email view: a compact thread list on the left and
- *  a reading pane on the right. The folder is driven by the route (inbox / sent
- *  / drafts), each of which renders this with a different `folder`. */
-export function EmailView({ folder }: EmailViewProps) {
+ *  a reading pane on the right. The folder is driven by the route's `$folderId`
+ *  param; `folderRole` tunes the list-row preview (sender vs recipient). */
+export function EmailView({ folderId, folderRole }: EmailViewProps) {
 	const setSelectedThread = useEmailUIStore((s) => s.setSelectedThread);
 	const setPreviewThread = useEmailUIStore((s) => s.setPreviewThread);
 
@@ -21,7 +22,7 @@ export function EmailView({ folder }: EmailViewProps) {
 	useEffect(() => {
 		setSelectedThread(null);
 		setPreviewThread(null);
-	}, [folder, setSelectedThread, setPreviewThread]);
+	}, [folderId, setSelectedThread, setPreviewThread]);
 
 	return (
 		// Clear the hover-preview only when the cursor leaves BOTH panes, so a
@@ -32,7 +33,8 @@ export function EmailView({ folder }: EmailViewProps) {
 			onMouseLeave={() => setPreviewThread(null)}
 		>
 			<ThreadListPanel
-				folder={folder}
+				folderId={folderId}
+				folderRole={folderRole}
 				className="min-w-0 flex-1 md:flex-[3_1_0]"
 			/>
 			<ThreadDetailPanel className="hidden min-w-0 md:flex md:flex-[1_1_0]" />

@@ -4,7 +4,6 @@ import {
 	BookPlus,
 	Calendar,
 	FileText,
-	Inbox,
 	LayoutDashboard,
 	Library,
 	type LucideIcon,
@@ -32,6 +31,10 @@ export interface NavItem {
 	label: string;
 	href?: string;
 	children?: NavChild[];
+	/** Marks a section whose sub-nav is rendered from live data rather than the
+	 *  static `children` list (e.g. the email folder list, fetched from Nylas).
+	 *  SecondaryNav renders a dedicated component for these. */
+	dynamic?: "email-folders";
 }
 
 export const NAV_ITEMS: NavItem[] = [
@@ -43,11 +46,8 @@ export const NAV_ITEMS: NavItem[] = [
 	{
 		icon: Mail,
 		label: "Email",
-		children: [
-			{ icon: Inbox, label: "Inbox", href: "/email/inbox" },
-			{ icon: Send, label: "Sent", href: "/email/sent" },
-			{ icon: FileText, label: "Drafts", href: "/email/drafts" },
-		],
+		href: "/email",
+		dynamic: "email-folders",
 	},
 	{
 		icon: Calendar,
@@ -155,7 +155,10 @@ export function getActiveChild(
 ): NavChild | undefined {
 	let best: { child: NavChild; len: number } | undefined;
 	for (const child of item.children ?? []) {
-		if (matches(pathname, child.href) && (!best || child.href.length > best.len)) {
+		if (
+			matches(pathname, child.href) &&
+			(!best || child.href.length > best.len)
+		) {
 			best = { child, len: child.href.length };
 		}
 	}

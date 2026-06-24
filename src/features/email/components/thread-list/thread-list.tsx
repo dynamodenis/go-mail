@@ -5,7 +5,7 @@ import { Inbox, Search } from "lucide-react";
 import { useDeferredValue } from "react";
 import { useEmailThreads } from "../../api/queries";
 import { useEmailUIStore } from "../../api/store";
-import { EMAIL_CONNECT_CODES, type EmailFolder } from "../../types";
+import { EMAIL_CONNECT_CODES, type FolderRole } from "../../types";
 import { EmailNotConnected } from "../email-not-connected";
 import { ThreadListItem } from "./thread-list-item";
 
@@ -50,10 +50,11 @@ function EmptyState({ searching }: { searching: boolean }) {
 }
 
 interface ThreadListProps {
-	folder: EmailFolder;
+	folderId: string;
+	folderRole: FolderRole;
 }
 
-export function ThreadList({ folder }: ThreadListProps) {
+export function ThreadList({ folderId, folderRole }: ThreadListProps) {
 	const search = useEmailUIStore((s) => s.searchQuery);
 	const selectedThread = useEmailUIStore((s) => s.selectedThread);
 	const setSelectedThread = useEmailUIStore((s) => s.setSelectedThread);
@@ -61,11 +62,11 @@ export function ThreadList({ folder }: ThreadListProps) {
 
 	const deferredSearch = useDeferredValue(search);
 	const { data, isLoading, isError, error, refetch } = useEmailThreads(
-		folder,
+		folderId,
+		folderRole,
 		deferredSearch || undefined,
 	);
 	const threads = data ?? [];
-	console.log("Email threads ", threads)
 
 	if (isLoading) return <ThreadListSkeleton />;
 	if (isError) {

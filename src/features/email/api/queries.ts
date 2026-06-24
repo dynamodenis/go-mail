@@ -1,34 +1,63 @@
-import { keepPreviousData, queryOptions, useQuery } from "@tanstack/react-query";
 import { ServerError, unwrap } from "@/lib/server-result";
-import { getEmailThreadDetail, getEmailThreads } from "./server";
-import { EMAIL_CONNECT_CODES, type EmailFolder } from "../types";
+import {
+	keepPreviousData,
+	queryOptions,
+	useQuery,
+} from "@tanstack/react-query";
+import { EMAIL_CONNECT_CODES, type FolderRole } from "../types";
+import {
+	getEmailFolders,
+	getEmailThreadDetail,
+	getEmailThreads,
+} from "./server";
 
 const STALE_TIME = 30_000; // 30s — inbox data changes frequently
+const FOLDERS_STALE_TIME = 300_000; // 5m — the folder list rarely changes
 
 export const emailKeys = {
 	all: ["email"] as const,
-	threads: (folder: EmailFolder, search?: string) =>
-		[...emailKeys.all, "threads", folder, search ?? ""] as const,
+	folders: () => [...emailKeys.all, "folders"] as const,
+	// Role is part of the key because it changes the preview the server returns,
+	// so the inbox and the same folder viewed as "custom" don't share a cache.
+	threads: (folderId: string, role: FolderRole, search?: string) =>
+		[...emailKeys.all, "threads", folderId, role, search ?? ""] as const,
 	detail: (threadId: string) => [...emailKeys.all, "detail", threadId] as const,
 };
 
 // "Not connected / not configured" are expected states, not failures to retry —
 // they resolve to a connect CTA. Everything else retries a couple of times.
-function retryUnlessConnectState(failureCount: number, error: unknown): boolean {
+function retryUnlessConnectState(
+	failureCount: number,
+	error: unknown,
+): boolean {
 	if (error instanceof ServerError && EMAIL_CONNECT_CODES.has(error.code)) {
 		return false;
 	}
 	return failureCount < 2;
 }
 
+/** The curated folder list backing the email sidebar. Semi-static, so it's
+ *  cached longer than thread lists. */
+export const emailFoldersQueryOptions = () =>
+	queryOptions({
+		queryKey: emailKeys.folders(),
+		queryFn: async () => unwrap(await getEmailFolders()),
+		staleTime: FOLDERS_STALE_TIME,
+		retry: retryUnlessConnectState,
+	});
+
 /** Shared query config for a folder's threads. Used by both the component hook
  *  and the prefetcher so they populate/read the exact same cache entry — a
  *  prefetch with different options would silently miss the hook's cache key. */
-export const emailThreadsQueryOptions = (folder: EmailFolder, search?: string) =>
+export const emailThreadsQueryOptions = (
+	folderId: string,
+	role: FolderRole,
+	search?: string,
+) =>
 	queryOptions({
-		queryKey: emailKeys.threads(folder, search),
+		queryKey: emailKeys.threads(folderId, role, search),
 		queryFn: async () =>
-			unwrap(await getEmailThreads({ data: { folder, search } })),
+			unwrap(await getEmailThreads({ data: { folderId, role, search } })),
 		staleTime: STALE_TIME,
 		retry: retryUnlessConnectState,
 		// Keep the current list visible while a new folder/search fetches, so
@@ -46,10 +75,19 @@ export const emailThreadDetailQueryOptions = (threadId: string) =>
 		retry: retryUnlessConnectState,
 	});
 
+/** The curated folder list for the sidebar. */
+export function useEmailFolders() {
+	return useQuery(emailFoldersQueryOptions());
+}
+
 /** Threads for a folder, optionally filtered by a search query. Backed by the
  *  user's primary Nylas mailbox via the email server functions. */
-export function useEmailThreads(folder: EmailFolder, search?: string) {
-	return useQuery(emailThreadsQueryOptions(folder, search));
+export function useEmailThreads(
+	folderId: string,
+	role: FolderRole,
+	search?: string,
+) {
+	return useQuery(emailThreadsQueryOptions(folderId, role, search));
 }
 
 /** The expanded thread (messages) for the reading pane. */

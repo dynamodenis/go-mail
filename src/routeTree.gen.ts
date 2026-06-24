@@ -19,6 +19,7 @@ import { Route as AuthSignUpRouteImport } from './routes/_auth/sign-up'
 import { Route as AuthSignInRouteImport } from './routes/_auth/sign-in'
 import { Route as AuthenticatedReportsIndexRouteImport } from './routes/_authenticated/reports/index'
 import { Route as AuthenticatedOutreachComposerIndexRouteImport } from './routes/_authenticated/outreach-composer/index'
+import { Route as AuthenticatedEmailIndexRouteImport } from './routes/_authenticated/email/index'
 import { Route as AuthenticatedContactsIndexRouteImport } from './routes/_authenticated/contacts/index'
 import { Route as AuthenticatedCampaignsIndexRouteImport } from './routes/_authenticated/campaigns/index'
 import { Route as ApiNylasCallbackRouteImport } from './routes/api/nylas/callback'
@@ -30,9 +31,7 @@ import { Route as AuthenticatedSettingsAccountRouteImport } from './routes/_auth
 import { Route as AuthenticatedReportsGrowthRouteImport } from './routes/_authenticated/reports/growth'
 import { Route as AuthenticatedReportsEngagementRouteImport } from './routes/_authenticated/reports/engagement'
 import { Route as AuthenticatedReportsDeliverabilityRouteImport } from './routes/_authenticated/reports/deliverability'
-import { Route as AuthenticatedEmailSentRouteImport } from './routes/_authenticated/email/sent'
-import { Route as AuthenticatedEmailInboxRouteImport } from './routes/_authenticated/email/inbox'
-import { Route as AuthenticatedEmailDraftsRouteImport } from './routes/_authenticated/email/drafts'
+import { Route as AuthenticatedEmailFolderIdRouteImport } from './routes/_authenticated/email/$folderId'
 import { Route as AuthenticatedContactsContactIdRouteImport } from './routes/_authenticated/contacts/$contactId'
 import { Route as AuthenticatedCampaignsNewRouteImport } from './routes/_authenticated/campaigns/new'
 import { Route as AuthenticatedCampaignsCampaignIdRouteImport } from './routes/_authenticated/campaigns/$campaignId'
@@ -92,6 +91,11 @@ const AuthenticatedOutreachComposerIndexRoute =
     path: '/outreach-composer/',
     getParentRoute: () => AuthenticatedRoute,
   } as any)
+const AuthenticatedEmailIndexRoute = AuthenticatedEmailIndexRouteImport.update({
+  id: '/email/',
+  path: '/email/',
+  getParentRoute: () => AuthenticatedRoute,
+} as any)
 const AuthenticatedContactsIndexRoute =
   AuthenticatedContactsIndexRouteImport.update({
     id: '/contacts/',
@@ -157,20 +161,10 @@ const AuthenticatedReportsDeliverabilityRoute =
     path: '/reports/deliverability',
     getParentRoute: () => AuthenticatedRoute,
   } as any)
-const AuthenticatedEmailSentRoute = AuthenticatedEmailSentRouteImport.update({
-  id: '/email/sent',
-  path: '/email/sent',
-  getParentRoute: () => AuthenticatedRoute,
-} as any)
-const AuthenticatedEmailInboxRoute = AuthenticatedEmailInboxRouteImport.update({
-  id: '/email/inbox',
-  path: '/email/inbox',
-  getParentRoute: () => AuthenticatedRoute,
-} as any)
-const AuthenticatedEmailDraftsRoute =
-  AuthenticatedEmailDraftsRouteImport.update({
-    id: '/email/drafts',
-    path: '/email/drafts',
+const AuthenticatedEmailFolderIdRoute =
+  AuthenticatedEmailFolderIdRouteImport.update({
+    id: '/email/$folderId',
+    path: '/email/$folderId',
     getParentRoute: () => AuthenticatedRoute,
   } as any)
 const AuthenticatedContactsContactIdRoute =
@@ -232,9 +226,7 @@ export interface FileRoutesByFullPath {
   '/campaigns/$campaignId': typeof AuthenticatedCampaignsCampaignIdRoute
   '/campaigns/new': typeof AuthenticatedCampaignsNewRoute
   '/contacts/$contactId': typeof AuthenticatedContactsContactIdRoute
-  '/email/drafts': typeof AuthenticatedEmailDraftsRoute
-  '/email/inbox': typeof AuthenticatedEmailInboxRoute
-  '/email/sent': typeof AuthenticatedEmailSentRoute
+  '/email/$folderId': typeof AuthenticatedEmailFolderIdRoute
   '/reports/deliverability': typeof AuthenticatedReportsDeliverabilityRoute
   '/reports/engagement': typeof AuthenticatedReportsEngagementRoute
   '/reports/growth': typeof AuthenticatedReportsGrowthRoute
@@ -246,6 +238,7 @@ export interface FileRoutesByFullPath {
   '/api/nylas/callback': typeof ApiNylasCallbackRoute
   '/campaigns/': typeof AuthenticatedCampaignsIndexRoute
   '/contacts/': typeof AuthenticatedContactsIndexRoute
+  '/email/': typeof AuthenticatedEmailIndexRoute
   '/outreach-composer/': typeof AuthenticatedOutreachComposerIndexRoute
   '/reports/': typeof AuthenticatedReportsIndexRoute
   '/contacts/collections/$collectionId': typeof AuthenticatedContactsCollectionsCollectionIdRoute
@@ -264,9 +257,7 @@ export interface FileRoutesByTo {
   '/campaigns/$campaignId': typeof AuthenticatedCampaignsCampaignIdRoute
   '/campaigns/new': typeof AuthenticatedCampaignsNewRoute
   '/contacts/$contactId': typeof AuthenticatedContactsContactIdRoute
-  '/email/drafts': typeof AuthenticatedEmailDraftsRoute
-  '/email/inbox': typeof AuthenticatedEmailInboxRoute
-  '/email/sent': typeof AuthenticatedEmailSentRoute
+  '/email/$folderId': typeof AuthenticatedEmailFolderIdRoute
   '/reports/deliverability': typeof AuthenticatedReportsDeliverabilityRoute
   '/reports/engagement': typeof AuthenticatedReportsEngagementRoute
   '/reports/growth': typeof AuthenticatedReportsGrowthRoute
@@ -278,6 +269,7 @@ export interface FileRoutesByTo {
   '/api/nylas/callback': typeof ApiNylasCallbackRoute
   '/campaigns': typeof AuthenticatedCampaignsIndexRoute
   '/contacts': typeof AuthenticatedContactsIndexRoute
+  '/email': typeof AuthenticatedEmailIndexRoute
   '/outreach-composer': typeof AuthenticatedOutreachComposerIndexRoute
   '/reports': typeof AuthenticatedReportsIndexRoute
   '/contacts/collections/$collectionId': typeof AuthenticatedContactsCollectionsCollectionIdRoute
@@ -299,9 +291,7 @@ export interface FileRoutesById {
   '/_authenticated/campaigns/$campaignId': typeof AuthenticatedCampaignsCampaignIdRoute
   '/_authenticated/campaigns/new': typeof AuthenticatedCampaignsNewRoute
   '/_authenticated/contacts/$contactId': typeof AuthenticatedContactsContactIdRoute
-  '/_authenticated/email/drafts': typeof AuthenticatedEmailDraftsRoute
-  '/_authenticated/email/inbox': typeof AuthenticatedEmailInboxRoute
-  '/_authenticated/email/sent': typeof AuthenticatedEmailSentRoute
+  '/_authenticated/email/$folderId': typeof AuthenticatedEmailFolderIdRoute
   '/_authenticated/reports/deliverability': typeof AuthenticatedReportsDeliverabilityRoute
   '/_authenticated/reports/engagement': typeof AuthenticatedReportsEngagementRoute
   '/_authenticated/reports/growth': typeof AuthenticatedReportsGrowthRoute
@@ -313,6 +303,7 @@ export interface FileRoutesById {
   '/api/nylas/callback': typeof ApiNylasCallbackRoute
   '/_authenticated/campaigns/': typeof AuthenticatedCampaignsIndexRoute
   '/_authenticated/contacts/': typeof AuthenticatedContactsIndexRoute
+  '/_authenticated/email/': typeof AuthenticatedEmailIndexRoute
   '/_authenticated/outreach-composer/': typeof AuthenticatedOutreachComposerIndexRoute
   '/_authenticated/reports/': typeof AuthenticatedReportsIndexRoute
   '/_authenticated/contacts/collections/$collectionId': typeof AuthenticatedContactsCollectionsCollectionIdRoute
@@ -333,9 +324,7 @@ export interface FileRouteTypes {
     | '/campaigns/$campaignId'
     | '/campaigns/new'
     | '/contacts/$contactId'
-    | '/email/drafts'
-    | '/email/inbox'
-    | '/email/sent'
+    | '/email/$folderId'
     | '/reports/deliverability'
     | '/reports/engagement'
     | '/reports/growth'
@@ -347,6 +336,7 @@ export interface FileRouteTypes {
     | '/api/nylas/callback'
     | '/campaigns/'
     | '/contacts/'
+    | '/email/'
     | '/outreach-composer/'
     | '/reports/'
     | '/contacts/collections/$collectionId'
@@ -365,9 +355,7 @@ export interface FileRouteTypes {
     | '/campaigns/$campaignId'
     | '/campaigns/new'
     | '/contacts/$contactId'
-    | '/email/drafts'
-    | '/email/inbox'
-    | '/email/sent'
+    | '/email/$folderId'
     | '/reports/deliverability'
     | '/reports/engagement'
     | '/reports/growth'
@@ -379,6 +367,7 @@ export interface FileRouteTypes {
     | '/api/nylas/callback'
     | '/campaigns'
     | '/contacts'
+    | '/email'
     | '/outreach-composer'
     | '/reports'
     | '/contacts/collections/$collectionId'
@@ -399,9 +388,7 @@ export interface FileRouteTypes {
     | '/_authenticated/campaigns/$campaignId'
     | '/_authenticated/campaigns/new'
     | '/_authenticated/contacts/$contactId'
-    | '/_authenticated/email/drafts'
-    | '/_authenticated/email/inbox'
-    | '/_authenticated/email/sent'
+    | '/_authenticated/email/$folderId'
     | '/_authenticated/reports/deliverability'
     | '/_authenticated/reports/engagement'
     | '/_authenticated/reports/growth'
@@ -413,6 +400,7 @@ export interface FileRouteTypes {
     | '/api/nylas/callback'
     | '/_authenticated/campaigns/'
     | '/_authenticated/contacts/'
+    | '/_authenticated/email/'
     | '/_authenticated/outreach-composer/'
     | '/_authenticated/reports/'
     | '/_authenticated/contacts/collections/$collectionId'
@@ -502,6 +490,13 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof AuthenticatedOutreachComposerIndexRouteImport
       parentRoute: typeof AuthenticatedRoute
     }
+    '/_authenticated/email/': {
+      id: '/_authenticated/email/'
+      path: '/email'
+      fullPath: '/email/'
+      preLoaderRoute: typeof AuthenticatedEmailIndexRouteImport
+      parentRoute: typeof AuthenticatedRoute
+    }
     '/_authenticated/contacts/': {
       id: '/_authenticated/contacts/'
       path: '/contacts'
@@ -579,25 +574,11 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof AuthenticatedReportsDeliverabilityRouteImport
       parentRoute: typeof AuthenticatedRoute
     }
-    '/_authenticated/email/sent': {
-      id: '/_authenticated/email/sent'
-      path: '/email/sent'
-      fullPath: '/email/sent'
-      preLoaderRoute: typeof AuthenticatedEmailSentRouteImport
-      parentRoute: typeof AuthenticatedRoute
-    }
-    '/_authenticated/email/inbox': {
-      id: '/_authenticated/email/inbox'
-      path: '/email/inbox'
-      fullPath: '/email/inbox'
-      preLoaderRoute: typeof AuthenticatedEmailInboxRouteImport
-      parentRoute: typeof AuthenticatedRoute
-    }
-    '/_authenticated/email/drafts': {
-      id: '/_authenticated/email/drafts'
-      path: '/email/drafts'
-      fullPath: '/email/drafts'
-      preLoaderRoute: typeof AuthenticatedEmailDraftsRouteImport
+    '/_authenticated/email/$folderId': {
+      id: '/_authenticated/email/$folderId'
+      path: '/email/$folderId'
+      fullPath: '/email/$folderId'
+      preLoaderRoute: typeof AuthenticatedEmailFolderIdRouteImport
       parentRoute: typeof AuthenticatedRoute
     }
     '/_authenticated/contacts/$contactId': {
@@ -679,9 +660,7 @@ interface AuthenticatedRouteChildren {
   AuthenticatedCampaignsCampaignIdRoute: typeof AuthenticatedCampaignsCampaignIdRoute
   AuthenticatedCampaignsNewRoute: typeof AuthenticatedCampaignsNewRoute
   AuthenticatedContactsContactIdRoute: typeof AuthenticatedContactsContactIdRoute
-  AuthenticatedEmailDraftsRoute: typeof AuthenticatedEmailDraftsRoute
-  AuthenticatedEmailInboxRoute: typeof AuthenticatedEmailInboxRoute
-  AuthenticatedEmailSentRoute: typeof AuthenticatedEmailSentRoute
+  AuthenticatedEmailFolderIdRoute: typeof AuthenticatedEmailFolderIdRoute
   AuthenticatedReportsDeliverabilityRoute: typeof AuthenticatedReportsDeliverabilityRoute
   AuthenticatedReportsEngagementRoute: typeof AuthenticatedReportsEngagementRoute
   AuthenticatedReportsGrowthRoute: typeof AuthenticatedReportsGrowthRoute
@@ -692,6 +671,7 @@ interface AuthenticatedRouteChildren {
   AuthenticatedSettingsTeamRoute: typeof AuthenticatedSettingsTeamRoute
   AuthenticatedCampaignsIndexRoute: typeof AuthenticatedCampaignsIndexRoute
   AuthenticatedContactsIndexRoute: typeof AuthenticatedContactsIndexRoute
+  AuthenticatedEmailIndexRoute: typeof AuthenticatedEmailIndexRoute
   AuthenticatedOutreachComposerIndexRoute: typeof AuthenticatedOutreachComposerIndexRoute
   AuthenticatedReportsIndexRoute: typeof AuthenticatedReportsIndexRoute
   AuthenticatedContactsCollectionsCollectionIdRoute: typeof AuthenticatedContactsCollectionsCollectionIdRoute
@@ -707,9 +687,7 @@ const AuthenticatedRouteChildren: AuthenticatedRouteChildren = {
   AuthenticatedCampaignsCampaignIdRoute: AuthenticatedCampaignsCampaignIdRoute,
   AuthenticatedCampaignsNewRoute: AuthenticatedCampaignsNewRoute,
   AuthenticatedContactsContactIdRoute: AuthenticatedContactsContactIdRoute,
-  AuthenticatedEmailDraftsRoute: AuthenticatedEmailDraftsRoute,
-  AuthenticatedEmailInboxRoute: AuthenticatedEmailInboxRoute,
-  AuthenticatedEmailSentRoute: AuthenticatedEmailSentRoute,
+  AuthenticatedEmailFolderIdRoute: AuthenticatedEmailFolderIdRoute,
   AuthenticatedReportsDeliverabilityRoute:
     AuthenticatedReportsDeliverabilityRoute,
   AuthenticatedReportsEngagementRoute: AuthenticatedReportsEngagementRoute,
@@ -722,6 +700,7 @@ const AuthenticatedRouteChildren: AuthenticatedRouteChildren = {
   AuthenticatedSettingsTeamRoute: AuthenticatedSettingsTeamRoute,
   AuthenticatedCampaignsIndexRoute: AuthenticatedCampaignsIndexRoute,
   AuthenticatedContactsIndexRoute: AuthenticatedContactsIndexRoute,
+  AuthenticatedEmailIndexRoute: AuthenticatedEmailIndexRoute,
   AuthenticatedOutreachComposerIndexRoute:
     AuthenticatedOutreachComposerIndexRoute,
   AuthenticatedReportsIndexRoute: AuthenticatedReportsIndexRoute,

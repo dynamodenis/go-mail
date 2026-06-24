@@ -56,7 +56,7 @@ describe("NylasConnectionCard", () => {
 		expect(screen.getByText("1 connected")).toBeInTheDocument();
 		expect(screen.getByRole("link", { name: /open inbox/i })).toHaveAttribute(
 			"href",
-			"/email/inbox",
+			"/email",
 		);
 	});
 

@@ -1,9 +1,9 @@
+import type { EmailParticipant } from "../../types";
 import {
 	avatarColor,
 	emailInitials,
 	participantLabel,
 } from "../../utils/email-format";
-import type { EmailParticipant } from "../../types";
 
 interface ThreadDetailHeaderProps {
 	participants: EmailParticipant[];
