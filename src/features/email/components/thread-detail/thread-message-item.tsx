@@ -1,6 +1,7 @@
 import { cn } from "@/lib/utils";
+import DOMPurify from "isomorphic-dompurify";
 import { ChevronDown } from "lucide-react";
-import { useState } from "react";
+import { useMemo, useState } from "react";
 import {
 	emailInitials,
 	formatMessageDate,
@@ -20,6 +21,11 @@ export function ThreadMessageItem({
 }: ThreadMessageItemProps) {
 	const [isExpanded, setIsExpanded] = useState(defaultExpanded);
 	const senderLabel = participantLabel(message.from);
+	// Email bodies arrive as HTML — sanitize before rendering to prevent XSS.
+	const sanitizedBody = useMemo(
+		() => DOMPurify.sanitize(message.body),
+		[message.body],
+	);
 
 	return (
 		<div className="rounded-md border bg-card transition-colors hover:border-foreground/20">
@@ -66,11 +72,12 @@ export function ThreadMessageItem({
 								</span>
 							)}
 						</div>
-						{/* Skeleton renders the body as plain text. Once Nylas is wired,
-						    sanitize the HTML body (DOMPurify) before rendering it. */}
-						<div className="whitespace-pre-wrap text-sm leading-relaxed">
-							{message.body}
-						</div>
+						<div
+							className="max-w-none break-words text-sm leading-relaxed [&_a]:text-primary [&_a]:underline [&_img]:max-w-full"
+							// Sanitized above with DOMPurify — safe to render as HTML.
+							// biome-ignore lint/security/noDangerouslySetInnerHtml: email body is sanitized with DOMPurify
+							dangerouslySetInnerHTML={{ __html: sanitizedBody }}
+						/>
 					</div>
 				</div>
 			</div>

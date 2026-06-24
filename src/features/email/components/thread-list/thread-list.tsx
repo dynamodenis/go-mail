@@ -83,10 +83,7 @@ export function ThreadList({ folder }: ThreadListProps) {
 	if (threads.length === 0) return <EmptyState searching={!!deferredSearch} />;
 
 	return (
-		<div
-			className="flex h-full flex-col divide-y divide-border/60 overflow-y-auto"
-			onMouseLeave={() => setPreviewThread(null)}
-		>
+		<div className="flex h-full flex-col divide-y divide-border/60 overflow-y-auto">
 			{threads.map((thread) => (
 				<ThreadListItem
 					key={thread.id}

@@ -24,7 +24,13 @@ export function EmailView({ folder }: EmailViewProps) {
 	}, [folder, setSelectedThread, setPreviewThread]);
 
 	return (
-		<div className="flex h-full overflow-hidden md:gap-2">
+		// Clear the hover-preview only when the cursor leaves BOTH panes, so a
+		// previewed thread persists while the cursor moves into the reading pane
+		// to scroll it. Leaving the whole view reverts to the selected thread.
+		<div
+			className="flex h-full overflow-hidden md:gap-2"
+			onMouseLeave={() => setPreviewThread(null)}
+		>
 			<ThreadListPanel
 				folder={folder}
 				className="min-w-0 flex-1 md:flex-[3_1_0]"
