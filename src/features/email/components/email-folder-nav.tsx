@@ -49,7 +49,9 @@ function SystemFolderLink({
 export function EmailFolderNav() {
 	const pathname = useRouterState({ select: (s) => s.location.pathname });
 	const { data: folders, isLoading, isError } = useEmailFolders();
-	const [moreOpen, setMoreOpen] = useState(false);
+	// null = "auto" (open when the active folder lives under More); a click pins
+	// it to an explicit true/false so the toggle always wins thereafter.
+	const [moreOpen, setMoreOpen] = useState<boolean | null>(null);
 	const [expandedLabels, setExpandedLabels] = useState<Set<string>>(new Set());
 
 	if (isLoading) return <FolderNavSkeleton />;
@@ -62,9 +64,10 @@ export function EmailFolderNav() {
 	const labelTree = buildLabelTree(labels);
 
 	const activeFolderId = pathname.match(/^\/email\/([^/]+)$/)?.[1] ?? "";
-	// Keep "More" open while the active folder lives inside it.
-	const showMore =
-		moreOpen || secondary.some((f) => isFolderActive(pathname, f.id));
+	// Auto-open while the active folder lives inside "More", unless the user has
+	// explicitly toggled it (moreOpen pinned to a boolean).
+	const activeInMore = secondary.some((f) => isFolderActive(pathname, f.id));
+	const showMore = moreOpen ?? activeInMore;
 
 	const toggleLabel = (key: string) =>
 		setExpandedLabels((prev) => {
@@ -84,7 +87,7 @@ export function EmailFolderNav() {
 				<>
 					<button
 						type="button"
-						onClick={() => setMoreOpen((v) => !v)}
+						onClick={() => setMoreOpen(!showMore)}
 						aria-expanded={showMore}
 						className={rowClass(false, "w-full")}
 					>
