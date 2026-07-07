@@ -7,6 +7,7 @@ vi.mock("../api/repository", () => ({
 	listThreads: vi.fn(),
 	findThread: vi.fn(),
 	listThreadMessages: vi.fn(),
+	updateThreadFolders: vi.fn(),
 }));
 
 import * as repo from "../api/repository";
@@ -165,6 +166,63 @@ describe("service.getThreads", () => {
 
 		expect(err).toBeInstanceOf(AppError);
 		expect(err.code).toBe("EMAIL_FETCH_FAILED");
+	});
+});
+
+describe("service.archiveThread", () => {
+	it("drops only the inbox label when the thread has other labels (Gmail)", async () => {
+		mockRepo.listFolders.mockResolvedValue([
+			folder({ id: "inbox", name: "INBOX", attributes: ["\\Inbox"] }),
+			folder({ id: "all", name: "[Gmail]/All Mail", attributes: ["\\All"] }),
+		]);
+		mockRepo.findThread.mockResolvedValue(
+			thread({ folders: ["inbox", "promos"] }),
+		);
+		mockRepo.updateThreadFolders.mockResolvedValue(thread());
+
+		await service.archiveThread(GRANT, "t1");
+
+		expect(mockRepo.updateThreadFolders).toHaveBeenCalledWith(GRANT, "t1", [
+			"promos",
+		]);
+	});
+
+	it("clears all labels on Gmail when inbox was the only one (All Mail is not assignable)", async () => {
+		mockRepo.listFolders.mockResolvedValue([
+			folder({ id: "inbox", name: "INBOX", attributes: ["\\Inbox"] }),
+			folder({ id: "all", name: "[Gmail]/All Mail", attributes: ["\\All"] }),
+		]);
+		mockRepo.findThread.mockResolvedValue(thread({ folders: ["inbox"] }));
+		mockRepo.updateThreadFolders.mockResolvedValue(thread());
+
+		await service.archiveThread(GRANT, "t1");
+
+		expect(mockRepo.updateThreadFolders).toHaveBeenCalledWith(GRANT, "t1", []);
+	});
+
+	it("moves the thread into the archive folder on single-folder providers", async () => {
+		mockRepo.listFolders.mockResolvedValue([
+			folder({ id: "inbox", name: "Inbox", attributes: ["\\Inbox"] }),
+			folder({ id: "arch", name: "Archive", attributes: ["\\Archive"] }),
+		]);
+		mockRepo.findThread.mockResolvedValue(thread({ folders: ["inbox"] }));
+		mockRepo.updateThreadFolders.mockResolvedValue(thread());
+
+		await service.archiveThread(GRANT, "t1");
+
+		expect(mockRepo.updateThreadFolders).toHaveBeenCalledWith(GRANT, "t1", [
+			"arch",
+		]);
+	});
+
+	it("maps a provider error to EMAIL_UPDATE_FAILED", async () => {
+		mockRepo.listFolders.mockResolvedValue([]);
+		mockRepo.findThread.mockRejectedValue(new Error("500"));
+
+		const err = await service.archiveThread(GRANT, "t1").catch((e) => e);
+
+		expect(err).toBeInstanceOf(AppError);
+		expect(err.code).toBe("EMAIL_UPDATE_FAILED");
 	});
 });
 

@@ -2,8 +2,8 @@ import { cn } from "@/lib/utils";
 import { Link } from "@tanstack/react-router";
 import {
 	AlertCircle,
-	Archive,
 	CalendarClock,
+	CheckCircle2,
 	Clock,
 	FileText,
 	Inbox,
@@ -18,7 +18,8 @@ import {
 } from "lucide-react";
 import type { FolderRole } from "../types";
 
-/** Icon per folder role; user labels (custom) use a tag. */
+/** Icon per folder role; user labels (custom) use a tag. The archive role reads
+ *  as "Done" (Superhuman-style), so it gets a check rather than an archive box. */
 export const ROLE_ICON: Record<FolderRole, LucideIcon> = {
 	inbox: Inbox,
 	starred: Star,
@@ -29,7 +30,7 @@ export const ROLE_ICON: Record<FolderRole, LucideIcon> = {
 	unread: Mail,
 	scheduled: CalendarClock,
 	chats: MessageSquare,
-	archive: Archive,
+	archive: CheckCircle2,
 	spam: ShieldAlert,
 	trash: Trash2,
 	custom: Tag,

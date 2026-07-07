@@ -43,6 +43,22 @@ export async function findThread(
 	return data;
 }
 
+/** Replaces the folders/labels on every message in a thread. This is how a
+ *  thread moves between folders — e.g. archiving = the current set minus the
+ *  inbox folder. */
+export async function updateThreadFolders(
+	grantId: string,
+	threadId: string,
+	folderIds: string[],
+): Promise<Thread> {
+	const { data } = await nylas.threads.update({
+		identifier: grantId,
+		threadId,
+		requestBody: { folders: folderIds },
+	});
+	return data;
+}
+
 /** Fetches every message in a thread for the reading pane. */
 export async function listThreadMessages(
 	grantId: string,

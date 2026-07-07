@@ -210,6 +210,49 @@ export async function getThreads(
 	}
 }
 
+/** Marks a thread "Done" — i.e. archives it on the provider. There is no real
+ *  "Done" folder anywhere; Done is a UI concept that maps to archiving:
+ *  - Label providers (Gmail): a thread can carry several labels, so we drop the
+ *    inbox label and keep the rest — Gmail's native archive behavior.
+ *  - Single-folder providers (Outlook/IMAP): removing the inbox leaves the
+ *    thread nowhere, so we move it into the provider's archive folder instead.
+ *  @throws EMAIL_UPDATE_FAILED */
+export async function archiveThread(
+	grantId: string,
+	threadId: string,
+): Promise<void> {
+	try {
+		const [folders, thread] = await Promise.all([
+			repo.listFolders(grantId),
+			repo.findThread(grantId, threadId),
+		]);
+
+		const inboxId = folders.find((f) => detectRole(f) === "inbox")?.id;
+		const remaining = (thread.folders ?? []).filter((id) => id !== inboxId);
+
+		if (remaining.length === 0) {
+			// Prefer a dedicated \Archive folder (Outlook/IMAP/iCloud) over Gmail's
+			// \All ("All Mail"), which is a view rather than an assignable label.
+			const archive =
+				folders.find((f) => f.attributes?.includes("\\Archive")) ??
+				folders.find((f) => detectRole(f) === "archive");
+			if (archive && !archive.attributes?.includes("\\All")) {
+				remaining.push(archive.id);
+			}
+			// Gmail with no other labels: an empty set is valid and means
+			// "archived" — the thread remains reachable via All Mail.
+		}
+
+		await repo.updateThreadFolders(grantId, threadId, remaining);
+	} catch (error) {
+		if (error instanceof AppError) throw error;
+		throw new AppError(
+			EMAIL_ERROR.UPDATE_FAILED,
+			"Couldn't mark this thread as done.",
+		);
+	}
+}
+
 /** The fully-expanded thread (messages, oldest first) for the reading pane.
  *  @throws EMAIL_FETCH_FAILED */
 export async function getThreadDetail(

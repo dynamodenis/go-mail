@@ -3,9 +3,13 @@ import { Skeleton } from "@/components/ui/skeleton";
 import { ServerError } from "@/lib/server-result";
 import { Inbox, Search } from "lucide-react";
 import { useDeferredValue } from "react";
-import { useEmailThreads } from "../../api/queries";
+import { useArchiveThread, useEmailThreads } from "../../api/queries";
 import { useEmailUIStore } from "../../api/store";
-import { EMAIL_CONNECT_CODES, type FolderRole } from "../../types";
+import {
+	EMAIL_CONNECT_CODES,
+	type EmailThread,
+	type FolderRole,
+} from "../../types";
 import { EmailNotConnected } from "../email-not-connected";
 import { ThreadListItem } from "./thread-list-item";
 
@@ -66,7 +70,21 @@ export function ThreadList({ folderId, folderRole }: ThreadListProps) {
 		folderRole,
 		deferredSearch || undefined,
 	);
+	const archiveThread = useArchiveThread(
+		folderId,
+		folderRole,
+		deferredSearch || undefined,
+	);
 	const threads = data ?? [];
+
+	// "Done" = archive. The row disappears optimistically, so also clear it from
+	// the reading pane / preview if it's the one being shown there.
+	const markDone = (thread: EmailThread) => {
+		const state = useEmailUIStore.getState();
+		if (state.selectedThread?.id === thread.id) setSelectedThread(null);
+		if (state.previewThread?.id === thread.id) setPreviewThread(null);
+		archiveThread.mutate(thread.id);
+	};
 
 	if (isLoading) return <ThreadListSkeleton />;
 	if (isError) {
@@ -92,6 +110,7 @@ export function ThreadList({ folderId, folderRole }: ThreadListProps) {
 					isActive={selectedThread?.id === thread.id}
 					onSelect={() => setSelectedThread(thread)}
 					onPreview={() => setPreviewThread(thread)}
+					onDone={() => markDone(thread)}
 				/>
 			))}
 		</div>

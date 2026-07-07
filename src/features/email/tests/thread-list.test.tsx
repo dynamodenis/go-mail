@@ -25,8 +25,11 @@ const threadsResult: {
 	refetch: vi.fn(),
 };
 
+const archiveMutate = vi.fn();
+
 vi.mock("../api/queries", () => ({
 	useEmailThreads: () => threadsResult,
+	useArchiveThread: () => ({ mutate: archiveMutate }),
 }));
 
 const createClient = () =>
@@ -40,6 +43,7 @@ function withClient(ui: ReactNode) {
 
 describe("ThreadList", () => {
 	beforeEach(() => {
+		archiveMutate.mockClear();
 		useEmailUIStore.setState({
 			searchQuery: "",
 			selectedThread: null,
@@ -71,6 +75,18 @@ describe("ThreadList", () => {
 		expect(button).not.toBeNull();
 		fireEvent.mouseEnter(button as HTMLButtonElement);
 		expect(useEmailUIStore.getState().previewThread?.id).toBe("t2");
+	});
+
+	it("marking a thread done archives it and clears it from the reading pane", () => {
+		render(withClient(<ThreadList folderId="inbox-f" folderRole="inbox" />));
+		// Select the thread first so we can assert Done clears the selection.
+		fireEvent.click(screen.getByText("Q3 roadmap review"));
+		expect(useEmailUIStore.getState().selectedThread?.id).toBe("t1");
+
+		fireEvent.click(screen.getAllByRole("button", { name: "Done" })[0]);
+
+		expect(archiveMutate).toHaveBeenCalledWith("t1");
+		expect(useEmailUIStore.getState().selectedThread).toBeNull();
 	});
 
 	it("shows the loading skeleton", () => {

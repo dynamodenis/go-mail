@@ -1,5 +1,5 @@
 import { cn } from "@/lib/utils";
-import { Mail, MailOpen, Paperclip, Star, Trash2 } from "lucide-react";
+import { Check, Mail, MailOpen, Paperclip, Star, Trash2 } from "lucide-react";
 import type { MouseEvent, ReactNode } from "react";
 import type { EmailThread } from "../../types";
 import { formatThreadDate, participantLabel } from "../../utils/email-format";
@@ -15,6 +15,8 @@ interface ThreadListItemProps {
 	 *  mutations are wired up yet. */
 	onToggleRead?: () => void;
 	onToggleStar?: () => void;
+	/** Superhuman-style "Done" — archives the thread (removes it from the inbox). */
+	onDone?: () => void;
 	onDelete?: () => void;
 	/** Called with the time the thread should resurface in the inbox. */
 	onSchedule?: (date: Date) => void;
@@ -59,6 +61,7 @@ export function ThreadListItem({
 	onPreview,
 	onToggleRead,
 	onToggleStar,
+	onDone,
 	onDelete,
 	onSchedule,
 }: ThreadListItemProps) {
@@ -121,6 +124,13 @@ export function ThreadListItem({
 			{/* Hover/focus action toolbar, overlaid on the date slot. */}
 			<span className="-translate-y-1/2 absolute top-1/2 right-3 hidden items-center gap-0.5 group-focus-within:flex group-hover:flex">
 				<RowAction
+					label="Done"
+					onClick={onDone}
+					className="hover:bg-green-500/15 hover:text-green-500"
+				>
+					<Check className="size-3.5" />
+				</RowAction>
+				<RowAction
 					label={thread.unread ? "Mark as read" : "Mark as unread"}
 					onClick={onToggleRead}
 				>
@@ -142,9 +152,7 @@ export function ThreadListItem({
 						)}
 					/>
 				</RowAction>
-				<ThreadListItemReminder
-					onSetReminder={(date) => onSchedule?.(date)}
-				/>
+				<ThreadListItemReminder onSetReminder={(date) => onSchedule?.(date)} />
 				<RowAction
 					label="Delete"
 					onClick={onDelete}

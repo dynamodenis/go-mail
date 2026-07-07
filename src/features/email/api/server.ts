@@ -4,9 +4,11 @@ import { isNylasConfigured } from "@/lib/nylas";
 import { requireUserId } from "@/lib/require-user";
 import { createServerFn } from "@tanstack/react-start";
 import {
+	type ArchiveThreadInput,
 	EMAIL_ERROR,
 	type EmailThreadDetailQuery,
 	type EmailThreadsQuery,
+	archiveThreadSchema,
 	emailThreadDetailQuerySchema,
 	emailThreadsQuerySchema,
 } from "../types";
@@ -71,6 +73,24 @@ export const getEmailThreads = createServerFn({ method: "GET" })
 					data.search,
 				),
 			};
+		} catch (error) {
+			return handleServerError(error);
+		}
+	});
+
+/**
+ * Mark a thread "Done": archive it on the user's primary mailbox (drop the
+ * inbox label, or move to the provider's archive folder).
+ * @auth Required
+ * @throws NYLAS_NOT_CONFIGURED, NYLAS_NOT_CONNECTED, EMAIL_UPDATE_FAILED
+ */
+export const archiveEmailThread = createServerFn({ method: "POST" })
+	.inputValidator((data: ArchiveThreadInput) => archiveThreadSchema.parse(data))
+	.handler(async ({ data }) => {
+		try {
+			const grantId = await requireGrantId();
+			await service.archiveThread(grantId, data.threadId);
+			return { data: { threadId: data.threadId } };
 		} catch (error) {
 			return handleServerError(error);
 		}

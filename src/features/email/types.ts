@@ -38,7 +38,9 @@ export const ATTRIBUTE_ROLE: Record<string, FolderRole> = {
 };
 
 /** Friendly, provider-agnostic labels for system roles, so a Gmail "[Gmail]/All
- *  Mail" and an Outlook "Archive" both read as "Archive" in the sidebar. */
+ *  Mail" and an Outlook "Archive" both read the same in the sidebar. The archive
+ *  role is surfaced as "Done" (Superhuman-style) — marking a thread done just
+ *  archives it on the provider. */
 export const ROLE_LABEL: Record<Exclude<FolderRole, "custom">, string> = {
 	inbox: "Inbox",
 	starred: "Starred",
@@ -49,26 +51,28 @@ export const ROLE_LABEL: Record<Exclude<FolderRole, "custom">, string> = {
 	unread: "Unread",
 	scheduled: "Scheduled",
 	chats: "Chats",
-	archive: "Archive",
+	archive: "Done",
 	spam: "Spam",
 	trash: "Trash",
 };
 
 /** Order of system folders in the sidebar — a deliberate, Gmail-like sequence
- *  (NOT alphabetical). Custom labels sort after all system folders, by name. */
+ *  (NOT alphabetical), except Done (archive) sits right under Inbox because it's
+ *  the primary triage destination. Custom labels sort after all system folders,
+ *  by name. */
 export const SYSTEM_ROLE_ORDER: Record<FolderRole, number> = {
 	inbox: 0,
-	starred: 1,
-	snoozed: 2,
-	sent: 3,
-	drafts: 4,
-	important: 5,
-	unread: 6,
-	spam: 7,
-	trash: 8,
-	scheduled: 9,
-	chats: 10,
-	archive: 11,
+	archive: 1,
+	starred: 2,
+	snoozed: 3,
+	sent: 4,
+	drafts: 5,
+	important: 6,
+	unread: 7,
+	spam: 8,
+	trash: 9,
+	scheduled: 10,
+	chats: 11,
 	custom: 99,
 };
 
@@ -88,6 +92,7 @@ export const FOLDER_NAME_OVERRIDES: Record<string, string> = {
  *  "More"; the user's own labels get their own "Labels" section. */
 export const PRIMARY_FOLDER_ROLES: ReadonlySet<FolderRole> = new Set([
 	"inbox",
+	"archive", // shown as "Done" — where archived (done) threads land
 	"starred",
 	"snoozed",
 	"sent",
@@ -109,6 +114,7 @@ export const EMAIL_ERROR = {
 	NOT_CONFIGURED: "NYLAS_NOT_CONFIGURED",
 	NOT_CONNECTED: "NYLAS_NOT_CONNECTED",
 	FETCH_FAILED: "EMAIL_FETCH_FAILED",
+	UPDATE_FAILED: "EMAIL_UPDATE_FAILED",
 } as const;
 
 /** Codes that represent "no mailbox to read", surfaced as a CTA, not an error. */
@@ -133,6 +139,11 @@ export const emailThreadDetailQuerySchema = z.object({
 export type EmailThreadDetailQuery = z.infer<
 	typeof emailThreadDetailQuerySchema
 >;
+
+export const archiveThreadSchema = z.object({
+	threadId: z.string().min(1),
+});
+export type ArchiveThreadInput = z.infer<typeof archiveThreadSchema>;
 
 export const sendEmailSchema = z.object({
 	to: z.array(z.string().email()).min(1, "At least one recipient is required"),
