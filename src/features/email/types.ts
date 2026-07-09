@@ -56,6 +56,14 @@ export const ROLE_LABEL: Record<Exclude<FolderRole, "custom">, string> = {
 	trash: "Trash",
 };
 
+/** Virtual folder id for the synthetic "Done" view. Gmail has no archive
+ *  folder/label at all — archiving a thread just removes its INBOX label — so
+ *  there is nothing for the sidebar to list archived threads under. When the
+ *  provider exposes no archive folder, getFolders injects a folder with this id
+ *  and getThreads resolves it to an "in no other system context" query instead
+ *  of a folder lookup. */
+export const DONE_FOLDER_ID = "done";
+
 /** Order of system folders in the sidebar — a deliberate, Gmail-like sequence
  *  (NOT alphabetical), except Done (archive) sits right under Inbox because it's
  *  the primary triage destination. Custom labels sort after all system folders,

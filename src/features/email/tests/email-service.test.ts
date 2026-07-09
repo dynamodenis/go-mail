@@ -5,6 +5,8 @@ import { beforeEach, describe, expect, it, vi } from "vitest";
 vi.mock("../api/repository", () => ({
 	listFolders: vi.fn(),
 	listThreads: vi.fn(),
+	listArchivedThreads: vi.fn(),
+	countArchivedThreads: vi.fn(),
 	findThread: vi.fn(),
 	listThreadMessages: vi.fn(),
 	updateThreadFolders: vi.fn(),
@@ -44,6 +46,8 @@ function thread(overrides = {}) {
 
 beforeEach(() => {
 	vi.clearAllMocks();
+	// The virtual Done badge count; tests that assert it override this default.
+	mockRepo.countArchivedThreads.mockResolvedValue(0);
 });
 
 function folder(overrides = {}) {
@@ -73,10 +77,12 @@ describe("service.getFolders", () => {
 
 		const result = await service.getFolders(GRANT);
 
-		// System folders first in deliberate order (inbox, sent, important, then
-		// the category), then user labels alphabetically.
+		// System folders first in deliberate order (inbox, the injected virtual
+		// Done, sent, important, then the category), then user labels
+		// alphabetically.
 		expect(result.map((f) => f.id)).toEqual([
 			"inbox",
+			"done",
 			"sent",
 			"imp",
 			"promos",
@@ -107,6 +113,48 @@ describe("service.getFolders", () => {
 			role: "custom",
 			system: false,
 		});
+	});
+
+	it("injects a virtual Done folder with a searched thread-count badge when the provider has no archive folder (Gmail)", async () => {
+		mockRepo.listFolders.mockResolvedValue([
+			folder({ id: "inbox", name: "INBOX", attributes: ["\\Inbox"] }),
+		]);
+		mockRepo.countArchivedThreads.mockResolvedValue(7);
+
+		const result = await service.getFolders(GRANT);
+
+		expect(mockRepo.countArchivedThreads).toHaveBeenCalledWith(GRANT);
+		expect(result[1]).toEqual({
+			id: "done",
+			name: "Done",
+			role: "archive",
+			system: true,
+			unreadCount: 7,
+		});
+	});
+
+	it("shows the Done badge as 0 when the count lookup fails", async () => {
+		mockRepo.listFolders.mockResolvedValue([
+			folder({ id: "inbox", name: "INBOX", attributes: ["\\Inbox"] }),
+		]);
+		mockRepo.countArchivedThreads.mockRejectedValue(new Error("429"));
+
+		const result = await service.getFolders(GRANT);
+
+		expect(result[1]).toMatchObject({ id: "done", unreadCount: 0 });
+	});
+
+	it("does not inject the virtual Done folder when a real archive folder exists", async () => {
+		mockRepo.listFolders.mockResolvedValue([
+			folder({ id: "inbox", name: "Inbox", attributes: ["\\Inbox"] }),
+			folder({ id: "arch", name: "Archive", attributes: ["\\Archive"] }),
+		]);
+
+		const result = await service.getFolders(GRANT);
+
+		expect(mockRepo.countArchivedThreads).not.toHaveBeenCalled();
+		expect(result.map((f) => f.id)).toEqual(["inbox", "arch"]);
+		expect(result[1]).toMatchObject({ name: "Done", role: "archive" });
 	});
 
 	it("maps a provider error to EMAIL_FETCH_FAILED", async () => {
@@ -147,6 +195,16 @@ describe("service.getThreads", () => {
 				messageCount: 2,
 			},
 		]);
+	});
+
+	it("lists the virtual Done folder via the archived-threads search", async () => {
+		mockRepo.listArchivedThreads.mockResolvedValue([thread()]);
+
+		const result = await service.getThreads(GRANT, "done", "archive", "deck");
+
+		expect(mockRepo.listArchivedThreads).toHaveBeenCalledWith(GRANT, "deck");
+		expect(mockRepo.listThreads).not.toHaveBeenCalled();
+		expect(result).toHaveLength(1);
 	});
 
 	it("uses the recipient as the preview for the sent role", async () => {

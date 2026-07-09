@@ -114,8 +114,10 @@ export function ThreadListItem({
 					</span>
 				</span>
 
-				{/* Attachment + date — hidden on hover to make room for the toolbar. */}
-				<span className="flex w-[64px] shrink-0 items-center justify-end gap-1.5 text-muted-foreground text-xs group-focus-within:invisible group-hover:invisible">
+				{/* Attachment + date — hidden on hover to make room for the toolbar,
+				    and widened to the toolbar's footprint (5 size-6 buttons + gaps =
+				    w-32) so the snippet truncates instead of running under the icons. */}
+				<span className="flex w-[64px] shrink-0 items-center justify-end gap-1.5 text-muted-foreground text-xs group-focus-within:invisible group-focus-within:w-32 group-hover:invisible group-hover:w-32">
 					{thread.hasAttachments && <Paperclip className="size-3.5" />}
 					<span className="tabular-nums">{formatThreadDate(thread.date)}</span>
 				</span>
@@ -126,8 +128,7 @@ export function ThreadListItem({
 				<RowAction
 					label="Done"
 					onClick={onDone}
-					className="hover:bg-green-500/15 hover:text-green-500"
-				>
+					>
 					<Check className="size-3.5" />
 				</RowAction>
 				<RowAction

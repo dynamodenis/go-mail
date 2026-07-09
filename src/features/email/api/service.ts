@@ -3,6 +3,7 @@ import DOMPurify from "isomorphic-dompurify";
 import type { EmailName, Folder, Message, Thread } from "nylas";
 import {
 	ATTRIBUTE_ROLE,
+	DONE_FOLDER_ID,
 	EMAIL_ERROR,
 	type EmailFolderItem,
 	type EmailParticipant,
@@ -177,9 +178,29 @@ function toFolderItem(folder: Folder, role: FolderRole): EmailFolderItem {
 export async function getFolders(grantId: string): Promise<EmailFolderItem[]> {
 	try {
 		const folders = await repo.listFolders(grantId);
-		return folders
-			.map((folder) => toFolderItem(folder, detectRole(folder)))
-			.sort((a, b) => {
+		const items = folders.map((folder) =>
+			toFolderItem(folder, detectRole(folder)),
+		);
+		// Gmail exposes no archive folder (archiving just drops the INBOX label),
+		// so threads marked Done would be unreachable. Inject a virtual Done entry
+		// that getThreads resolves to an archived-threads search. Its badge is
+		// counted by search too (no folder = no provider count) and tallies ALL
+		// done threads, not just unread — marking done usually implies read, so an
+		// unread badge would never move. The badge is decoration, so a failed
+		// count falls back to 0 rather than failing the whole sidebar.
+		if (!items.some((f) => f.role === "archive")) {
+			const unreadCount = await repo
+				.countArchivedThreads(grantId)
+				.catch(() => 0);
+			items.push({
+				id: DONE_FOLDER_ID,
+				name: ROLE_LABEL.archive,
+				role: "archive",
+				system: true,
+				unreadCount,
+			});
+		}
+		return items.sort((a, b) => {
 				// System folders before user labels.
 				if (a.system !== b.system) return a.system ? -1 : 1;
 				// Within system, the deliberate Gmail order; labels by name.
@@ -202,7 +223,12 @@ export async function getThreads(
 	search?: string,
 ): Promise<EmailThread[]> {
 	try {
-		const threads = await repo.listThreads(grantId, folderId, search);
+		// The virtual Done folder has no provider folder behind it (Gmail) — an
+		// archived thread is one in no other system context, so list by search.
+		const threads =
+			folderId === DONE_FOLDER_ID
+				? await repo.listArchivedThreads(grantId, search)
+				: await repo.listThreads(grantId, folderId, search);
 		return threads.map((t) => toThread(t, role));
 	} catch (error) {
 		if (error instanceof AppError) throw error;
