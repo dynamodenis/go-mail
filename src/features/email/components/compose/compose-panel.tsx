@@ -1,120 +1,53 @@
 import OrbiterBox from "@/components/global/orbiter-box";
-import { Button } from "@/components/ui/button";
 import { cn } from "@/lib/utils";
-import { GripVertical, Minus, Paperclip, Trash2, X } from "lucide-react";
-import type {
-	CSSProperties,
-	KeyboardEvent,
-	ReactNode,
-	PointerEvent as ReactPointerEvent,
-} from "react";
+import { GripVertical, Minus, X } from "lucide-react";
+import type { CSSProperties, DragEvent, KeyboardEvent } from "react";
 import { useCallback, useRef, useState } from "react";
 import { useEmailUIStore } from "../../api/store";
-import { ComposeFromField } from "./compose-from-field";
-import {
-	ComposeRecipientField,
-	EMAIL_PATTERN,
-} from "./compose-recipient-field";
+import { useComposeDraft } from "../../hooks/use-compose-draft";
+import { useComposeResize } from "../../hooks/use-compose-resize";
+import { EMAIL_PATTERN } from "../../utils/email-format";
+import { ComposeAttachments } from "./compose-attachments";
+import { ComposeEnvelopeFields } from "./compose-envelope-fields";
+import { ComposeFooter } from "./compose-footer";
+import { ComposeIconButton } from "./compose-icon-button";
 
-const COMPOSE_DEFAULT_SIZE = { width: 680, height: 560 };
-const COMPOSE_MIN_SIZE = { width: 480, height: 400 };
-/** Pixels added/removed per arrow-key press on the resize handle. */
-const COMPOSE_RESIZE_STEP = 32;
+const dragHasFiles = (e: DragEvent) => e.dataTransfer?.types.includes("Files");
 
-/** Small icon button used in the compose header and footer. */
-function ComposeIconButton({
-	label,
-	onClick,
-	children,
-	className,
-}: {
-	label: string;
-	onClick?: () => void;
-	children: ReactNode;
-	className?: string;
-}) {
-	return (
-		<button
-			type="button"
-			aria-label={label}
-			title={label}
-			onClick={onClick}
-			className={cn(
-				"flex size-7 items-center justify-center rounded-md text-muted-foreground transition-colors hover:bg-muted hover:text-foreground",
-				className,
-			)}
-		>
-			{children}
-		</button>
-	);
-}
-
-/** Superhuman-style compose window: centered on md+ screens (resizable by
- *  dragging its bottom-right grip or with arrow keys on the focused grip),
- *  a full-width bottom sheet on mobile, and a small docked bottom-right bar
- *  while minimized. Recipient chips with Cc/Bcc, ⌘/Ctrl+Enter to send, Esc to
- *  close. Opened via the sidebar Compose button, the mobile FAB, or the `C`
- *  shortcut — all drive `composeOpen` in the email UI store. */
+/** Superhuman-style compose window: centered on md+ screens (resizable via
+ *  its bottom-right grip), a full-width bottom sheet on mobile, and a docked
+ *  bottom-right bar while minimized. Recipient chips with contact suggestions,
+ *  a From selector, attachments (picker or drag-and-drop), ⌘/Ctrl+Enter to
+ *  send, Esc to close. Opened via the sidebar Compose button, the mobile FAB,
+ *  or the `C` shortcut — all drive `composeOpen` in the email UI store. */
 export function ComposePanel() {
 	const open = useEmailUIStore((s) => s.composeOpen);
 	const minimized = useEmailUIStore((s) => s.composeMinimized);
 	const closeCompose = useEmailUIStore((s) => s.closeCompose);
 	const toggleMinimized = useEmailUIStore((s) => s.toggleComposeMinimized);
 
-	const [to, setTo] = useState<string[]>([]);
-	const [cc, setCc] = useState<string[]>([]);
-	const [bcc, setBcc] = useState<string[]>([]);
-	const [showCc, setShowCc] = useState(false);
-	const [showBcc, setShowBcc] = useState(false);
-	const [subject, setSubject] = useState("");
-	const [body, setBody] = useState("");
-	// Which connected mailbox to send from; null = the primary account. Only an
-	// account id ever lives client-side — the send server function resolves it
-	// to a grant after verifying ownership.
-	const [fromAccountId, setFromAccountId] = useState<string | null>(null);
+	const draft = useComposeDraft();
+	const { draftRef, reset: resetDraft } = draft;
+	const resize = useComposeResize();
 
-	// User-chosen window size (md+ only — mobile is always a full-width sheet).
-	// Survives close/reopen since the panel stays mounted in EmailView.
-	const [size, setSize] = useState(COMPOSE_DEFAULT_SIZE);
-	const resizeOrigin = useRef<{
-		x: number;
-		y: number;
-		width: number;
-		height: number;
-	} | null>(null);
+	// Drag-and-drop highlight; a depth counter because dragenter/dragleave fire
+	// for every child the cursor crosses.
+	const [dragActive, setDragActive] = useState(false);
+	const dragDepth = useRef(0);
 
-	// ⌘↵ from a recipient input commits the typed address in the same keystroke;
-	// that state lands after this render, so send reads the draft through a ref
-	// (refreshed every render) one tick later instead of a stale closure.
-	const draftRef = useRef({ to, cc, bcc, subject, body, fromAccountId });
-	draftRef.current = { to, cc, bcc, subject, body, fromAccountId };
-
-	const resetDraft = useCallback(() => {
-		setTo([]);
-		setCc([]);
-		setBcc([]);
-		setShowCc(false);
-		setShowBcc(false);
-		setSubject("");
-		setBody("");
-		setFromAccountId(null);
-	}, []);
-
-	// Stubbed for now — the Nylas send mutation isn't wired up yet. Sending
-	// clears the draft and closes the window so the interaction flow is complete.
+	// Stubbed for now — the Nylas send mutation isn't wired up yet. When it
+	// lands, this lifts `draftRef.current` into FormData (fields + File objects
+	// straight from `attachments`) for the send server function, which resolves
+	// fromAccountId → grant, re-validates sizes, and calls the Nylas SDK.
 	const performSend = useCallback(() => {
-		const draft = draftRef.current;
-		const recipients = [...draft.to, ...draft.cc, ...draft.bcc];
+		const current = draftRef.current;
+		const recipients = [...current.to, ...current.cc, ...current.bcc];
 		if (!recipients.some((r) => EMAIL_PATTERN.test(r))) return;
 		resetDraft();
 		closeCompose();
-	}, [resetDraft, closeCompose]);
+	}, [draftRef, resetDraft, closeCompose]);
 
 	if (!open) return null;
-
-	const canSend = [...to, ...cc, ...bcc].some((r) => EMAIL_PATTERN.test(r));
-	const isMac =
-		typeof navigator !== "undefined" && /Mac/.test(navigator.platform);
 
 	const handleKeyDown = (e: KeyboardEvent<HTMLDivElement>) => {
 		if (e.key === "Escape") {
@@ -127,46 +60,25 @@ export function ComposePanel() {
 		}
 	};
 
-	const clampSize = (width: number, height: number) => ({
-		// Upper bounds live in CSS (`min(…, calc(100vw/dvh - …))`) so the window
-		// can never outgrow the viewport; only the floor is enforced here.
-		width: Math.max(COMPOSE_MIN_SIZE.width, width),
-		height: Math.max(COMPOSE_MIN_SIZE.height, height),
-	});
-
-	const startResize = (e: ReactPointerEvent<HTMLButtonElement>) => {
-		e.currentTarget.setPointerCapture(e.pointerId);
-		resizeOrigin.current = { x: e.clientX, y: e.clientY, ...size };
-	};
-
-	const moveResize = (e: ReactPointerEvent<HTMLButtonElement>) => {
-		const origin = resizeOrigin.current;
-		if (!origin) return;
-		// The window stays centered, so each dragged pixel grows both sides —
-		// doubling the delta keeps the grabbed corner tracking the cursor.
-		setSize(
-			clampSize(
-				origin.width + (e.clientX - origin.x) * 2,
-				origin.height + (e.clientY - origin.y) * 2,
-			),
-		);
-	};
-
-	const endResize = () => {
-		resizeOrigin.current = null;
-	};
-
-	const resizeByKey = (e: KeyboardEvent<HTMLButtonElement>) => {
-		const deltas: Record<string, [number, number]> = {
-			ArrowLeft: [-COMPOSE_RESIZE_STEP, 0],
-			ArrowRight: [COMPOSE_RESIZE_STEP, 0],
-			ArrowUp: [0, -COMPOSE_RESIZE_STEP],
-			ArrowDown: [0, COMPOSE_RESIZE_STEP],
-		};
-		const delta = deltas[e.key];
-		if (!delta) return;
+	const handleDragEnter = (e: DragEvent<HTMLDivElement>) => {
+		if (!dragHasFiles(e) || minimized) return;
 		e.preventDefault();
-		setSize((s) => clampSize(s.width + delta[0], s.height + delta[1]));
+		dragDepth.current += 1;
+		setDragActive(true);
+	};
+
+	const handleDragLeave = (e: DragEvent<HTMLDivElement>) => {
+		if (!dragHasFiles(e)) return;
+		dragDepth.current = Math.max(0, dragDepth.current - 1);
+		if (dragDepth.current === 0) setDragActive(false);
+	};
+
+	const handleDrop = (e: DragEvent<HTMLDivElement>) => {
+		if (!dragHasFiles(e)) return;
+		e.preventDefault();
+		dragDepth.current = 0;
+		setDragActive(false);
+		if (!minimized) draft.addAttachments(e.dataTransfer.files);
 	};
 
 	return (
@@ -185,10 +97,14 @@ export function ComposePanel() {
 				role="dialog"
 				aria-label="New message"
 				onKeyDown={handleKeyDown}
+				onDragEnter={handleDragEnter}
+				onDragOver={(e) => dragHasFiles(e) && e.preventDefault()}
+				onDragLeave={handleDragLeave}
+				onDrop={handleDrop}
 				style={
 					{
-						"--compose-w": `${size.width}px`,
-						"--compose-h": `${size.height}px`,
+						"--compose-w": `${resize.size.width}px`,
+						"--compose-h": `${resize.size.height}px`,
 					} as CSSProperties
 				}
 				className={cn(
@@ -213,7 +129,7 @@ export function ComposePanel() {
 								className="flex h-full min-w-0 flex-1 items-center px-2 text-left"
 							>
 								<span className="truncate font-medium text-sm">
-									{subject.trim() || "New message"}
+									{draft.subject.trim() || "New message"}
 								</span>
 							</button>
 							<ComposeIconButton
@@ -232,106 +148,45 @@ export function ComposePanel() {
 								{/* Fields + body scroll together if the window is dragged
 								    smaller than its content. */}
 								<div className="flex min-h-0 flex-1 flex-col overflow-y-auto">
-									<ComposeFromField
-										fromAccountId={fromAccountId}
-										onChange={setFromAccountId}
-									/>
-									<ComposeRecipientField
-										label="To"
-										recipients={to}
-										onChange={setTo}
-										autoFocus
-										trailing={
-											<span className="flex shrink-0 gap-1 text-muted-foreground text-xs">
-												{!showCc && (
-													<button
-														type="button"
-														onClick={() => setShowCc(true)}
-														className="rounded px-1 py-0.5 transition-colors hover:bg-muted hover:text-foreground"
-													>
-														Cc
-													</button>
-												)}
-												{!showBcc && (
-													<button
-														type="button"
-														onClick={() => setShowBcc(true)}
-														className="rounded px-1 py-0.5 transition-colors hover:bg-muted hover:text-foreground"
-													>
-														Bcc
-													</button>
-												)}
-											</span>
-										}
-									/>
-									{showCc && (
-										<ComposeRecipientField
-											label="Cc"
-											recipients={cc}
-											onChange={setCc}
-										/>
-									)}
-									{showBcc && (
-										<ComposeRecipientField
-											label="Bcc"
-											recipients={bcc}
-											onChange={setBcc}
-										/>
-									)}
-
-									<input
-										type="text"
-										aria-label="Subject"
-										placeholder="Subject"
-										value={subject}
-										onChange={(e) => setSubject(e.target.value)}
-										className="h-9 shrink-0 border-b bg-transparent px-4 text-sm outline-none placeholder:text-muted-foreground/60"
-									/>
+									<ComposeEnvelopeFields draft={draft} />
 
 									{/* Fills whatever height the user drags the window to. */}
 									<textarea
 										aria-label="Message body"
 										placeholder="Write your message…"
-										value={body}
-										onChange={(e) => setBody(e.target.value)}
+										value={draft.body}
+										onChange={(e) => draft.setBody(e.target.value)}
 										className="min-h-40 w-full flex-1 resize-none bg-transparent px-4 py-3 text-sm leading-relaxed outline-none placeholder:text-muted-foreground/60"
 									/>
 								</div>
 
-								<div className="flex shrink-0 items-center justify-between border-t px-3 py-2.5">
-									<div className="flex items-center gap-1.5">
-										<Button
-											size="sm"
-											disabled={!canSend}
-											onClick={performSend}
-											className="gap-2 px-4"
-										>
-											Send
-											<kbd className="rounded border border-primary-foreground/30 px-1 font-sans text-[10px] leading-4 opacity-80">
-												{isMac ? "⌘↵" : "Ctrl ↵"}
-											</kbd>
-										</Button>
-										{/* Stubbed for now — attachment upload lands with the send
-										    mutation. */}
-										<ComposeIconButton label="Attach files">
-											<Paperclip className="size-4" />
-										</ComposeIconButton>
-									</div>
-									<ComposeIconButton
-										label="Discard draft"
-										onClick={() => {
-											resetDraft();
-											closeCompose();
-										}}
-										className="hover:bg-destructive/15 hover:text-destructive"
-									>
-										<Trash2 className="size-4" />
-									</ComposeIconButton>
-								</div>
+								<ComposeAttachments
+									files={draft.attachments}
+									error={draft.attachmentError}
+									onRemove={draft.removeAttachment}
+								/>
+
+								<ComposeFooter
+									draft={draft}
+									onSend={performSend}
+									onDiscard={() => {
+										resetDraft();
+										closeCompose();
+									}}
+								/>
 							</>
 						)}
 					</div>
 				</OrbiterBox>
+
+				{/* Drop-target highlight while files are dragged over the window. */}
+				{dragActive && !minimized && (
+					<div className="pointer-events-none absolute inset-0 z-20 flex items-center justify-center rounded-xl border-2 border-primary border-dashed bg-primary/5">
+						<span className="rounded-md bg-card px-3 py-1.5 font-medium text-sm shadow-sm">
+							Drop files to attach
+						</span>
+					</div>
+				)}
 
 				{/* Resize grip — drag (or focus + arrow keys) to grow/shrink the
 				    window. Desktop only; the mobile sheet is always full-width. */}
@@ -340,11 +195,11 @@ export function ComposePanel() {
 						type="button"
 						aria-label="Resize composer (drag or arrow keys)"
 						title="Drag to resize"
-						onPointerDown={startResize}
-						onPointerMove={moveResize}
-						onPointerUp={endResize}
-						onPointerCancel={endResize}
-						onKeyDown={resizeByKey}
+						onPointerDown={resize.startResize}
+						onPointerMove={resize.moveResize}
+						onPointerUp={resize.endResize}
+						onPointerCancel={resize.endResize}
+						onKeyDown={resize.resizeByKey}
 						className="absolute right-0 bottom-0 z-10 hidden size-5 cursor-nwse-resize touch-none items-center justify-center rounded-br-xl text-muted-foreground/40 transition-colors hover:text-muted-foreground focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring md:flex"
 					>
 						{/* Rotated 45° so the grip reads as a diagonal corner handle. */}

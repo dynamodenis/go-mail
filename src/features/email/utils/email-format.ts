@@ -67,3 +67,15 @@ const AVATAR_COLORS = [
 export function avatarColor(index: number): string {
 	return AVATAR_COLORS[index % AVATAR_COLORS.length];
 }
+
+/** Loose shape check for a deliverable address — chips that fail it render in
+ *  the destructive style and never satisfy the composer's send gate. */
+export const EMAIL_PATTERN = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
+
+/** "512 B", "48 KB", "3.2 MB" — for attachment chips. */
+export function formatFileSize(bytes: number): string {
+	if (bytes < 1024) return `${bytes} B`;
+	const kb = bytes / 1024;
+	if (kb < 1024) return `${Math.round(kb)} KB`;
+	return `${(kb / 1024).toFixed(1)} MB`;
+}

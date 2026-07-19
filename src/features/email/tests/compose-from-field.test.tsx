@@ -31,10 +31,18 @@ describe("ComposeFromField", () => {
 		};
 	});
 
-	it("renders nothing with a single connected account", () => {
-		connection.data.accounts = [account({})];
+	it("renders nothing when no mailbox is connected", () => {
+		connection.data.accounts = [];
 		render(<ComposeFromField fromAccountId={null} onChange={vi.fn()} />);
 		expect(screen.queryByText("From")).not.toBeInTheDocument();
+	});
+
+	it("shows the single connected account", () => {
+		connection.data.accounts = [account({})];
+		render(<ComposeFromField fromAccountId={null} onChange={vi.fn()} />);
+		expect(
+			screen.getByRole("button", { name: "From account" }),
+		).toHaveTextContent("denis@gomail.dev");
 	});
 
 	it("defaults to the primary account when nothing is selected", () => {

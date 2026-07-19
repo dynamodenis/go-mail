@@ -3,9 +3,8 @@ import { X } from "lucide-react";
 import type { KeyboardEvent, ReactNode } from "react";
 import { useState } from "react";
 import { useRecipientSuggestions } from "../../api/queries";
+import { EMAIL_PATTERN } from "../../utils/email-format";
 import { ComposeRecipientSuggestions } from "./compose-recipient-suggestions";
-
-export const EMAIL_PATTERN = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
 
 interface ComposeRecipientFieldProps {
 	/** Row label — "To", "Cc" or "Bcc". Doubles as the input's accessible name. */

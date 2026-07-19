@@ -25,7 +25,8 @@ export function ComposeFromField({
 }: ComposeFromFieldProps) {
 	const { data } = useNylasConnection();
 	const accounts = data?.accounts ?? [];
-	// if (accounts.length < 2) return null;
+	// No mailbox connected yet — nothing to send from, so no row to show.
+	if (accounts.length === 0) return null;
 
 	const selected =
 		accounts.find((a) => a.id === fromAccountId) ??

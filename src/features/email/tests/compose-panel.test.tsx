@@ -133,4 +133,46 @@ describe("ComposePanel", () => {
 
 		expect(dialog.style.getPropertyValue("--compose-w")).toBe("480px");
 	});
+
+	it("attaches picked files as chips with their size", () => {
+		render(<ComposePanel />);
+		const file = new File(["hello world"], "brief.pdf", {
+			type: "application/pdf",
+		});
+
+		fireEvent.change(screen.getByTestId("compose-file-input"), {
+			target: { files: [file] },
+		});
+
+		expect(screen.getByText("brief.pdf")).toBeInTheDocument();
+		expect(
+			screen.getByRole("button", { name: "Remove attachment brief.pdf" }),
+		).toBeInTheDocument();
+	});
+
+	it("removes an attachment from its chip", () => {
+		render(<ComposePanel />);
+		fireEvent.change(screen.getByTestId("compose-file-input"), {
+			target: { files: [new File(["x"], "notes.txt", { type: "text/plain" })] },
+		});
+
+		fireEvent.click(
+			screen.getByRole("button", { name: "Remove attachment notes.txt" }),
+		);
+
+		expect(screen.queryByText("notes.txt")).not.toBeInTheDocument();
+	});
+
+	it("rejects files that push the total past the 25 MB cap", () => {
+		render(<ComposePanel />);
+		const big = new File(["x"], "raw-footage.mov", { type: "video/quicktime" });
+		Object.defineProperty(big, "size", { value: 26 * 1024 * 1024 });
+
+		fireEvent.change(screen.getByTestId("compose-file-input"), {
+			target: { files: [big] },
+		});
+
+		expect(screen.getByRole("alert")).toHaveTextContent(/25 MB/);
+		expect(screen.queryByText("raw-footage.mov")).not.toBeInTheDocument();
+	});
 });
