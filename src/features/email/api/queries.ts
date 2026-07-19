@@ -1,3 +1,4 @@
+import { getContacts } from "@/features/contacts/api/server";
 import { ServerError, unwrap } from "@/lib/server-result";
 import {
 	type QueryClient,
@@ -32,6 +33,8 @@ export const emailKeys = {
 	threads: (folderId: string, role: FolderRole, search?: string) =>
 		[...emailKeys.threadLists(), folderId, role, search ?? ""] as const,
 	detail: (threadId: string) => [...emailKeys.all, "detail", threadId] as const,
+	recipientSuggestions: (search: string) =>
+		[...emailKeys.all, "recipient-suggestions", search] as const,
 };
 
 // "Not connected / not configured" are expected states, not failures to retry —
@@ -144,5 +147,31 @@ export function useArchiveThread(
 			client.invalidateQueries({ queryKey: emailKeys.folders() });
 		},
 		meta: { errorMessage: "Couldn't mark the thread as done." },
+	});
+}
+
+const SUGGESTIONS_STALE_TIME = 300_000; // 5m — the contact list is semi-static
+const SUGGESTION_LIMIT = 8;
+
+/** Contact suggestions for the compose To/Cc/Bcc fields, reusing the contacts
+ *  feature's search server function. Only fires once the user has typed
+ *  something; `keepPreviousData` stops the list flickering between keystrokes.
+ *  Results use the server's default ordering for now — ranking by send recency
+ *  lands together with the send mutation. */
+export function useRecipientSuggestions(search: string) {
+	const trimmed = search.trim();
+
+	return useQuery({
+		queryKey: emailKeys.recipientSuggestions(trimmed),
+		queryFn: async () =>
+			unwrap(
+				await getContacts({
+					data: { search: trimmed, page: 1, pageSize: SUGGESTION_LIMIT },
+				}),
+			),
+		select: (result) => result.data,
+		enabled: trimmed.length > 0,
+		staleTime: SUGGESTIONS_STALE_TIME,
+		placeholderData: keepPreviousData,
 	});
 }

@@ -2,6 +2,8 @@ import { cn } from "@/lib/utils";
 import { X } from "lucide-react";
 import type { KeyboardEvent, ReactNode } from "react";
 import { useState } from "react";
+import { useRecipientSuggestions } from "../../api/queries";
+import { ComposeRecipientSuggestions } from "./compose-recipient-suggestions";
 
 export const EMAIL_PATTERN = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
 
@@ -15,11 +17,13 @@ interface ComposeRecipientFieldProps {
 	trailing?: ReactNode;
 }
 
-/** One recipient row of the compose window. Typed addresses commit to chips on
- *  Enter, comma or blur (pasted lists split on commas/semicolons/whitespace);
- *  Backspace in an empty input pops the last chip. Chips that aren't valid
- *  email addresses render in the destructive style so mistakes are visible
- *  before send. */
+/** One recipient row of the compose window, behaving as a combobox: typing
+ *  surfaces matching contacts (arrow keys + Enter or click to accept), while
+ *  free-typed addresses still commit to chips on Enter, comma or blur — the
+ *  suggestions augment the field, they never gate it. Pasted lists split on
+ *  commas/semicolons/whitespace; Backspace in an empty input pops the last
+ *  chip; chips that aren't valid email addresses render in the destructive
+ *  style so mistakes are visible before send. */
 export function ComposeRecipientField({
 	label,
 	recipients,
@@ -28,7 +32,20 @@ export function ComposeRecipientField({
 	trailing,
 }: ComposeRecipientFieldProps) {
 	const [draft, setDraft] = useState("");
+	const [listOpen, setListOpen] = useState(false);
+	const [activeIndex, setActiveIndex] = useState(0);
+
 	const inputId = `compose-${label.toLowerCase()}`;
+	const listId = `${inputId}-suggestions`;
+	const optionId = (index: number) => `${inputId}-option-${index}`;
+
+	const { data: contacts } = useRecipientSuggestions(draft);
+	// Someone already chipped shouldn't be suggested again.
+	const suggestions = (contacts ?? []).filter(
+		(c) => !recipients.includes(c.email),
+	);
+	const showList =
+		listOpen && draft.trim().length > 0 && suggestions.length > 0;
 
 	const commitDraft = (value: string) => {
 		const entries = value
@@ -38,11 +55,33 @@ export function ComposeRecipientField({
 			.filter((entry) => !recipients.includes(entry));
 		if (entries.length) onChange([...recipients, ...entries]);
 		setDraft("");
+		setListOpen(false);
+	};
+
+	const selectSuggestion = (email: string) => {
+		onChange([...recipients, email]);
+		setDraft("");
+		setListOpen(false);
 	};
 
 	const handleKeyDown = (e: KeyboardEvent<HTMLInputElement>) => {
-		if (e.key === "Enter" || e.key === ",") {
-			if (draft.trim()) {
+		if (showList && e.key === "ArrowDown") {
+			e.preventDefault();
+			setActiveIndex((i) => (i + 1) % suggestions.length);
+		} else if (showList && e.key === "ArrowUp") {
+			e.preventDefault();
+			setActiveIndex((i) => (i - 1 + suggestions.length) % suggestions.length);
+		} else if (e.key === "Escape" && showList) {
+			// Dismiss only the suggestions — the composer's own Escape handler
+			// (close window) must not see this one.
+			e.stopPropagation();
+			setListOpen(false);
+		} else if (e.key === "Enter" || e.key === ",") {
+			const plainEnter = e.key === "Enter" && !e.metaKey && !e.ctrlKey;
+			if (plainEnter && showList && suggestions[activeIndex]) {
+				e.preventDefault();
+				selectSuggestion(suggestions[activeIndex].email);
+			} else if (draft.trim()) {
 				e.preventDefault();
 				// Note: a Cmd/Ctrl+Enter still bubbles to the panel's send handler
 				// after this commit, so "type address, hit ⌘↵" sends in one stroke.
@@ -54,7 +93,7 @@ export function ComposeRecipientField({
 	};
 
 	return (
-		<div className="flex min-h-9 shrink-0 items-center gap-2 border-b px-4 py-1.5">
+		<div className="relative flex min-h-9 shrink-0 items-center gap-2 border-b px-4 py-1.5">
 			<label
 				htmlFor={inputId}
 				className="w-7 shrink-0 cursor-text text-muted-foreground text-sm"
@@ -89,19 +128,42 @@ export function ComposeRecipientField({
 				<input
 					id={inputId}
 					type="text"
+					role="combobox"
 					aria-label={`${label} recipients`}
+					aria-expanded={showList}
+					aria-controls={listId}
+					aria-autocomplete="list"
+					aria-activedescendant={showList ? optionId(activeIndex) : undefined}
 					// biome-ignore lint/a11y/noAutofocus: focusing the To field on open is the expected compose behavior.
 					autoFocus={autoFocus}
 					value={draft}
-					onChange={(e) => setDraft(e.target.value)}
+					onChange={(e) => {
+						setDraft(e.target.value);
+						setListOpen(true);
+						setActiveIndex(0);
+					}}
 					onKeyDown={handleKeyDown}
-					onBlur={() => draft.trim() && commitDraft(draft)}
+					onBlur={() => {
+						if (draft.trim()) commitDraft(draft);
+						else setListOpen(false);
+					}}
 					autoComplete="off"
 					spellCheck={false}
 					className="h-6 min-w-[120px] flex-1 bg-transparent text-sm outline-none placeholder:text-muted-foreground/60"
 				/>
 			</div>
 			{trailing}
+
+			{showList && (
+				<ComposeRecipientSuggestions
+					id={listId}
+					suggestions={suggestions}
+					activeIndex={activeIndex}
+					optionId={optionId}
+					onSelect={selectSuggestion}
+					onHighlight={setActiveIndex}
+				/>
+			)}
 		</div>
 	);
 }

@@ -1,7 +1,15 @@
 import { fireEvent, render, screen } from "@testing-library/react";
-import { beforeEach, describe, expect, it } from "vitest";
+import { beforeEach, describe, expect, it, vi } from "vitest";
 import { useEmailUIStore } from "../api/store";
 import { ComposePanel } from "../components/compose/compose-panel";
+
+// The recipient fields fetch contact suggestions through React Query; these
+// tests exercise the panel itself, so stub the hook to keep renders
+// provider-free and offline. (A factory mock, not importOriginal — the real
+// module's import chain reaches the Prisma client, which can't load in jsdom.)
+vi.mock("../api/queries", () => ({
+	useRecipientSuggestions: () => ({ data: [] }),
+}));
 
 /** Types a recipient into the given field and commits it with Enter. */
 function addRecipient(fieldLabel: string, email: string) {
