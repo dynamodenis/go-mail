@@ -54,7 +54,7 @@ export function ComposeRecipientField({
 	};
 
 	return (
-		<div className="flex min-h-9 items-center gap-2 border-b px-4 py-1.5">
+		<div className="flex min-h-9 shrink-0 items-center gap-2 border-b px-4 py-1.5">
 			<label
 				htmlFor={inputId}
 				className="w-7 shrink-0 cursor-text text-muted-foreground text-sm"

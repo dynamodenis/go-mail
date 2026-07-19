@@ -91,4 +91,30 @@ describe("ComposePanel", () => {
 		fireEvent.click(screen.getByRole("button", { name: "Close" }));
 		expect(useEmailUIStore.getState().composeOpen).toBe(false);
 	});
+
+	it("resizes the window with arrow keys on the resize grip", () => {
+		render(<ComposePanel />);
+		const dialog = screen.getByRole("dialog", { name: "New message" });
+		const grip = screen.getByRole("button", {
+			name: /resize composer/i,
+		});
+		const initialWidth = dialog.style.getPropertyValue("--compose-w");
+
+		fireEvent.keyDown(grip, { key: "ArrowRight" });
+
+		expect(dialog.style.getPropertyValue("--compose-w")).not.toBe(initialWidth);
+	});
+
+	it("never resizes below the minimum size", () => {
+		render(<ComposePanel />);
+		const dialog = screen.getByRole("dialog", { name: "New message" });
+		const grip = screen.getByRole("button", { name: /resize composer/i });
+
+		// Shrink far past the floor — width steps 32px from 680, floor is 480.
+		for (let i = 0; i < 20; i++) {
+			fireEvent.keyDown(grip, { key: "ArrowLeft" });
+		}
+
+		expect(dialog.style.getPropertyValue("--compose-w")).toBe("480px");
+	});
 });

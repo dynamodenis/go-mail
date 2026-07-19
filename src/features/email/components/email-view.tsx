@@ -1,6 +1,7 @@
 import { useEffect } from "react";
 import { useEmailUIStore } from "../api/store";
 import type { FolderRole } from "../types";
+import { ComposeFab } from "./compose/compose-fab";
 import { ComposePanel } from "./compose/compose-panel";
 import { ThreadDetailPanel } from "./thread-detail/thread-detail-panel";
 import { ThreadListPanel } from "./thread-list/thread-list-panel";
@@ -42,8 +43,10 @@ export function EmailView({ folderId, folderRole }: EmailViewProps) {
 				<ThreadDetailPanel className="hidden min-w-0 md:flex md:flex-[1_1_0]" />
 			</div>
 			{/* Docked bottom-right; stays mounted across folder switches so an
-			    in-progress draft survives navigating the mailbox. */}
+			    in-progress draft survives navigating the mailbox. The FAB is the
+			    mobile stand-in for the sidebar Compose button (hidden below md). */}
 			<ComposePanel />
+			<ComposeFab />
 		</>
 	);
 }
