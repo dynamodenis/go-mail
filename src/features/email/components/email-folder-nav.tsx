@@ -5,6 +5,7 @@ import { useState } from "react";
 import { useEmailFolders } from "../api/queries";
 import { type EmailFolderItem, PRIMARY_FOLDER_ROLES } from "../types";
 import { buildLabelTree } from "../utils/label-tree";
+import { ComposeButton } from "./compose/compose-button";
 import { FolderLink, isFolderActive, rowClass } from "./folder-link";
 import { LabelTree } from "./label-tree";
 
@@ -54,7 +55,15 @@ export function EmailFolderNav() {
 	const [moreOpen, setMoreOpen] = useState<boolean | null>(null);
 	const [expandedLabels, setExpandedLabels] = useState<Set<string>>(new Set());
 
-	if (isLoading) return <FolderNavSkeleton />;
+	if (isLoading)
+		return (
+			<div className="space-y-1">
+				<ComposeButton className="mb-3" />
+				<FolderNavSkeleton />
+			</div>
+		);
+	// Disconnected mailbox — no folders and nowhere to send from, so the compose
+	// button hides along with the nav (the connect CTA lives in the main pane).
 	if (isError || !folders?.length) return null;
 
 	const system = folders.filter((f) => f.system);
@@ -79,6 +88,7 @@ export function EmailFolderNav() {
 
 	return (
 		<div className="space-y-1">
+			<ComposeButton className="mb-3" />
 			{primary.map((folder) => (
 				<SystemFolderLink key={folder.id} folder={folder} pathname={pathname} />
 			))}

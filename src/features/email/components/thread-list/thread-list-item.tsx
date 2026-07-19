@@ -126,10 +126,7 @@ export function ThreadListItem({
 
 			{/* Hover/focus action toolbar, overlaid on the date slot. */}
 			<span className="-translate-y-1/2 absolute top-1/2 right-3 hidden items-center gap-0.5 group-focus-within:flex group-hover:flex">
-				<RowAction
-					label="Done"
-					onClick={onDone}
-					>
+				<RowAction label="Done" onClick={onDone}>
 					<Check className="size-3.5" />
 				</RowAction>
 				<RowAction

@@ -201,12 +201,12 @@ export async function getFolders(grantId: string): Promise<EmailFolderItem[]> {
 			});
 		}
 		return items.sort((a, b) => {
-				// System folders before user labels.
-				if (a.system !== b.system) return a.system ? -1 : 1;
-				// Within system, the deliberate Gmail order; labels by name.
-				const byRole = SYSTEM_ROLE_ORDER[a.role] - SYSTEM_ROLE_ORDER[b.role];
-				return byRole !== 0 ? byRole : a.name.localeCompare(b.name);
-			});
+			// System folders before user labels.
+			if (a.system !== b.system) return a.system ? -1 : 1;
+			// Within system, the deliberate Gmail order; labels by name.
+			const byRole = SYSTEM_ROLE_ORDER[a.role] - SYSTEM_ROLE_ORDER[b.role];
+			return byRole !== 0 ? byRole : a.name.localeCompare(b.name);
+		});
 	} catch (error) {
 		if (error instanceof AppError) throw error;
 		throw new AppError(EMAIL_ERROR.FETCH_FAILED, "Couldn't load your folders.");

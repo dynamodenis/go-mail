@@ -1,6 +1,7 @@
 import { useEffect } from "react";
 import { useEmailUIStore } from "../api/store";
 import type { FolderRole } from "../types";
+import { ComposePanel } from "./compose/compose-panel";
 import { ThreadDetailPanel } from "./thread-detail/thread-detail-panel";
 import { ThreadListPanel } from "./thread-list/thread-list-panel";
 
@@ -25,19 +26,24 @@ export function EmailView({ folderId, folderRole }: EmailViewProps) {
 	}, [folderId, setSelectedThread, setPreviewThread]);
 
 	return (
-		// Clear the hover-preview only when the cursor leaves BOTH panes, so a
-		// previewed thread persists while the cursor moves into the reading pane
-		// to scroll it. Leaving the whole view reverts to the selected thread.
-		<div
-			className="flex h-full overflow-hidden md:gap-2"
-			onMouseLeave={() => setPreviewThread(null)}
-		>
-			<ThreadListPanel
-				folderId={folderId}
-				folderRole={folderRole}
-				className="min-w-0 flex-1 md:flex-[3_1_0]"
-			/>
-			<ThreadDetailPanel className="hidden min-w-0 md:flex md:flex-[1_1_0]" />
-		</div>
+		<>
+			{/* Clear the hover-preview only when the cursor leaves BOTH panes, so a
+			    previewed thread persists while the cursor moves into the reading
+			    pane to scroll it. Leaving the whole view reverts to the selection. */}
+			<div
+				className="flex h-full overflow-hidden md:gap-2"
+				onMouseLeave={() => setPreviewThread(null)}
+			>
+				<ThreadListPanel
+					folderId={folderId}
+					folderRole={folderRole}
+					className="min-w-0 flex-1 md:flex-[3_1_0]"
+				/>
+				<ThreadDetailPanel className="hidden min-w-0 md:flex md:flex-[1_1_0]" />
+			</div>
+			{/* Docked bottom-right; stays mounted across folder switches so an
+			    in-progress draft survives navigating the mailbox. */}
+			<ComposePanel />
+		</>
 	);
 }
