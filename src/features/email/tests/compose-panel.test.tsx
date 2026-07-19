@@ -11,6 +11,14 @@ vi.mock("../api/queries", () => ({
 	useRecipientSuggestions: () => ({ data: [] }),
 }));
 
+// The From row lists connected Nylas mailboxes via the settings feature; with
+// zero/one account it renders nothing, which is the panel's default state here.
+vi.mock("@/features/settings/api/queries", () => ({
+	useNylasConnection: () => ({
+		data: { configured: true, accounts: [] },
+	}),
+}));
+
 /** Types a recipient into the given field and commits it with Enter. */
 function addRecipient(fieldLabel: string, email: string) {
 	const input = screen.getByLabelText(fieldLabel);

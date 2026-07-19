@@ -10,6 +10,7 @@ import type {
 } from "react";
 import { useCallback, useRef, useState } from "react";
 import { useEmailUIStore } from "../../api/store";
+import { ComposeFromField } from "./compose-from-field";
 import {
 	ComposeRecipientField,
 	EMAIL_PATTERN,
@@ -67,6 +68,10 @@ export function ComposePanel() {
 	const [showBcc, setShowBcc] = useState(false);
 	const [subject, setSubject] = useState("");
 	const [body, setBody] = useState("");
+	// Which connected mailbox to send from; null = the primary account. Only an
+	// account id ever lives client-side — the send server function resolves it
+	// to a grant after verifying ownership.
+	const [fromAccountId, setFromAccountId] = useState<string | null>(null);
 
 	// User-chosen window size (md+ only — mobile is always a full-width sheet).
 	// Survives close/reopen since the panel stays mounted in EmailView.
@@ -81,8 +86,8 @@ export function ComposePanel() {
 	// ⌘↵ from a recipient input commits the typed address in the same keystroke;
 	// that state lands after this render, so send reads the draft through a ref
 	// (refreshed every render) one tick later instead of a stale closure.
-	const draftRef = useRef({ to, cc, bcc, subject, body });
-	draftRef.current = { to, cc, bcc, subject, body };
+	const draftRef = useRef({ to, cc, bcc, subject, body, fromAccountId });
+	draftRef.current = { to, cc, bcc, subject, body, fromAccountId };
 
 	const resetDraft = useCallback(() => {
 		setTo([]);
@@ -92,6 +97,7 @@ export function ComposePanel() {
 		setShowBcc(false);
 		setSubject("");
 		setBody("");
+		setFromAccountId(null);
 	}, []);
 
 	// Stubbed for now — the Nylas send mutation isn't wired up yet. Sending
@@ -226,6 +232,10 @@ export function ComposePanel() {
 								{/* Fields + body scroll together if the window is dragged
 								    smaller than its content. */}
 								<div className="flex min-h-0 flex-1 flex-col overflow-y-auto">
+									<ComposeFromField
+										fromAccountId={fromAccountId}
+										onChange={setFromAccountId}
+									/>
 									<ComposeRecipientField
 										label="To"
 										recipients={to}
