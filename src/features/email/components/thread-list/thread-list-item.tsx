@@ -81,7 +81,7 @@ export function ThreadListItem({
 				)}
 			>
 				{/* Star / unread indicator */}
-				<span className="flex w-3 shrink-0 justify-center">
+				<span className="flex w-2 shrink-0 justify-center">
 					{thread.starred ? (
 						<Star className="size-3 fill-yellow-400 text-yellow-400" />
 					) : thread.unread ? (
@@ -115,9 +115,10 @@ export function ThreadListItem({
 				</span>
 
 				{/* Attachment + date — hidden on hover to make room for the toolbar,
-				    and widened to the toolbar's footprint (5 size-6 buttons + gaps =
-				    w-32) so the snippet truncates instead of running under the icons. */}
-				<span className="flex w-[64px] shrink-0 items-center justify-end gap-1.5 text-muted-foreground text-xs group-focus-within:invisible group-focus-within:w-32 group-hover:invisible group-hover:w-32">
+				    and widened past the toolbar's footprint (5 size-6 buttons + gaps ≈
+				    128px, so w-36 leaves clearance) so the snippet truncates instead of
+				    running under the icons. */}
+				<span className="flex w-[64px] shrink-0 items-center justify-end gap-1.5 text-muted-foreground text-xs group-focus-within:invisible group-focus-within:w-36 group-hover:invisible group-hover:w-36">
 					{thread.hasAttachments && <Paperclip className="size-3.5" />}
 					<span className="tabular-nums">{formatThreadDate(thread.date)}</span>
 				</span>
