@@ -8,6 +8,7 @@ import {
 	useQuery,
 	useQueryClient,
 } from "@tanstack/react-query";
+import type { ComposeDraftValues } from "../hooks/use-compose-draft";
 import {
 	EMAIL_CONNECT_CODES,
 	type EmailThread,
@@ -18,6 +19,7 @@ import {
 	getEmailFolders,
 	getEmailThreadDetail,
 	getEmailThreads,
+	sendEmail,
 } from "./server";
 
 const STALE_TIME = 30_000; // 30s — inbox data changes frequently
@@ -173,5 +175,32 @@ export function useRecipientSuggestions(search: string) {
 		enabled: trimmed.length > 0,
 		staleTime: SUGGESTIONS_STALE_TIME,
 		placeholderData: keepPreviousData,
+	});
+}
+
+/** Sends the composed message. Attachments travel as raw Files in FormData
+ *  beside a JSON `payload` field — no base64 detour. Callers pass per-call
+ *  onError to restore the draft; the global mutation-cache toast reports the
+ *  failure. On success the thread lists and folder badges are refreshed so
+ *  Sent reflects the new message. */
+export function useSendEmail(queryClient?: QueryClient) {
+	const defaultClient = useQueryClient();
+	const client = queryClient ?? defaultClient;
+
+	return useMutation({
+		mutationFn: async (draft: ComposeDraftValues) => {
+			const { attachments, ...fields } = draft;
+			const form = new FormData();
+			form.set("payload", JSON.stringify(fields));
+			for (const file of attachments) {
+				form.append("attachments", file);
+			}
+			return unwrap(await sendEmail({ data: form }));
+		},
+		onSuccess: () => {
+			client.invalidateQueries({ queryKey: emailKeys.threadLists() });
+			client.invalidateQueries({ queryKey: emailKeys.folders() });
+		},
+		meta: { errorMessage: "Couldn't send your message." },
 	});
 }

@@ -1,14 +1,14 @@
-import { createServerFn } from "@tanstack/react-start";
-import { setCookie } from "@tanstack/react-start/server";
-import { requireUserId } from "@/lib/require-user";
-import { handleServerError, AppError } from "@/lib/errors";
+import { AppError, handleServerError } from "@/lib/errors";
 import {
+	NYLAS_STATE_COOKIE,
 	buildNylasAuthUrl,
 	isNylasConfigured,
-	NYLAS_STATE_COOKIE,
 } from "@/lib/nylas";
+import { requireUserId } from "@/lib/require-user";
+import { createServerFn } from "@tanstack/react-start";
+import { setCookie } from "@tanstack/react-start/server";
+import { type NylasAccountIdInput, nylasAccountIdSchema } from "../types";
 import * as service from "./service";
-import { nylasAccountIdSchema, type NylasAccountIdInput } from "../types";
 
 /**
  * Get the current user's Nylas connection status.
@@ -65,7 +65,9 @@ export const startNylasConnect = createServerFn({ method: "POST" }).handler(
  * @throws NYLAS_ACCOUNT_NOT_FOUND
  */
 export const disconnectNylas = createServerFn({ method: "POST" })
-	.inputValidator((data: NylasAccountIdInput) => nylasAccountIdSchema.parse(data))
+	.inputValidator((data: NylasAccountIdInput) =>
+		nylasAccountIdSchema.parse(data),
+	)
 	.handler(async ({ data }) => {
 		try {
 			const userId = await requireUserId();
@@ -81,7 +83,9 @@ export const disconnectNylas = createServerFn({ method: "POST" })
  * @throws NYLAS_ACCOUNT_NOT_FOUND
  */
 export const setPrimaryNylasAccount = createServerFn({ method: "POST" })
-	.inputValidator((data: NylasAccountIdInput) => nylasAccountIdSchema.parse(data))
+	.inputValidator((data: NylasAccountIdInput) =>
+		nylasAccountIdSchema.parse(data),
+	)
 	.handler(async ({ data }) => {
 		try {
 			const userId = await requireUserId();

@@ -117,3 +117,31 @@ export async function listThreadMessages(
 	});
 	return data;
 }
+
+/** An outgoing attachment ready for the Nylas SDK. Buffers work at any size —
+ *  the SDK flips to a multipart request itself once the payload passes 3 MB. */
+export interface OutgoingAttachment {
+	filename: string;
+	contentType: string;
+	content: Buffer;
+	size: number;
+}
+
+/** Sends a message from the mailbox behind `grantId`. */
+export async function sendMessage(
+	grantId: string,
+	message: {
+		to: { email: string }[];
+		cc?: { email: string }[];
+		bcc?: { email: string }[];
+		subject: string;
+		body: string;
+		attachments?: OutgoingAttachment[];
+	},
+): Promise<Message> {
+	const { data } = await nylas.messages.send({
+		identifier: grantId,
+		requestBody: message,
+	});
+	return data;
+}

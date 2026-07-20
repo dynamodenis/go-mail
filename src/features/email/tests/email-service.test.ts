@@ -10,6 +10,7 @@ vi.mock("../api/repository", () => ({
 	findThread: vi.fn(),
 	listThreadMessages: vi.fn(),
 	updateThreadFolders: vi.fn(),
+	sendMessage: vi.fn(),
 }));
 
 import * as repo from "../api/repository";
@@ -327,5 +328,58 @@ describe("service.getThreadDetail", () => {
 
 		expect(err).toBeInstanceOf(AppError);
 		expect(err.code).toBe("EMAIL_FETCH_FAILED");
+	});
+});
+
+describe("sendEmail", () => {
+	const payload = {
+		to: ["ada@lovelace.dev"],
+		cc: [],
+		bcc: [],
+		subject: "Hello",
+		body: "Line 1\nLine <2>",
+		fromAccountId: null,
+	};
+
+	beforeEach(() => {
+		mockRepo.sendMessage.mockResolvedValue({ id: "m1" });
+	});
+
+	it("maps recipients and renders the plain-text body as escaped HTML", async () => {
+		await service.sendEmail(GRANT, payload, []);
+
+		const [grant, message] = mockRepo.sendMessage.mock.calls[0];
+		expect(grant).toBe(GRANT);
+		expect(message.to).toEqual([{ email: "ada@lovelace.dev" }]);
+		// Empty cc/bcc are omitted, not sent as empty arrays.
+		expect(message.cc).toBeUndefined();
+		expect(message.bcc).toBeUndefined();
+		expect(message.subject).toBe("Hello");
+		// Newlines become <br>; angle brackets are escaped, not interpreted.
+		expect(message.body).toBe("Line 1<br>Line &lt;2&gt;");
+	});
+
+	it("converts picked Files into buffered attachments", async () => {
+		const file = new File(["hello"], "notes.txt", { type: "text/plain" });
+
+		await service.sendEmail(GRANT, payload, [file]);
+
+		const [, message] = mockRepo.sendMessage.mock.calls[0];
+		expect(message.attachments).toHaveLength(1);
+		expect(message.attachments[0]).toMatchObject({
+			filename: "notes.txt",
+			contentType: "text/plain",
+			size: 5,
+		});
+		expect(message.attachments[0].content.toString("utf8")).toBe("hello");
+	});
+
+	it("maps a provider error to EMAIL_SEND_FAILED", async () => {
+		mockRepo.sendMessage.mockRejectedValue(new Error("boom"));
+
+		const err = await service.sendEmail(GRANT, payload, []).catch((e) => e);
+
+		expect(err).toBeInstanceOf(AppError);
+		expect(err.code).toBe("EMAIL_SEND_FAILED");
 	});
 });

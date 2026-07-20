@@ -56,7 +56,10 @@ export async function createNylasAccount(
 }
 
 /** Refreshes the grant on an existing mailbox (reconnect). */
-export async function updateNylasAccountGrant(accountId: string, grantId: string) {
+export async function updateNylasAccountGrant(
+	accountId: string,
+	grantId: string,
+) {
 	return prisma.nylasAccount.update({
 		where: { id: accountId },
 		data: { grantId },
@@ -106,7 +109,10 @@ export async function findOldestNylasAccount(userId: string) {
 /** Atomically makes one mailbox primary and clears the flag on the rest. The
  *  transaction keeps the "exactly one primary" invariant intact. Scoped by
  *  userId so a foreign account id can never be promoted. */
-export async function setPrimaryNylasAccount(userId: string, accountId: string) {
+export async function setPrimaryNylasAccount(
+	userId: string,
+	accountId: string,
+) {
 	return prisma.$transaction([
 		prisma.nylasAccount.updateMany({
 			where: { userId, isPrimary: true },
@@ -117,4 +123,17 @@ export async function setPrimaryNylasAccount(userId: string, accountId: string) 
 			data: { isPrimary: true },
 		}),
 	]);
+}
+
+/** Grant id for one specific account, scoped to its owner — returns null when
+ *  the account doesn't exist or belongs to someone else. */
+export async function findGrantIdByAccountId(
+	userId: string,
+	accountId: string,
+) {
+	const account = await prisma.nylasAccount.findFirst({
+		where: { id: accountId, userId },
+		select: { grantId: true },
+	});
+	return account?.grantId ?? null;
 }

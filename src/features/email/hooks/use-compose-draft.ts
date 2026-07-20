@@ -1,12 +1,8 @@
 import { useCallback, useRef, useState } from "react";
+import { MAX_ATTACHMENT_TOTAL_BYTES } from "../types";
 import { EMAIL_PATTERN } from "../utils/email-format";
 
-/** Nylas caps multipart send requests at 25 MB total (the plain-JSON path is
- *  smaller still, ~3 MB, but the Node SDK switches to multipart automatically
- *  once attachments push past that). The client enforces this ceiling for
- *  instant feedback; the send server function re-checks it — never trust the
- *  client. */
-export const MAX_ATTACHMENT_TOTAL_BYTES = 25 * 1024 * 1024;
+export { MAX_ATTACHMENT_TOTAL_BYTES };
 
 export interface ComposeDraftValues {
 	to: string[];
@@ -101,6 +97,21 @@ export function useComposeDraft() {
 		setAttachmentError(null);
 	}, []);
 
+	/** Puts a snapshot back into the composer — used when a send fails after
+	 *  the window already closed, so the user never loses a written email. */
+	const restore = useCallback((values: ComposeDraftValues) => {
+		setTo(values.to);
+		setCc(values.cc);
+		setBcc(values.bcc);
+		setShowCc(values.cc.length > 0);
+		setShowBcc(values.bcc.length > 0);
+		setSubject(values.subject);
+		setBody(values.body);
+		setFromAccountId(values.fromAccountId);
+		setAttachments(values.attachments);
+		setAttachmentError(null);
+	}, []);
+
 	const canSend = [...to, ...cc, ...bcc].some((r) => EMAIL_PATTERN.test(r));
 
 	return {
@@ -126,6 +137,7 @@ export function useComposeDraft() {
 		removeAttachment,
 		draftRef,
 		reset,
+		restore,
 		canSend,
 	};
 }

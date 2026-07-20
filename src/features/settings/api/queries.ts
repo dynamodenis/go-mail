@@ -1,11 +1,11 @@
+import { unwrap } from "@/lib/server-result";
 import {
-	useQuery,
-	useMutation,
-	useQueryClient,
 	type QueryClient,
 	type UseQueryOptions,
+	useMutation,
+	useQuery,
+	useQueryClient,
 } from "@tanstack/react-query";
-import { unwrap } from "@/lib/server-result";
 import * as server from "./server";
 
 export const settingsKeys = {

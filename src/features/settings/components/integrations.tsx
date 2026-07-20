@@ -1,12 +1,12 @@
-import { useEffect } from "react";
-import { toast } from "@/components/ui/sooner";
-import { LoadingState } from "@/components/shared/loading-state";
 import { ErrorState } from "@/components/shared/error-state";
+import { LoadingState } from "@/components/shared/loading-state";
+import { toast } from "@/components/ui/sooner";
+import { useEffect } from "react";
 import {
-	useNylasConnection,
-	useStartNylasConnect,
 	useDisconnectNylas,
+	useNylasConnection,
 	useSetPrimaryNylasAccount,
+	useStartNylasConnect,
 } from "../api/queries";
 import { NylasConnectionCard } from "./nylas-connection-card";
 

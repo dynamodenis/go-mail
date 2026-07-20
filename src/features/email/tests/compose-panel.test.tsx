@@ -4,11 +4,13 @@ import { useEmailUIStore } from "../api/store";
 import { ComposePanel } from "../components/compose/compose-panel";
 
 // The recipient fields fetch contact suggestions through React Query; these
-// tests exercise the panel itself, so stub the hook to keep renders
+// tests exercise the panel itself, so stub the hooks to keep renders
 // provider-free and offline. (A factory mock, not importOriginal — the real
 // module's import chain reaches the Prisma client, which can't load in jsdom.)
+const { sendMutate } = vi.hoisted(() => ({ sendMutate: vi.fn() }));
 vi.mock("../api/queries", () => ({
 	useRecipientSuggestions: () => ({ data: [] }),
+	useSendEmail: () => ({ mutate: sendMutate }),
 }));
 
 // The From row lists connected Nylas mailboxes via the settings feature; with
@@ -28,6 +30,7 @@ function addRecipient(fieldLabel: string, email: string) {
 
 describe("ComposePanel", () => {
 	beforeEach(() => {
+		sendMutate.mockReset();
 		useEmailUIStore.setState({ composeOpen: true, composeMinimized: false });
 	});
 
@@ -174,5 +177,34 @@ describe("ComposePanel", () => {
 
 		expect(screen.getByRole("alert")).toHaveTextContent(/25 MB/);
 		expect(screen.queryByText("raw-footage.mov")).not.toBeInTheDocument();
+	});
+
+	it("sends the draft and closes the composer immediately", () => {
+		render(<ComposePanel />);
+		addRecipient("To recipients", "ada@lovelace.dev");
+
+		fireEvent.click(screen.getByRole("button", { name: /send/i }));
+
+		expect(sendMutate).toHaveBeenCalledTimes(1);
+		expect(sendMutate.mock.calls[0][0]).toMatchObject({
+			to: ["ada@lovelace.dev"],
+		});
+		expect(useEmailUIStore.getState().composeOpen).toBe(false);
+	});
+
+	it("restores the draft and reopens the composer when send fails", () => {
+		sendMutate.mockImplementation((_draft, options) => {
+			options.onError(new Error("provider down"));
+			options.onSettled();
+		});
+		render(<ComposePanel />);
+		addRecipient("To recipients", "ada@lovelace.dev");
+
+		fireEvent.click(screen.getByRole("button", { name: /send/i }));
+
+		expect(useEmailUIStore.getState().composeOpen).toBe(true);
+		expect(
+			screen.getByRole("button", { name: "Remove ada@lovelace.dev" }),
+		).toBeInTheDocument();
 	});
 });

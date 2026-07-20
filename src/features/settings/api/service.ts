@@ -1,10 +1,7 @@
 import { AppError } from "@/lib/errors";
-import {
-	exchangeCodeForGrant,
-	isNylasConfigured,
-} from "@/lib/nylas";
-import * as repo from "./repository";
+import { exchangeCodeForGrant, isNylasConfigured } from "@/lib/nylas";
 import type { NylasConnection } from "../types";
+import * as repo from "./repository";
 
 /** Business logic for the settings feature. No HTTP or Prisma concerns. */
 
@@ -121,4 +118,15 @@ export async function setPrimaryNylasAccount(
 
 	await repo.setPrimaryNylasAccount(userId, accountId);
 	return getNylasConnection(userId);
+}
+
+/** The grant id behind a specific connected account — null unless the account
+ *  exists AND belongs to this user. This ownership check is what stops one
+ *  user sending through another user's mailbox; like getPrimaryGrantId, the
+ *  grant never leaves the server. */
+export async function getGrantIdForAccount(
+	userId: string,
+	accountId: string,
+): Promise<string | null> {
+	return repo.findGrantIdByAccountId(userId, accountId);
 }

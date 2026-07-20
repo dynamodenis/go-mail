@@ -7,7 +7,7 @@ import {
 	CardHeader,
 	CardTitle,
 } from "@/components/ui/card";
-import { CheckCircle2, ExternalLink, Mail, Plus, PlugZap } from "lucide-react";
+import { CheckCircle2, ExternalLink, Mail, PlugZap, Plus } from "lucide-react";
 import type { NylasConnection } from "../types";
 import { NylasAccountRow } from "./nylas-account-row";
 
@@ -132,7 +132,9 @@ function NotConfiguredNotice() {
 				NYLAS_CLIENT_ID
 			</code>
 			,{" "}
-			<code className="rounded bg-muted px-1 py-0.5 text-xs">NYLAS_API_KEY</code>{" "}
+			<code className="rounded bg-muted px-1 py-0.5 text-xs">
+				NYLAS_API_KEY
+			</code>{" "}
 			and{" "}
 			<code className="rounded bg-muted px-1 py-0.5 text-xs">
 				NYLAS_REDIRECT_URI

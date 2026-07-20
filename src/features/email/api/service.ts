@@ -14,6 +14,7 @@ import {
 	type FolderRole,
 	ROLE_LABEL,
 	SYSTEM_ROLE_ORDER,
+	type SendEmailPayload,
 } from "../types";
 import * as repo from "./repository";
 
@@ -302,5 +303,55 @@ export async function getThreadDetail(
 	} catch (error) {
 		if (error instanceof AppError) throw error;
 		throw new AppError(EMAIL_ERROR.FETCH_FAILED, "Couldn't load this thread.");
+	}
+}
+
+// ── Sending ─────────────────────────────────────────────────────────────────
+
+/** The composer authors plain text, but providers expect HTML bodies: escape
+ *  everything, then turn newlines into <br>. DOMPurify afterwards is belt and
+ *  braces (CLAUDE.md: sanitize before it leaves the app). */
+function renderOutgoingBody(text: string): string {
+	const escaped = text
+		.replace(/&/g, "&amp;")
+		.replace(/</g, "&lt;")
+		.replace(/>/g, "&gt;");
+	return DOMPurify.sanitize(escaped.replace(/\r?\n/g, "<br>"));
+}
+
+/** Sends a message from the given grant. Files are converted to Buffers here —
+ *  the repository hands them to the Nylas SDK, which switches to multipart
+ *  once the payload passes 3 MB (25 MB hard cap, validated by the server
+ *  layer before this runs).
+ *  @throws EMAIL_SEND_FAILED */
+export async function sendEmail(
+	grantId: string,
+	input: SendEmailPayload,
+	files: File[],
+): Promise<void> {
+	const toRecipient = (email: string) => ({ email });
+	const attachments = await Promise.all(
+		files.map(async (file) => ({
+			filename: file.name,
+			contentType: file.type || "application/octet-stream",
+			content: Buffer.from(await file.arrayBuffer()),
+			size: file.size,
+		})),
+	);
+
+	try {
+		await repo.sendMessage(grantId, {
+			to: input.to.map(toRecipient),
+			...(input.cc.length ? { cc: input.cc.map(toRecipient) } : {}),
+			...(input.bcc.length ? { bcc: input.bcc.map(toRecipient) } : {}),
+			subject: input.subject,
+			body: renderOutgoingBody(input.body),
+			...(attachments.length ? { attachments } : {}),
+		});
+	} catch {
+		throw new AppError(
+			EMAIL_ERROR.SEND_FAILED,
+			"Couldn't send the message. Please try again.",
+		);
 	}
 }

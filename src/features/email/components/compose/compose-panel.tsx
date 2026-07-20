@@ -3,6 +3,7 @@ import { cn } from "@/lib/utils";
 import { GripVertical, Minus, X } from "lucide-react";
 import type { CSSProperties, DragEvent, KeyboardEvent } from "react";
 import { useCallback, useRef, useState } from "react";
+import { useSendEmail } from "../../api/queries";
 import { useEmailUIStore } from "../../api/store";
 import { useComposeDraft } from "../../hooks/use-compose-draft";
 import { useComposeResize } from "../../hooks/use-compose-resize";
@@ -24,28 +25,53 @@ export function ComposePanel() {
 	const open = useEmailUIStore((s) => s.composeOpen);
 	const minimized = useEmailUIStore((s) => s.composeMinimized);
 	const closeCompose = useEmailUIStore((s) => s.closeCompose);
+	const openCompose = useEmailUIStore((s) => s.openCompose);
 	const toggleMinimized = useEmailUIStore((s) => s.toggleComposeMinimized);
 
 	const draft = useComposeDraft();
-	const { draftRef, reset: resetDraft } = draft;
+	const { draftRef, reset: resetDraft, restore: restoreDraft } = draft;
 	const resize = useComposeResize();
+	const { mutate: sendMessage } = useSendEmail();
 
 	// Drag-and-drop highlight; a depth counter because dragenter/dragleave fire
 	// for every child the cursor crosses.
 	const [dragActive, setDragActive] = useState(false);
 	const dragDepth = useRef(0);
 
-	// Stubbed for now — the Nylas send mutation isn't wired up yet. When it
-	// lands, this lifts `draftRef.current` into FormData (fields + File objects
-	// straight from `attachments`) for the send server function, which resolves
-	// fromAccountId → grant, re-validates sizes, and calls the Nylas SDK.
+	// Guards double-⌘↵ in the same tick — state hasn't reset yet, so without
+	// this the snapshot would send twice.
+	const sendInFlight = useRef(false);
+
+	// Superhuman-style send: the window closes instantly and the request runs
+	// behind it. On failure the draft is restored and the composer reopens — a
+	// written email must never be lost to a network blip (the global mutation
+	// toast reports the error itself).
 	const performSend = useCallback(() => {
-		const current = draftRef.current;
-		const recipients = [...current.to, ...current.cc, ...current.bcc];
+		if (sendInFlight.current) return;
+		const snapshot = draftRef.current;
+		const recipients = [...snapshot.to, ...snapshot.cc, ...snapshot.bcc];
 		if (!recipients.some((r) => EMAIL_PATTERN.test(r))) return;
+
+		sendInFlight.current = true;
 		resetDraft();
 		closeCompose();
-	}, [draftRef, resetDraft, closeCompose]);
+		sendMessage(snapshot, {
+			onError: () => {
+				restoreDraft(snapshot);
+				openCompose();
+			},
+			onSettled: () => {
+				sendInFlight.current = false;
+			},
+		});
+	}, [
+		draftRef,
+		resetDraft,
+		restoreDraft,
+		closeCompose,
+		openCompose,
+		sendMessage,
+	]);
 
 	if (!open) return null;
 

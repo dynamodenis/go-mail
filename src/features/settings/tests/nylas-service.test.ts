@@ -1,5 +1,5 @@
-import { describe, it, expect, vi, beforeEach } from "vitest";
 import { AppError } from "@/lib/errors";
+import { beforeEach, describe, expect, it, vi } from "vitest";
 
 // Mock the repository (no DB) and the Nylas lib (no network).
 vi.mock("../api/repository", () => ({
@@ -19,13 +19,15 @@ vi.mock("@/lib/nylas", () => ({
 	exchangeCodeForGrant: vi.fn(),
 }));
 
-import * as service from "../api/service";
+import { exchangeCodeForGrant, isNylasConfigured } from "@/lib/nylas";
 import * as repo from "../api/repository";
-import { isNylasConfigured, exchangeCodeForGrant } from "@/lib/nylas";
+import * as service from "../api/service";
 
 const mockRepo = repo as unknown as Record<string, ReturnType<typeof vi.fn>>;
 const mockConfigured = isNylasConfigured as unknown as ReturnType<typeof vi.fn>;
-const mockExchange = exchangeCodeForGrant as unknown as ReturnType<typeof vi.fn>;
+const mockExchange = exchangeCodeForGrant as unknown as ReturnType<
+	typeof vi.fn
+>;
 
 const USER_ID = "user-123";
 const CREATED = new Date("2026-06-01T00:00:00.000Z");

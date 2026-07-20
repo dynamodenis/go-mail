@@ -123,6 +123,8 @@ export const EMAIL_ERROR = {
 	NOT_CONNECTED: "NYLAS_NOT_CONNECTED",
 	FETCH_FAILED: "EMAIL_FETCH_FAILED",
 	UPDATE_FAILED: "EMAIL_UPDATE_FAILED",
+	SEND_FAILED: "EMAIL_SEND_FAILED",
+	RATE_LIMITED: "EMAIL_RATE_LIMITED",
 } as const;
 
 /** Codes that represent "no mailbox to read", surfaced as a CTA, not an error. */
@@ -258,3 +260,32 @@ export interface EmailThreadDetail {
 	participants: EmailParticipant[];
 	messages: EmailThreadMessage[];
 }
+
+// ── Sending ─────────────────────────────────────────────────────────────────
+
+/** Nylas caps multipart send requests at 25 MB total. Enforced client-side for
+ *  instant feedback and re-checked in the send server function. */
+export const MAX_ATTACHMENT_TOTAL_BYTES = 25 * 1024 * 1024;
+
+/** RFC 5322 caps a header line at 998 chars; body cap is a sanity bound. */
+const MAX_SUBJECT_LENGTH = 998;
+const MAX_BODY_LENGTH = 500_000;
+const MAX_RECIPIENTS = 100;
+
+/** The scalar half of a send request — attachments travel beside it in the
+ *  same FormData as raw File entries. */
+export const sendEmailPayloadSchema = z
+	.object({
+		to: z.array(z.string().trim().email()).max(MAX_RECIPIENTS).default([]),
+		cc: z.array(z.string().trim().email()).max(MAX_RECIPIENTS).default([]),
+		bcc: z.array(z.string().trim().email()).max(MAX_RECIPIENTS).default([]),
+		subject: z.string().max(MAX_SUBJECT_LENGTH).default(""),
+		body: z.string().max(MAX_BODY_LENGTH).default(""),
+		/** Which connected mailbox to send from; null = the primary account. The
+		 *  server resolves this to a grant only after checking ownership. */
+		fromAccountId: z.string().uuid().nullable().default(null),
+	})
+	.refine((d) => d.to.length + d.cc.length + d.bcc.length > 0, {
+		message: "At least one recipient is required.",
+	});
+export type SendEmailPayload = z.infer<typeof sendEmailPayloadSchema>;
